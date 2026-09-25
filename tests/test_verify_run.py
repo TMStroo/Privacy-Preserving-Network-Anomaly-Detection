@@ -253,3 +253,34 @@ def test_experiment_directories_are_immutable(tmp_path):
     # The original content is untouched.
     stored = json.loads((first.path / "metrics.json").read_text(encoding="utf-8"))
     assert stored["models"] == ["original"]
+
+
+def test_git_commit_recovers_from_a_transient_git_failure(monkeypatch):
+    """A benchmark can start at the same moment as a commit.
+
+    git rev-parse fails while another process holds the index lock, and
+    recording "unknown" would make the run unreproducible for a reason that has
+    nothing to do with the run. The commit is retried across candidate roots.
+    """
+    from driftguard.experiments import tracking
+
+    calls = {"n": 0}
+
+    class Result:
+        def __init__(self, text):
+            self.stdout = text
+            self.stderr = ""
+            self.returncode = 0
+
+    def flaky_run(cmd, **kwargs):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return Result("")          # index locked, empty output
+        return Result("a" * 40)
+
+    monkeypatch.delenv("DRIFTGUARD_GIT_COMMIT", raising=False)
+    monkeypatch.setattr(tracking.subprocess, "run", flaky_run)
+    root = str(Path(__file__).resolve().parents[1])
+    monkeypatch.setattr(tracking, "_package_root", lambda: root)
+    assert tracking.git_commit(root) == "a" * 40
+    assert calls["n"] >= 2

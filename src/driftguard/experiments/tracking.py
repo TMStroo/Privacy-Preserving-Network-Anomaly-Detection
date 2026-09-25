@@ -11,6 +11,7 @@ import os
 import platform
 import subprocess
 import sys
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -52,14 +53,36 @@ def git_commit(root: str = ".") -> str:
     override = os.environ.get("DRIFTGUARD_GIT_COMMIT", "").strip()
     if override and override != "unknown":
         return override
-    try:
-        out = subprocess.run(
-            ["git", "-C", root, "rev-parse", "HEAD"],
-            capture_output=True, text=True, timeout=15,
-        )
-        return out.stdout.strip() or "unknown"
-    except Exception:
-        return "unknown"
+    # A run is not reproducible without its commit, so a transient failure here
+    # is retried rather than recorded. git rev-parse fails while another process
+    # holds the index lock, which is exactly what happens when a long benchmark
+    # starts at the same moment as a commit.
+    for attempt in range(3):
+        for candidate in (root, os.getcwd(), _package_root()):
+            if not candidate or not os.path.isdir(os.path.join(candidate, ".git")):
+                continue
+            try:
+                out = subprocess.run(
+                    ["git", "-C", candidate, "rev-parse", "HEAD"],
+                    capture_output=True, text=True, timeout=15,
+                )
+            except Exception:
+                continue
+            commit = out.stdout.strip()
+            if len(commit) == 40:
+                return commit
+        time.sleep(0.5 * (attempt + 1))
+    return "unknown"
+
+
+def _package_root() -> str:
+    """The repository that contains the installed package, if there is one."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    for _ in range(6):
+        here = os.path.dirname(here)
+        if os.path.isdir(os.path.join(here, ".git")):
+            return here
+    return ""
 
 
 def file_checksums(paths: List[str]) -> Dict[str, str]:
