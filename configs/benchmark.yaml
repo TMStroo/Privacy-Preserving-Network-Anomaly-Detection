@@ -53,15 +53,15 @@ models:
 drift:
   enabled: true
   reference_period: train
-  # UGR'16 resolves flows to one-second buckets across months of traffic and
-  # UNSW-NB15's capture sessions are days long, so a six-hour window is long
-  # enough to clear the minimum sample count in both yet still resolves
-  # week-to-week movement. Override these in an experiment config to study
-  # sensitivity; the window-size ablation does exactly that.
-  window: 6h
-  stride: 6h
+  # UGR'16 resolves flows to one-second buckets across months of traffic, but
+  # UNSW-NB15's forward period spans under four hours, so a six-hour window
+  # produces no windows at all on the second dataset. One hour clears the
+  # minimum sample count in every period of both datasets; the window-size
+  # ablation varies this to measure sensitivity.
+  window: 1h
+  stride: 1h
   min_samples: 200
-  methods: [ks, wasserstein, psi]
+  methods: [ks, wasserstein, psi, cusum]
   alpha: 0.01
   wasserstein_threshold: 0.10
   psi_threshold: 0.20

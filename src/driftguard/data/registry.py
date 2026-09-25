@@ -1,5 +1,6 @@
 """Dataset adapters and the registry describing each one's provenance."""
 
+import io
 import json
 from typing import Dict
 
@@ -95,6 +96,20 @@ class Ugr16Adapter(DatasetAdapter):
     """
 
     name = "ugr16"
+
+    # The full UGR'16 release is 23 weekly archives totalling roughly 215 GB.
+    # This project uses a documented subset, and results are reported as
+    # subset results - never as full-dataset UGR'16 numbers.
+    #
+    # Two calibration weeks (background traffic only, no attacks) and five test
+    # weeks (background plus attacks). The subset keeps a contiguous run of
+    # test weeks so the forward test is genuinely later traffic:
+    #
+    #   calibration : march_week3, may_week1
+    #   test        : july_week5, august_week1, august_week2, august_week3
+    #
+    # august_week4 and august_week5 are listed but only august_week5 is used;
+    # see SUBSET_NOTES for why the run stops at week 3.
     files = (
         "march_week3_csv.tar.gz",
         "may_week1_csv.tar.gz",
@@ -102,11 +117,51 @@ class Ugr16Adapter(DatasetAdapter):
         "august_week1_csv.tar.gz",
         "august_week2_csv.tar.gz",
         "august_week3_csv.tar.gz",
-        "august_week4_csv.tar.gz",
-        "august_week5_csv.tar.gz",
     )
 
+    CALIBRATION_FILES = ("march_week3_csv.tar.gz", "may_week1_csv.tar.gz")
+    TEST_FILES = (
+        "july_week5_csv.tar.gz",
+        "august_week1_csv.tar.gz",
+        "august_week2_csv.tar.gz",
+        "august_week3_csv.tar.gz",
+    )
+
+    SUBSET_NOTES = {
+        "full_release_size": "~215 GB across 23 weekly archives",
+        "subset_size": "~40 GB across 6 weekly archives",
+        "weeks_used": list(TEST_FILES),
+        "calibration_weeks": list(CALIBRATION_FILES),
+        "why": (
+            "A contiguous run of test weeks is needed so the forward test is "
+            "later traffic. August weeks 1-3 give three consecutive weeks with "
+            "both normal and attack flows, with july_week5 as the earliest "
+            "point and the two calibration weeks providing background-only "
+            "traffic. This covers roughly one month, not the dataset's full "
+            "six-month span."
+        ),
+        "limitations": [
+            "This is a subset, not the full UGR'16 release. No claim is made "
+            "about the weeks that were not downloaded.",
+            "The calibration weeks contain background traffic only, so no model "
+            "is trained on them; they exist to characterise normal behaviour.",
+            "UGR'16 attacks are produced by replaying malware and tools against "
+            "a real ISP link, so attack realism is bounded by that setup.",
+            "The netflow export has no forward/backward direction split, which "
+            "removes a set of features UNSW-NB15 provides.",
+        ],
+    }
+
     # Positional schema of the headerless netflow export, in file order.
+    # Read from the actual files, which are comma separated and carry a leading
+    # blank line. A real row from this subset:
+    #   2016-05-01 00:03:06,4.236,165.131.105.128,42.219.156.211,56428,80,TCP,.AP.S.,0,0,5,677,background
+    # gives thirteen fields: datetime, duration, src, dst, sport, dport,
+    # protocol, flags, tos, tos_field, packets, bytes, label. UGR'16's published
+    # netflow description also lists a 14th attack-name column, which the
+    # archives in this subset do not carry - the reader below names fourteen and
+    # lets pandas fill the absent one, so a future archive that does include it
+    # is read correctly without a schema change.
     NETFLOW_COLUMNS = [
         "timestamp",
         "duration",
@@ -117,9 +172,11 @@ class Ugr16Adapter(DatasetAdapter):
         "protocol",
         "flags",
         "tos",
+        "tos_field",
         "packets",
         "bytes",
         "label",
+        "attack",
     ]
 
     LABEL_MAP = {"background": 0, "blacklist": 1}
@@ -152,27 +209,65 @@ class Ugr16Adapter(DatasetAdapter):
             },
         )
 
+    @staticmethod
+    def _open_archive(path: str):
+        import tarfile
+
+        return tarfile.open(path, "r|gz")
+
     def _read_archive(self, path: str, max_rows: int) -> pd.DataFrame:
-        with tarfile.open(path, "r:gz") as tar:
-            members = [m for m in tar.getmembers() if m.isfile()]
-            if not members:
+        # Stream rather than calling getmembers(): a weekly archive holds one
+        # 12 GB CSV, and building the full member list first means
+        # decompressing the whole thing before a single row is read.
+        with self._open_archive(path) as tar:
+            member = next((m for m in tar if m.isfile()), None)
+            if member is None:
                 raise ValueError(f"Archive contains no data file: {path}")
-            member = members[0]
             handle = tar.extractfile(member)
-            # skip_rows=1 drops the leading blank line some archives carry.
+            # A `r|gz` stream is not seekable and read_csv insists on seeking, so
+            # lines are collected here and handed over as one string. The limit
+            # counts *data* rows: the exports open with a blank line, and a
+            # chunked read can hand back a trailing partial line, so one extra
+            # line is read and the newest complete one is kept.
+            buffer: List[str] = []
+            for line in handle:
+                text = line.decode("utf-8", "replace")
+                if not text.endswith("\n"):
+                    text += "\n"  # complete the last line of a chunked read
+                buffer.append(text)
+                data_lines = sum(1 for b in buffer if b.strip())
+                if max_rows and data_lines > max_rows:
+                    break
+            # The exports open with a blank line, so the first entry is dropped
+            # when it holds no data at all.
+            if buffer and not buffer[0].strip():
+                buffer = buffer[1:]
+            if max_rows:
+                buffer = buffer[:max_rows]
+            # These archives carry thirteen fields. The reader is given all
+            # fourteen names so an archive that does include the documented
+            # attack-name column still lines up, and index_col=False keeps the
+            # short rows from being treated as having an unnamed first column.
             frame = pd.read_csv(
-                handle,
+                io.StringIO("".join(buffer)),
                 names=self.NETFLOW_COLUMNS,
                 header=None,
-                skiprows=1,
-                dtype={"src_ip": str, "dst_ip": str, "protocol": str, "flags": str, "label": str},
-                nrows=max_rows,
+                index_col=False,
+                dtype={"src_ip": str, "dst_ip": str, "protocol": str,
+                       "flags": str, "label": str, "src_port": str,
+                       "dst_port": str, "tos_field": str},
             )
+        if frame.empty:
+            raise ValueError(f"No rows parsed from {path}")
         return self._to_common(frame)
 
     def _to_common(self, frame: pd.DataFrame) -> pd.DataFrame:
         out = pd.DataFrame()
-        out[TIMESTAMP_COLUMN] = pd.to_datetime(frame["timestamp"], errors="coerce")
+        # The export writes "YYYY-MM-DD HH:MM:SS"; naming the format avoids a
+        # per-element fallback that is both slow and inconsistent.
+        out[TIMESTAMP_COLUMN] = pd.to_datetime(
+            frame["timestamp"], format="%Y-%m-%d %H:%M:%S", errors="coerce"
+        )
         out["flow_duration"] = pd.to_numeric(frame["duration"], errors="coerce")
         out["total_packets"] = pd.to_numeric(frame["packets"], errors="coerce")
         out["total_bytes"] = pd.to_numeric(frame["bytes"], errors="coerce")

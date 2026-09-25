@@ -12,7 +12,6 @@ from typing import Dict, List, Optional
 
 import numpy as np
 import pandas as pd
-from sklearn.base import clone
 
 from driftguard.data.schema import FlowFrame
 from driftguard.models.registry import build_model
@@ -133,7 +132,9 @@ def apply_adaptation(
         _assert_within(training, evaluation_start, strategy)
 
     start = time.perf_counter()
-    adapted = clone(model)
+    # build_model returns a fresh unfitted estimator, which is what a retrain
+    # needs. Calling sklearn's clone() on the incumbent instead would require
+    # every model to be a BaseEstimator and would fail on the majority baseline.
     adapted = build_model(name, params, seed)
     X = preprocessor.transform(training).to_numpy()
     adapted.fit(X, training.targets.to_numpy())

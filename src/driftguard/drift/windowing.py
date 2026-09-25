@@ -8,6 +8,7 @@ UNSW-NB15's capture sessions are days long, where an hour keeps a window inside
 a single session.
 """
 
+import logging
 from typing import Dict, List, Sequence
 
 import pandas as pd
@@ -21,6 +22,8 @@ from driftguard.drift.detectors import (
     run_sequential_drift,
 )
 from driftguard.utils import as_timedelta
+
+LOG = logging.getLogger(__name__)
 
 DEFAULT_DRIFT_CONFIG = {
     "reference_period": "train",
@@ -66,8 +69,22 @@ def analyse_windows(
         return []
 
     span = target_ordered.timestamps.max() - target_ordered.timestamps.min()
-    if window <= pd.Timedelta(0) or span < window:
-        return []
+    if window <= pd.Timedelta(0):
+        raise ValueError(f"drift window must be positive, got {window}")
+
+    # A capture can be shorter than the configured window. Rather than silently
+    # returning nothing - which reads downstream as "no drift found" - shrink
+    # the window to the data and warn. Drift is the whole point of the stage, so
+    # a silent no-op here would invalidate the experiment while looking clean.
+    if span < window:
+        usable = max(int(span.total_seconds()), 1)
+        LOG.warning(
+            "target period spans %s, shorter than the %s drift window; "
+            "falling back to %d s so the forward period is still analysed",
+            span, window, usable,
+        )
+        window = pd.Timedelta(seconds=usable)
+        stride = min(stride, window)
 
     edges = pd.date_range(
         start=target_ordered.timestamps.min(),
@@ -75,7 +92,9 @@ def analyse_windows(
         freq=stride,
     )
     if len(edges) < 2:
-        return []
+        # A single window with no stride to advance it is still a valid
+        # comparison against the reference period.
+        edges = pd.DatetimeIndex([target_ordered.timestamps.min()])
 
     # A feature the target does not carry cannot drift: a reduced collector
     # simply does not report it. Skipping is the honest answer, and it keeps a
