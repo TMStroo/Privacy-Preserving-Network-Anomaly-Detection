@@ -92,12 +92,26 @@ def _describe(directory: Path, status: str) -> dict:
         row["forward_start"], row["forward_end"] = str(forward[0]), str(forward[1])
     row["forward_rows"] = str((split.get("forward_count") or {}).get("rows", ""))
 
-    metrics_path = directory / "metrics.json"
-    if not metrics_path.is_file():
+    # Each kind records its results in a different artifact. Demanding
+    # metrics.json of a shift or ablation run marks a finished experiment as
+    # incomplete, which is how a real result gets mistaken for a dead one.
+    marker = {
+        "temporal": "metrics.json",
+        "shift": "controlled_shift_results.csv",
+        "ablation": "ablation_results.csv",
+    }.get(row["kind"], "metrics.json")
+    if not (directory / marker).is_file():
         if row["status"] == "unknown":
             row["status"] = "incomplete"
-        row["notes"] = (row["notes"] + "; " if row["notes"] else "") + "no metrics.json: run did not finish"
+        row["notes"] = (row["notes"] + "; " if row["notes"] else "") + f"no {marker}: run did not finish"
         return row
+
+    if row["kind"] != "temporal":
+        if row["status"] == "unknown":
+            row["status"] = "complete"
+        return row
+
+    metrics_path = directory / marker
 
     try:
         metrics = json.loads(metrics_path.read_text(encoding="utf-8"))

@@ -21,11 +21,14 @@ dataset:
   adapter: ugr16
   raw_dir: data/raw
   load_options:
-    # One in twenty rows per archive. The weekly archives hold hundreds of
-    # millions of flows each and the statistics this project measures are
-    # stable under uniform thinning; the rate is recorded in the experiment
-    # metadata so a reader can reproduce the exact sample.
-    max_rows_per_file: 4000000
+    # Uniform thinning of each weekly archive. The archives hold hundreds of
+    # millions of flows each, and the full 23.5M-row sample exhausts memory
+    # during the adaptation study on a 32 GB machine, so the count is a
+    # documented compute limit rather than a hidden default. The rate is
+    # recorded in the experiment metadata so a reader can reproduce the exact
+    # sample, and the same thinning applies to every model and every strategy,
+    # so the comparison between them is unaffected.
+    max_rows_per_file: 1500000
 
 temporal:
   train_fraction: 0.5

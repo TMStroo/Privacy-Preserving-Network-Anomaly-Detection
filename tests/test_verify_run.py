@@ -184,7 +184,9 @@ def test_missing_temporal_boundaries_are_rejected(tmp_path):
 
 def test_index_marks_a_finished_but_superseded_run_as_superseded(tmp_path, monkeypatch):
     """A run can look complete and still be wrong; the index must say so."""
-    from tools import index_runs
+    from conftest_helpers import load_repo_tool
+
+    index_runs = load_repo_tool("index_runs")
 
     experiments = tmp_path / "experiments"
     superseded = tmp_path / "superseded"
@@ -207,7 +209,9 @@ def test_index_marks_a_finished_but_superseded_run_as_superseded(tmp_path, monke
 
 
 def test_index_reports_a_run_with_no_metrics_as_incomplete(tmp_path, monkeypatch):
-    from tools import index_runs
+    from conftest_helpers import load_repo_tool
+
+    index_runs = load_repo_tool("index_runs")
 
     experiments = tmp_path / "experiments"
     _write_run(experiments / "20260101T000000Z_temporal_x_cafebabe", models=[], metrics=False)
@@ -284,3 +288,36 @@ def test_git_commit_recovers_from_a_transient_git_failure(monkeypatch):
     monkeypatch.setattr(tracking, "_package_root", lambda: root)
     assert tracking.git_commit(root) == "a" * 40
     assert calls["n"] >= 2
+
+
+def test_index_treats_each_result_kind_by_its_own_artifact(tmp_path, monkeypatch):
+    """A finished shift run is not an incomplete run.
+
+    The index demanded metrics.json from every experiment directory. Shift and
+    ablation runs write controlled_shift_results.csv and ablation_results.csv
+    instead, so every completed one of them was listed as incomplete, which is
+    the same class of error as a tool reporting 'no data' when the data exists.
+    """
+    from conftest_helpers import load_repo_tool
+
+    index_runs = load_repo_tool("index_runs")
+
+    experiments = tmp_path / "experiments"
+    meta = json.dumps({"dataset": "unsw_nb15", "git_commit": "a" * 40,
+                       "random_seed": 42, "temporal_split": {}})
+    shift = experiments / "20260101T000000Z_shift_unsw_nb15_aaaaaa"
+    shift.mkdir(parents=True)
+    (shift / "metadata.json").write_text(meta, encoding="utf-8")
+    (shift / "controlled_shift_results.csv").write_text("model,shift\nlogistic_regression,packet_size\n",
+                                                        encoding="utf-8")
+    ablation = experiments / "20260101T000001Z_ablation_unsw_nb15_bbbbbb"
+    ablation.mkdir(parents=True)
+    (ablation / "metadata.json").write_text(meta, encoding="utf-8")
+    (ablation / "ablation_results.csv").write_text("ablation,variant\ntarget_fpr,fpr_0.01\n", encoding="utf-8")
+
+    monkeypatch.setattr(index_runs, "EXPERIMENTS", experiments)
+    monkeypatch.setattr(index_runs, "SUPERSEDED", tmp_path / "superseded")
+    rows = index_runs.build()
+    by_id = {r["experiment_id"]: r for r in rows}
+    assert by_id[shift.name]["status"] == "complete"
+    assert by_id[ablation.name]["status"] == "complete"
