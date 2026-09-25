@@ -231,7 +231,9 @@ def plot_class_distribution(y_train: np.ndarray, y_test: np.ndarray,
 
 
 def generate_all_plots(results: Dict[str, Any], feature_names: Dict[str, List[str]],
-                       models_dir: str = "results/models") -> Dict[str, Path]:
+                       models_dir: str = "results/models",
+                       output_dir: str = "results/figures",
+                       processed_dir: str = "data/processed") -> Dict[str, Path]:
     """Generate all evaluation plots."""
     from privacy_preserving_nad.models.baseline import load_model
 
@@ -246,17 +248,17 @@ def generate_all_plots(results: Dict[str, Any], feature_names: Dict[str, List[st
                 metrics = results[feature_set][model_name]
                 if "error" not in metrics:
                     cm = np.array(metrics["confusion_matrix"])
-                    path = plot_confusion_matrix(cm, model_name, feature_set)
+                    path = plot_confusion_matrix(cm, model_name, feature_set, output_dir)
                     output_paths[f"confusion_matrix_{model_name}_{feature_set}"] = path
                     print(f"  Created: {path.name}")
 
     # 2. Model comparison by F1
-    path = plot_model_comparison_f1(results)
+    path = plot_model_comparison_f1(results, output_dir)
     output_paths["model_comparison_f1"] = path
     print(f"  Created: {path.name}")
 
     # 3. Model comparison by FPR
-    path = plot_model_comparison_fpr(results)
+    path = plot_model_comparison_fpr(results, output_dir)
     output_paths["model_comparison_fpr"] = path
     print(f"  Created: {path.name}")
 
@@ -265,7 +267,10 @@ def generate_all_plots(results: Dict[str, Any], feature_names: Dict[str, List[st
         rf_model = load_model("random_forest", "FULL_METADATA", models_dir)
         fnames = feature_names.get("FULL_METADATA", [])
         if fnames:
-            path = plot_feature_importance(rf_model, fnames, "random_forest", "FULL_METADATA")
+            path = plot_feature_importance(
+                rf_model, fnames, "random_forest", "FULL_METADATA",
+                output_dir=output_dir,
+            )
             if path:
                 output_paths["feature_importance_rf_full"] = path
                 print(f"  Created: {path.name}")
@@ -275,8 +280,8 @@ def generate_all_plots(results: Dict[str, Any], feature_names: Dict[str, List[st
     # 5. Class distribution (load from one feature set)
     try:
         from privacy_preserving_nad.data.preprocess import load_processed_data
-        data = load_processed_data("FULL_METADATA")
-        path = plot_class_distribution(data["y_train"], data["y_test"])
+        data = load_processed_data("FULL_METADATA", processed_dir)
+        path = plot_class_distribution(data["y_train"], data["y_test"], output_dir)
         output_paths["class_distribution"] = path
         print(f"  Created: {path.name}")
     except Exception as e:

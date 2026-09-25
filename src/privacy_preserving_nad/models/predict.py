@@ -85,13 +85,14 @@ def evaluate_predictions(y_true: np.ndarray, y_pred: np.ndarray,
     return results
 
 
-def run_inference(model_name: str, feature_set: str, model_dir: str = "results/models") -> Dict[str, Any]:
+def run_inference(model_name: str, feature_set: str, model_dir: str = "results/models",
+                  processed_dir: str = "data/processed") -> Dict[str, Any]:
     """Run inference on test set for a trained model."""
     # Load model
     model = load_model(model_name, feature_set, model_dir)
 
     # Load test data
-    data = load_processed_data(feature_set)
+    data = load_processed_data(feature_set, processed_dir)
     X_test, y_test = data["X_test"], data["y_test"]
 
     # Predict
@@ -106,7 +107,9 @@ def run_inference(model_name: str, feature_set: str, model_dir: str = "results/m
     return metrics
 
 
-def run_all_inference(model_dir: str = "results/models") -> Dict[str, Any]:
+def run_all_inference(model_dir: str = "results/models",
+                      processed_dir: str = "data/processed",
+                      metrics_path: str = "results/metrics/evaluation_results.json") -> Dict[str, Any]:
     """Run inference for all model/feature set combinations."""
     import json
 
@@ -120,7 +123,7 @@ def run_all_inference(model_dir: str = "results/models") -> Dict[str, Any]:
         for model_name in model_names:
             try:
                 print(f"Evaluating {model_name} on {feature_set}...")
-                metrics = run_inference(model_name, feature_set, model_dir)
+                metrics = run_inference(model_name, feature_set, model_dir, processed_dir)
                 all_results[feature_set][model_name] = metrics
                 print(f"  F1: {metrics['f1_score']:.4f}, FPR: {metrics['false_positive_rate']:.4f}")
             except Exception as e:
@@ -128,7 +131,7 @@ def run_all_inference(model_dir: str = "results/models") -> Dict[str, Any]:
                 all_results[feature_set][model_name] = {"error": str(e)}
 
     # Save evaluation results
-    output_path = Path("results/metrics/evaluation_results.json")
+    output_path = Path(metrics_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w") as f:
         json.dump(all_results, f, indent=2)

@@ -47,8 +47,7 @@ def create_logistic_regression(config: Dict[str, Any]) -> LogisticRegression:
         C=lr_config.get("C", 1.0),
         solver=lr_config.get("solver", "lbfgs"),
         class_weight=lr_config.get("class_weight", "balanced"),
-        random_state=config.get("random_seed", 42),
-        n_jobs=-1
+        random_state=config.get("random_seed", 42)
     )
 
 

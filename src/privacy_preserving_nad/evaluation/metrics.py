@@ -99,9 +99,17 @@ def create_comparison_table(results: Dict[str, Any]) -> pd.DataFrame:
 
     df = pd.DataFrame(rows)
 
-    # Sort for readability
+    # Sort for readability (an empty result set means every run failed - the
+    # caller reports that instead of crashing on missing columns)
     feature_order = ["FULL_METADATA", "RESTRICTED_METADATA"]
     model_order = ["Majority Baseline", "Logistic Regression", "Random Forest"]
+
+    if df.empty:
+        return pd.DataFrame(columns=[
+            "Feature Set", "Model", "Precision", "Recall", "F1 Score",
+            "False Positive Rate", "False Negative Rate", "ROC AUC", "PR AUC",
+            "Test Samples", "Normal Samples", "Anomaly Samples",
+        ])
 
     df["Feature Set"] = pd.Categorical(df["Feature Set"], categories=feature_order, ordered=True)
     df["Model"] = pd.Categorical(df["Model"], categories=model_order, ordered=True)
@@ -152,6 +160,10 @@ def print_summary(results: Dict[str, Any]):
     print("=" * 80)
 
     df = create_comparison_table(results)
+    if df.empty:
+        print("No model produced metrics - every evaluation failed.")
+        print("See the errors reported by the evaluation step above.")
+        return
     print(format_comparison_table(df))
 
     print("\n" + "=" * 80)

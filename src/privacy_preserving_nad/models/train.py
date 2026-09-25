@@ -18,7 +18,8 @@ from privacy_preserving_nad.data.preprocess import load_processed_data
 
 
 def train_model(model: Any, X_train: np.ndarray, y_train: np.ndarray,
-                model_name: str, feature_set: str) -> Dict[str, Any]:
+                model_name: str, feature_set: str,
+                models_dir: str = "results/models") -> Dict[str, Any]:
     """Train a single model and return training info."""
     print(f"  Training {model_name} on {feature_set}...")
 
@@ -41,19 +42,21 @@ def train_model(model: Any, X_train: np.ndarray, y_train: np.ndarray,
     print(f"    Train time: {train_time:.2f}s, Train accuracy: {train_score:.4f}")
 
     # Save model
-    model_path = save_model(model, model_name, feature_set)
+    model_path = save_model(model, model_name, feature_set, models_dir)
     info["model_path"] = str(model_path)
 
     return info
 
 
-def train_all_models(feature_set: str, config: Dict = None) -> Dict[str, Any]:
+def train_all_models(feature_set: str, config: Dict = None,
+                     processed_dir: str = "data/processed",
+                     models_dir: str = "results/models") -> Dict[str, Any]:
     """Train all baseline models for a feature set."""
     if config is None:
         config = get_model_config()
 
     # Load processed data
-    data = load_processed_data(feature_set)
+    data = load_processed_data(feature_set, processed_dir)
     X_train, X_test = data["X_train"], data["X_test"]
     y_train, y_test = data["y_train"], data["y_test"]
 
@@ -66,19 +69,19 @@ def train_all_models(feature_set: str, config: Dict = None) -> Dict[str, Any]:
     # 1. Majority Baseline
     majority = MajorityBaseline(random_state=config["random_seed"])
     results["models"]["majority_baseline"] = train_model(
-        majority, X_train, y_train, "majority_baseline", feature_set
+        majority, X_train, y_train, "majority_baseline", feature_set, models_dir
     )
 
     # 2. Logistic Regression
     lr = create_logistic_regression(config)
     results["models"]["logistic_regression"] = train_model(
-        lr, X_train, y_train, "logistic_regression", feature_set
+        lr, X_train, y_train, "logistic_regression", feature_set, models_dir
     )
 
     # 3. Random Forest
     rf = create_random_forest(config)
     results["models"]["random_forest"] = train_model(
-        rf, X_train, y_train, "random_forest", feature_set
+        rf, X_train, y_train, "random_forest", feature_set, models_dir
     )
 
     return results
