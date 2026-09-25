@@ -290,6 +290,40 @@ def test_git_commit_recovers_from_a_transient_git_failure(monkeypatch):
     assert calls["n"] >= 2
 
 
+def test_git_commit_retries_where_there_is_no_git_directory(tmp_path, monkeypatch):
+    """The retry must not depend on a .git directory being present.
+
+    The container image deliberately ships without one, so a guard that skips
+    every candidate unless .git exists returns "unknown" there while passing on
+    the host. The commit is worth retrying regardless: git can answer for a
+    worktree whose .git lives elsewhere, and the guard costs more than the
+    subprocess it avoids.
+    """
+    from driftguard.experiments import tracking
+
+    monkeypatch.delenv("DRIFTGUARD_GIT_COMMIT", raising=False)
+    bare = tmp_path / "not-a-repo"
+    bare.mkdir()
+
+    class Result:
+        def __init__(self, text):
+            self.stdout = text
+            self.stderr = ""
+            self.returncode = 0
+
+    answers = {"n": 0}
+
+    def run_once(_cmd, **_kwargs):
+        answers["n"] += 1
+        return Result("b" * 40)
+
+    monkeypatch.setattr(tracking.subprocess, "run", run_once)
+    monkeypatch.setattr(tracking, "_package_root", lambda: "")
+    monkeypatch.setattr(tracking.os, "getcwd", lambda: str(bare))
+    assert tracking.git_commit(str(bare)) == "b" * 40
+    assert answers["n"] >= 1
+
+
 def test_index_treats_each_result_kind_by_its_own_artifact(tmp_path, monkeypatch):
     """A finished shift run is not an incomplete run.
 

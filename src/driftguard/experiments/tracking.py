@@ -59,7 +59,7 @@ def git_commit(root: str = ".") -> str:
     # starts at the same moment as a commit.
     for attempt in range(3):
         for candidate in (root, os.getcwd(), _package_root()):
-            if not candidate or not os.path.isdir(os.path.join(candidate, ".git")):
+            if not candidate or not os.path.isdir(candidate):
                 continue
             try:
                 out = subprocess.run(
@@ -67,6 +67,9 @@ def git_commit(root: str = ".") -> str:
                     capture_output=True, text=True, timeout=15,
                 )
             except Exception:
+                # git may be absent entirely, which is the normal case inside the
+                # container image. That is not a transient failure, so it moves on
+                # to the next candidate instead of consuming a retry.
                 continue
             commit = out.stdout.strip()
             if len(commit) == 40:
