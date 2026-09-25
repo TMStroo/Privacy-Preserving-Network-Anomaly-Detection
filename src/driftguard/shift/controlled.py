@@ -188,6 +188,35 @@ def realized_shift(
             entry["median_ratio"] = entry["median_after"] / entry["median_before"]
         out["features"][feature] = entry
 
+    # Categorical features are measured by total-variation distance rather than
+    # Cohen's d, which needs a mean. Without this a protocol-mixture shift moves
+    # the traffic composition while every numeric feature stays put, and the run
+    # reports realized_verified=False for a shift that demonstrably happened.
+    categorical = [
+        c for c in shared
+        if c not in numeric and not pd.api.types.is_numeric_dtype(before.frame[c])
+    ]
+    for feature in categorical:
+        before_counts = before.frame[feature].value_counts(normalize=True)
+        after_counts = after.frame[feature].value_counts(normalize=True)
+        levels = before_counts.index.union(after_counts.index)
+        before_probs = before_counts.reindex(levels, fill_value=0.0).to_numpy(dtype=float)
+        after_probs = after_counts.reindex(levels, fill_value=0.0).to_numpy(dtype=float)
+        # Total variation distance runs from 0 (identical mixtures) to 1.
+        tvd = float(0.5 * np.abs(before_probs - after_probs).sum())
+
+        def top_n(probs):
+            order = np.argsort(probs)[::-1][:5]
+            return {str(levels[i]): round(float(probs[i]), 6) for i in order}
+
+        out.setdefault("categorical", {})[feature] = {
+            "tvd": tvd,
+            "levels_before": int((before_probs > 0).sum()),
+            "levels_after": int((after_probs > 0).sum()),
+            "top_before": top_n(before_probs),
+            "top_after": top_n(after_probs),
+        }
+
     if "label" in before.frame.columns and "label" in after.frame.columns:
         rate_before = float(before.frame["label"].mean())
         rate_after = float(after.frame["label"].mean())
@@ -204,9 +233,20 @@ def realized_shift(
     effects = [abs(v["cohens_d"]) for v in out["features"].values()]
     out["max_abs_cohens_d"] = float(max(effects)) if effects else 0.0
     out["mean_abs_cohens_d"] = float(np.mean(effects)) if effects else 0.0
+    categorical = out.get("categorical") or {}
+    out["max_categorical_tvd"] = (
+        float(max(v["tvd"] for v in categorical.values())) if categorical else 0.0
+    )
     # A shift that moved nothing measurable has to be visible as such rather
-    # than being reported under its requested label.
-    out["verified"] = bool(out["max_abs_cohens_d"] >= 0.05 or dropped or rate_changed(out))
+    # than being reported under its requested label. A mixture shift is measured
+    # by total-variation distance on the categorical features, since Cohen's d
+    # only describes numeric ones.
+    out["verified"] = bool(
+        out["max_abs_cohens_d"] >= 0.05
+        or out["max_categorical_tvd"] >= 0.05
+        or dropped
+        or rate_changed(out)
+    )
     return out
 
 

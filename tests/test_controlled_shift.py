@@ -367,3 +367,40 @@ def test_alerts_without_degradation_reports_unmatched_instead_of_hiding_them():
     result = alerts_without_degradation(drift, windows)
     assert result["unmatched_alerts"] == 1, result
     assert result["matched"] is False
+
+
+def test_a_categorical_shift_is_measured_and_verified():
+    """A protocol-mixture shift moves no numeric feature, only the mixture.
+
+    Cohen's d needs a mean, so a purely categorical shift used to measure 0.0 on
+    every numeric field and report realized_verified=False, which reads as "the
+    shift did nothing" when in fact the traffic composition moved. The
+    categorical total-variation distance is what makes it visible.
+    """
+    from driftguard.data.schema import FlowFrame
+    from driftguard.data.synthetic import generate_flows
+    from driftguard.shift.controlled import apply_shift, realized_shift
+
+    before = FlowFrame("synthetic", generate_flows(rows=20000, days=10, seed=7), (), {})
+    after = apply_shift(before, "protocol_mixture", 0.6, seed=7)
+    summary = realized_shift(before, after)
+
+    assert summary["max_categorical_tvd"] > 0.05
+    assert summary["verified"] is True
+
+    # The mixture genuinely differs at the top level.
+    protocol = summary["categorical"]["protocol"]
+    assert protocol["tvd"] > 0.05
+    assert protocol["top_before"] != protocol["top_after"]
+
+
+def test_an_unchanged_frame_does_not_verify():
+    from driftguard.data.schema import FlowFrame
+    from driftguard.data.synthetic import generate_flows
+    from driftguard.shift.controlled import realized_shift
+
+    frame = FlowFrame("synthetic", generate_flows(rows=8000, days=5, seed=11), (), {})
+    summary = realized_shift(frame, frame)
+    assert summary["max_abs_cohens_d"] == 0.0
+    assert summary["max_categorical_tvd"] == 0.0
+    assert summary["verified"] is False

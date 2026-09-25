@@ -205,6 +205,7 @@ def run_controlled_shift_experiments(
                     "inference_seconds": round(inference, 4),
                     "realized_max_abs_cohens_d": round(float(realized["max_abs_cohens_d"]), 6),
                     "realized_mean_abs_cohens_d": round(float(realized["mean_abs_cohens_d"]), 6),
+                    "realized_max_categorical_tvd": round(float(realized.get("max_categorical_tvd", 0.0)), 6),
                     "realized_verified": bool(realized["verified"]),
                     "realized_attack_rate": realized.get("attack_rate_after"),
                     "realized_rows": realized.get("rows_after"),
