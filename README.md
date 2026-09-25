@@ -14,6 +14,20 @@ All experiments use the official UNSW-NB15 train/test split (175,341 / 82,332 ro
 
 > Metadata-only monitoring is not a formal privacy guarantee. The project studies payload-free detection, not complete traffic privacy.
 
+## Why I Chose This Question
+
+I chose this question because it sits where the areas I want to work in overlap: cybersecurity, machine learning, networking and statistical analysis. I also wanted something that solves a real technical problem rather than only demonstrating a machine-learning model on tidy data.
+
+The problem is easy to state. Encryption protects the contents of network traffic, but monitoring still has to identify suspicious behavior. When payload contents are unavailable - the normal situation on today's encrypted connections - the detector is left with things like flow duration, packet counts, packet sizes, timing and connection behavior. The question is whether that is enough.
+
+That led me to the main question, which I formulated myself for this project rather than taking it from a paper:
+
+> Can network traffic metadata provide enough information to detect abnormal network behavior without inspecting packet payload contents?
+
+The direction behind it is an established research area - machine-learning-based encrypted traffic analysis and network anomaly detection - not something I invented. Two works that shaped my view of the field are the IEEE survey [Machine Learning-Powered Encrypted Network Traffic Analysis: A Comprehensive Survey](https://doi.org/10.1109/COMST.2022.3208196), which reviews how machine learning extracts useful information from encrypted traffic without touching payloads, and a 2025 Scientific Reports paper, [Anomaly detection in encrypted network traffic using self-supervised learning](https://doi.org/10.1038/s41598-025-08568-0), which detects anomalies from flow-level statistical features and evaluates on UNSW-NB15 among other datasets.
+
+What this project contributes is a controlled and reproducible experiment built on that direction: a written metadata-only feature policy, strict leakage prevention, the official UNSW-NB15 train/test split, and a comparison between `FULL_METADATA` and `RESTRICTED_METADATA`. To be clear about scope - the project does not claim to invent a new machine-learning algorithm. The models are deliberately ordinary baselines. The purpose is to measure how much useful detection signal remains when the detector is limited to traffic metadata and cannot inspect payload contents.
+
 ## Why this matters
 
 Encryption is now the default on the internet: TLS 1.3, QUIC and encrypted DNS leave content invisible on the wire. Defenders still need to find scanning, denial-of-service, exploitation and command-and-control traffic, but the classic answer - deep packet inspection - either stops working or requires breaking encryption. The alternative is to work only with what is still visible: flow records, packet headers, timing and connection state. Those are exactly what a NetFlow or IPFIX exporter produces. This project is a reproducible baseline for that idea: it measures how far payload-free detection gets you on a standard public dataset, under a written feature policy that can be audited.
@@ -247,7 +261,7 @@ MIT - see [LICENSE](LICENSE).
 @misc{privacy-preserving-nad,
   title={Privacy-Preserving Network Anomaly Detection},
   author={TMStroo},
-  year={2025},
+  year={2026},
   url={https://github.com/TMStroo/Privacy-Preserving-Network-Anomaly-Detection}
 }
 ```
