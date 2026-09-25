@@ -42,6 +42,16 @@ def experiment_id(kind: str, dataset: str, tag: Optional[str] = None, now: Optio
 
 
 def git_commit(root: str = ".") -> str:
+    """The commit a run came from, or an honest 'unknown'.
+
+    A container image deliberately does not carry the .git directory, because
+    that would put the remote URL and any other repository metadata into a
+    distributable artifact. The commit is passed in as a build argument
+    instead, and this reads it before falling back to asking git directly.
+    """
+    override = os.environ.get("DRIFTGUARD_GIT_COMMIT", "").strip()
+    if override and override != "unknown":
+        return override
     try:
         out = subprocess.run(
             ["git", "-C", root, "rev-parse", "HEAD"],

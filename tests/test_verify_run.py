@@ -215,3 +215,19 @@ def test_index_reports_a_run_with_no_metrics_as_incomplete(tmp_path, monkeypatch
     row = rows["20260101T000000Z_temporal_x_cafebabe"]
     assert row["status"] == "incomplete", row
     assert "did not finish" in row["notes"]
+
+
+def test_git_commit_prefers_the_build_argument(monkeypatch):
+    """A container has no .git, so the commit arrives as an argument."""
+    from driftguard.experiments.tracking import git_commit
+
+    monkeypatch.setenv("DRIFTGUARD_GIT_COMMIT", "abc123def456")
+    assert git_commit() == "abc123def456"
+
+
+def test_git_commit_falls_back_to_git_when_no_argument_is_set(monkeypatch):
+    from driftguard.experiments.tracking import git_commit
+
+    monkeypatch.delenv("DRIFTGUARD_GIT_COMMIT", raising=False)
+    # On a real checkout this reads the actual HEAD, which is never empty.
+    assert len(git_commit()) > 0
