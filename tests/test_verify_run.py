@@ -59,14 +59,19 @@ def _model(name="logistic_regression", strategies=None):
                    "f1_degradation": 0.0},
         "adaptation": {},
     }
-    if strategies:
-        for strategy in strategies:
-            model["adaptation"][strategy] = {"forward": {"f1": 0.5, "recall": 0.5}}
+    model["adaptation"]["strategies"] = [
+        {"strategy": strategy,
+         "metrics": {"precision": 0.5, "recall": 0.5, "f1": 0.5,
+                     "false_positive_rate": 0.05},
+         "refits": 0, "threshold": 0.5, "training_seconds": 0.1,
+         "recovery": {"f1_gain": 0.0}}
+        for strategy in (strategies or [])
+    ]
     return model
 
 
 ALL_STRATEGIES = [
-    "no_adaptation", "threshold_recalibration", "recent_window_retrain",
+    "none", "threshold_recalibration", "recent_window_retrain",
     "rolling_window_retrain", "historical_plus_recent_retrain",
 ]
 
@@ -144,7 +149,7 @@ def test_a_superseded_run_is_rejected(tmp_path):
 
 
 def test_a_missing_adaptation_strategy_is_rejected_in_strict_mode(tmp_path):
-    run = _write_run(tmp_path / "run", models=[_model(strategies=["no_adaptation", "threshold_recalibration"])])
+    run = _write_run(tmp_path / "run", models=[_model(strategies=["none", "threshold_recalibration"])])
     (run / "calibration_logistic_regression.json").write_text(
         json.dumps({"backtest": {"brier": 0.2, "ece": 0.1}, "forward": {"brier": 0.3, "ece": 0.1}}),
         encoding="utf-8",

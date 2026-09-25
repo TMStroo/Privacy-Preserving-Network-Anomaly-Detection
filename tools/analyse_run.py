@@ -20,7 +20,7 @@ pd.set_option("display.width", 200)
 pd.set_option("display.max_columns", 40)
 
 STRATEGY_LABELS = {
-    "no_adaptation": "no adaptation",
+    "none": "no adaptation",
     "threshold_recalibration": "threshold recalibration",
     "recent_window_retrain": "recent-window retrain",
     "rolling_window_retrain": "rolling-window retrain",
@@ -116,21 +116,25 @@ def adaptation_table(metrics: dict) -> None:
             print(f"\n  {name}: no adaptation results recorded")
             continue
         rows = []
-        for key, label in STRATEGY_LABELS.items():
-            block = adaptation.get(key)
-            if not block or "forward" not in block:
+        # Strategies are a list of records, each naming itself. Reading them as
+        # dict keys silently yields nothing.
+        for record in adaptation.get("strategies") or []:
+            if not isinstance(record, dict):
                 continue
-            fw = block["forward"]
+            label = STRATEGY_LABELS.get(record.get("strategy"), record.get("strategy"))
+            metrics = record.get("metrics") or {}
+            recovery = record.get("recovery") or {}
             rows.append({
                 "strategy": label,
-                "f1": fw.get("f1"),
-                "recall": fw.get("recall"),
-                "fpr": fw.get("false_positive_rate"),
-                "pr_auc": fw.get("pr_auc"),
-                "f1_gain": block.get("f1_gain"),
-                "recovery_%": block.get("f1_recovery_pct"),
-                "threshold": block.get("threshold"),
-                "seconds": block.get("adapt_seconds", block.get("seconds")),
+                "f1": metrics.get("f1"),
+                "recall": metrics.get("recall"),
+                "fpr": metrics.get("false_positive_rate"),
+                "pr_auc": metrics.get("pr_auc"),
+                "f1_gain": recovery.get("f1_gain"),
+                "recovery_%": recovery.get("f1_recovery_pct"),
+                "refits": record.get("refits"),
+                "threshold": record.get("threshold"),
+                "seconds": record.get("training_seconds"),
             })
         if not rows:
             continue
@@ -143,8 +147,9 @@ def adaptation_table(metrics: dict) -> None:
 
         # Rolling and recent are supposed to differ. If they do not, that is
         # either a genuinely flat signal or the strategies are still aliased.
-        recent = adaptation.get("recent_window_retrain", {}).get("forward", {}).get("f1")
-        rolling = adaptation.get("rolling_window_retrain", {}).get("forward", {}).get("f1")
+        by_label = {r["strategy"]: r["f1"] for r in rows}
+        recent = by_label.get("recent-window retrain")
+        rolling = by_label.get("rolling-window retrain")
         if recent is not None and rolling is not None and abs(recent - rolling) < 1e-9:
             print(f"    NOTE: recent and rolling produced identical F1 ({recent:.4f}). "
                   f"Either the forward period is too flat for the difference to show, "

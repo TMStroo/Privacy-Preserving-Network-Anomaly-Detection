@@ -139,16 +139,25 @@ def verify(run_dir: str, strict_models: bool = False) -> list:
         for model in models:
             name = model.get("result", {}).get("model", "?")
             adaptation = model.get("adaptation") or {}
-            recorded = set(adaptation)
-            baseline_key = adaptation.get("no_adaptation")
-            present = set(recorded)
-            if "no_adaptation" in present:
-                present.discard("no_adaptation")
-            missing = [s for s in REQUIRED_STRATEGIES[1:] if s not in present]
+            # The strategies are a list of records, each carrying its own name.
+            # Reading them as dict keys reports every real run as empty.
+            strategies = adaptation.get("strategies") or []
+            present = {s.get("strategy") for s in strategies if isinstance(s, dict)}
+            missing = [s for s in REQUIRED_STRATEGIES if s not in present]
             if missing:
                 problems.append(f"{name}: adaptation strategies missing: {missing}")
-            if baseline_key is None:
-                problems.append(f"{name}: no unadapted baseline recorded")
+            for record in strategies:
+                if not isinstance(record, dict):
+                    continue
+                label = record.get("strategy", "?")
+                block = record.get("metrics") or {}
+                for field in ("precision", "recall", "f1", "false_positive_rate"):
+                    if field not in block:
+                        problems.append(
+                            f"{name}.{label}.{field} is missing")
+                for path, value in _walk_floats(record):
+                    if math.isnan(value) or math.isinf(value):
+                        problems.append(f"{name}.{label}: {path} is {value}")
 
     # ---- drift ----
     if not metrics.get("drift_summary"):
