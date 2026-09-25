@@ -121,3 +121,57 @@ def test_drift_table_records_required_columns():
                                          "methods": ["ks"], "alpha": 0.01}))
     for column in ["window_start", "window_end", "feature", "method", "statistic", "threshold", "alert"]:
         assert column in table.columns
+
+
+def test_cusum_blocking_controls_sensitivity():
+    """CUSUM accumulates, so raw-row input makes it fire on a trivial shift.
+
+    Blocking averages consecutive rows first, which sets the operating point to
+    shifts that actually matter. Without this the statistic alarms on 100% of
+    windows regardless of effect size and carries no information.
+    """
+    import numpy as np
+    import pandas as pd
+
+    from driftguard.drift.detectors import calibrated_cusum_threshold, cusum_test
+
+    rng = np.random.default_rng(3)
+    reference = rng.normal(0.0, 1.0, 20_000)
+
+    def alerts(make, block, trials=12):
+        n_seq = 100_000 // block if block else 100_000
+        warmup = min(20, max(n_seq // 4, 1))
+        threshold = calibrated_cusum_threshold(
+            n_seq, drift=0.5, warmup=warmup, target_false_alarm_rate=0.01, seed=0
+        )
+        hits = 0
+        for _ in range(trials):
+            out, _ = cusum_test(
+                reference, pd.Series(make()), threshold=threshold,
+                drift=0.5, warmup=20, block=block,
+            )
+            hits += int(out["alert"])
+        return hits
+
+    tiny = lambda: rng.normal(0.1, 1.0, 100_000)   # noqa: E731
+    large = lambda: rng.normal(2.0, 1.0, 100_000)  # noqa: E731
+
+    assert alerts(tiny, block=500) < alerts(tiny, block=None), (
+        "blocking should reduce sensitivity to a negligible shift"
+    )
+    assert alerts(large, block=500) == 12, "blocking must not hide a large shift"
+
+
+def test_cusum_block_shorter_than_half_the_window_is_ignored():
+    import numpy as np
+    import pandas as pd
+
+    from driftguard.drift.detectors import cusum_test
+
+    rng = np.random.default_rng(4)
+    reference = rng.normal(0.0, 1.0, 5_000)
+    window = pd.Series(rng.normal(0.0, 1.0, 600))
+    out_small, _ = cusum_test(reference, window, threshold=1e9, block=500)
+    out_none, _ = cusum_test(reference, window, threshold=1e9, block=None)
+    assert out_small["block_used"] == 1
+    assert out_none["block_used"] == 1

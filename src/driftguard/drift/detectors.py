@@ -278,6 +278,7 @@ def cusum_test(
     threshold: float = 5.0,
     drift: float = 0.5,
     warmup: int = 20,
+    block: Optional[int] = None,
 ):
     """Apply a sequential CUSUM to one window, using the reference as the baseline.
 
@@ -286,14 +287,32 @@ def cusum_test(
     returned statistic is the largest alarm reached, and the window counts as
     drifting if that alarm fired at any point - a sustained shift inside the
     window should not be missed because its later part diluted the average.
+
+    ``block`` aggregates the window into consecutive blocks before the
+    statistic is accumulated. It is not a cosmetic option: CUSUM accumulates,
+    so its power grows with the number of points fed to it. A window holding
+    100k flows accumulates roughly sqrt(100k) of drift from sampling noise
+    alone, which is why running it on raw rows alerts on essentially every
+    window. Averaging each block first makes the sequence length depend on the
+    window's duration rather than its row count, which is what the calibrated
+    null distribution assumes.
     """
     window_values = window.to_numpy(dtype=float) if isinstance(window, pd.Series) else np.asarray(window, float)
     if isinstance(window, pd.Series) and window.index.is_monotonic_increasing is False:
         window_values = window.sort_index().to_numpy(dtype=float)
 
+    n_points = int(window_values.size)
+    if block is None or block <= 1 or n_points < 2 * block:
+        series = window_values
+        used_block = 1
+    else:
+        n_blocks = n_points // int(block)
+        series = window_values[: n_blocks * int(block)].reshape(n_blocks, int(block)).mean(axis=1)
+        used_block = int(block)
+
     mu = float(np.mean(reference))
     sigma = float(np.std(reference)) or 1.0
-    values = (window_values - mu) / sigma
+    values = (series - mu) / sigma
 
     pos = 0.0
     neg = 0.0
@@ -320,6 +339,8 @@ def cusum_test(
         "effect_size": float(effect),
         "alert": fired_at is not None,
         "first_alarm_offset": fired_at,
+        "block_used": used_block,
+        "n_sequence": int(series.size),
     }
     return out, float(threshold)
 
@@ -362,16 +383,25 @@ def detect_window(
         # pass it positionally so the name cannot collide with the keyword.
         warmup = int(config.get("cusum_warmup", 20))
         drift_param = float(config.get("cusum_drift", 0.5))
+        block = config.get("cusum_block")
+        block = int(block) if block else int(config.get("cusum_block_default", 500))
+        n_points = int(cur_values.size)
+        if block and n_points >= 2 * block:
+            n_sequence = n_points // block
+        else:
+            block, n_sequence = 1, n_points
         if config.get("cusum_threshold") is not None:
             threshold = float(config["cusum_threshold"])
         else:
+            # The null is calibrated on the post-block sequence length, which is
+            # what the statistic actually accumulates over.
             threshold = calibrated_cusum_threshold(
-                len(window), drift=drift_param, warmup=warmup,
+                n_sequence, drift=drift_param, warmup=min(warmup, max(n_sequence // 4, 1)),
                 target_false_alarm_rate=float(config.get("cusum_false_alarm_rate", 0.01)),
                 seed=int(config.get("cusum_seed", 0)),
             )
         out, threshold = cusum_test(
-            ref_values, window, threshold=threshold, drift=drift_param, warmup=warmup,
+            ref_values, window, threshold=threshold, drift=drift_param, warmup=warmup, block=block,
         )
     else:
         raise ValueError(f"unknown drift method {method!r}; choose from {', '.join(DRIFT_METHODS)}")
