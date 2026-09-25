@@ -114,7 +114,7 @@ def test_every_retrain_strategy_runs_for_every_model(strategy):
 
 
 def test_retrain_of_majority_baseline_is_possible():
-    """The original failure: clone() rejects a non-BaseEstimator."""
+    """The original failure: sklearn's clone() rejects a non-BaseEstimator."""
     reference = _frame("ref", 300, "2016-05-01 00:00:00", seed=4)
     history = _frame("hist", 200, "2016-05-01 08:00:00", seed=5)
     forward = _frame("fwd", 100, "2016-05-01 12:00:00", seed=6)
@@ -128,3 +128,25 @@ def test_retrain_of_majority_baseline_is_possible():
         42,
     )
     assert result.refits == 1
+
+
+def test_pipeline_refuses_to_write_an_empty_drift_result():
+    """A drift table with no rows must fail the run, not read as 'no drift'."""
+    import driftguard.pipeline as pipeline
+
+    source = open(pipeline.__file__, encoding="utf-8").read()
+    assert "the run would otherwise report an empty result" in source, (
+        "the empty-drift guard was removed; drift results would silently vanish"
+    )
+
+
+def test_errored_strategies_fail_the_run_instead_of_being_recorded():
+    """The first benchmark wrote three errored strategies per model and the
+    directory still looked like a completed experiment. A strategy that raises
+    must now stop the run rather than be recorded as a result."""
+    import driftguard.pipeline as pipeline
+
+    source = open(pipeline.__file__, encoding="utf-8").read()
+    assert "adaptation strategy" in source and "failed" in source, (
+        "an errored adaptation strategy is no longer reported as a result"
+    )

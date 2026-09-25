@@ -76,7 +76,7 @@ adaptation:
     - threshold_recalibration
     - recent_window_retrain
     - rolling_window_retrain
-    - historical_plus_recent_retrain
+    - historical_plus_recent_window_retrain
   window: 24h
   target_fpr: 0.05
 

@@ -46,7 +46,7 @@ drift:
   cusum_threshold: 5.0
 
 adaptation:
-  strategies: [none, threshold_recalibration, recent_retrain]
+  strategies: [none, threshold_recalibration, recent_window_retrain]
   recent_window: 12h
   rolling_window: 6h
   rolling_step: 6h

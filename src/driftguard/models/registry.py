@@ -98,12 +98,36 @@ def build_model(name: str, config: Dict, seed: int) -> object:
 
 
 def model_config_names(config: Dict) -> List[str]:
-    """Model names enabled by a configuration block, in a stable order."""
+    """Model names enabled by a configuration block, in a stable order.
+
+    Two shapes are accepted because both appear in real configs: a mapping with
+    an ``enabled`` list plus per-model parameter blocks, and a bare list of
+    names for a quick run. The order always follows the registry so a run is
+    reproducible regardless of how the config was written.
+    """
     block = config.get("models", config) or {}
-    enabled = block.get("enabled")
+    if isinstance(block, list):
+        enabled = block
+    else:
+        enabled = block.get("enabled")
     if enabled:
+        unknown = sorted(set(enabled) - set(MODELS))
+        if unknown:
+            raise KeyError(f"unknown models in config: {unknown}. Available: {sorted(MODELS)}")
         return [name for name in MODELS if name in set(enabled)]
     return [name for name in MODELS if name != "neural_network"]
+
+
+def model_params(config: Dict, model_name: str) -> Dict:
+    """Parameter overrides for one model, tolerating both config shapes.
+
+    A list-style ``models: [logistic_regression]`` block carries no parameters,
+    so it yields an empty dict rather than failing.
+    """
+    block = config.get("models", config) or {}
+    if not isinstance(block, dict):
+        return {}
+    return block.get(model_name) or {}
 
 
 def fit_with_timing(model, X, y) -> Dict[str, object]:

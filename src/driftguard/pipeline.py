@@ -35,8 +35,16 @@ from driftguard.evaluation.failure_analysis import (
     calibration_drift,
     degradation_by_window,
 )
-from driftguard.models.registry import MODELS, build_model, model_config_names
+from driftguard.models.registry import MODELS, build_model, model_config_names, model_params
 from driftguard.temporal import TemporalSplit, build_temporal_split
+
+
+class AdaptationStudyError(RuntimeError):
+    """Raised when an adaptation strategy cannot run.
+
+    The study is a comparison of all five strategies, so a partial set of
+    results is a broken result rather than a partial success.
+    """
 
 
 def _load_dataset(config: Dict) -> FlowFrame:
@@ -68,7 +76,7 @@ def run_model(
     budget and is then applied unchanged to both later periods.
     """
     target_fpr = float(config.get("metrics", {}).get("target_fpr", 0.05))
-    params = config.get("models", {}).get(model_name, {})
+    params = model_params(config, model_name)
 
     train = split.period("train")
     validation = split.period("validation")
@@ -152,7 +160,7 @@ def run_adaptation_study(
     strategies = config.get("adaptation", {}).get("strategies", list(ADAPTATION_STRATEGIES))
     window = config.get("adaptation", {}).get("window", "6h")
     model_name = model_result["model"]
-    params = config.get("models", {}).get(model_name, {})
+    params = model_params(config, model_name)
 
     # History available to any strategy: everything strictly before the forward
     # test, truncated to the configured recent window.
@@ -169,6 +177,7 @@ def run_adaptation_study(
     baseline_metrics = basic_metrics(y_forward, forward_scores_unadapted, model_result["threshold"])
 
     outcomes = []
+    failed: List[str] = []
     for strategy in strategies:
         try:
             adapt_config = {
@@ -207,8 +216,18 @@ def run_adaptation_study(
                     "recovery": recovery_summary(baseline_metrics, metrics, model_result["backtest"]),
                 }
             )
-        except Exception as exc:  # a strategy that violates the protocol must not sink the study
-            outcomes.append({"strategy": strategy, "error": f"{type(exc).__name__}: {exc}"})
+        except Exception as exc:
+            # A strategy that cannot run is a broken experiment, not a result.
+            # The first benchmark swallowed these and wrote three errored
+            # strategies per model into a directory that looked complete, which
+            # is how two of the five strategies went unreported for a whole run.
+            failed.append(f"{model_name}/{strategy}: {type(exc).__name__}: {exc}")
+
+    if failed:
+        raise AdaptationStudyError(
+            f"{len(failed)} adaptation strategies failed, so the study is incomplete "
+            "and its results would be misleading:\n  " + "\n  ".join(failed)
+        )
 
     return {
         "model": model_name,
@@ -270,6 +289,17 @@ def run_benchmark(config: Dict, experiment_root: str = "results/experiments") ->
         target = split.period("forward") if split.has_forward else split.period("backtest")
         drift_results = analyse_windows(reference, target, drift_features, drift_config)
     drift_table = drift_frame(drift_results)
+    if drift_config.get("enabled", True) and drift_features and drift_table.empty:
+        # An empty drift table is indistinguishable from "no drift", so it must
+        # never be written as a successful result. Either the window/stride
+        # cannot fit the period or every window fell under min_samples.
+        raise ValueError(
+            f"drift analysis produced no rows for {frame.name} "
+            f"(window={drift_config.get('window')}, "
+            f"stride={drift_config.get('stride')}, "
+            f"min_samples={drift_config.get('min_samples')}); "
+            "the run would otherwise report an empty result as 'no drift'"
+        )
     if not drift_table.empty:
         run.write_table("drift_events.csv", drift_table)
 
