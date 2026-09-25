@@ -110,9 +110,24 @@ def completed_runs(kind: str) -> List[Path]:
     )
 
 
-def latest(kind: str) -> Optional[Path]:
+def latest(kind: str, dataset: Optional[str] = None) -> Optional[Path]:
+    """The most recent finished run of a kind, on a real dataset.
+
+    Sorting by name puts the synthetic fixture last, because its directory is
+    the newest. The fixture exists so the test suite can run the whole pipeline
+    without a multi-gigabyte download, and it is never a research result, so a
+    real dataset always wins when one is available.
+    """
     runs = completed_runs(kind)
-    return runs[-1] if runs else None
+    if not runs:
+        return None
+    real = [r for r in runs if "synthetic" not in r.name]
+    candidates = real or runs
+    if dataset:
+        named = [r for r in candidates if f"_{dataset}_" in r.name]
+        if named:
+            candidates = named
+    return candidates[-1]
 
 
 def load_metrics(run: Path) -> Dict:
@@ -221,8 +236,24 @@ def adaptation_block() -> List[str]:
         return ["_No model results were recorded._", ""]
 
     def strategy_entry(model, strategy):
-        adaptation = model.get("adaptation", {})
-        return adaptation.get(STRATEGY_KEYS[strategy]) or {}
+        """The recorded row for one strategy.
+
+        The pipeline stores strategies as a list of records under "strategies",
+        each tagged with its own name, not as one dictionary key per strategy.
+        Reading it as a keyed mapping finds nothing and prints a table of
+        dashes for a run that in fact completed every strategy.
+        """
+        adaptation = model.get("adaptation", {}) or {}
+        for record in adaptation.get("strategies", []) or []:
+            if record.get("strategy") == strategy:
+                return record
+        return {}
+
+    def cell(record, metric="f1"):
+        metrics = record.get("metrics") or {}
+        if metric not in metrics:
+            return "-"
+        return fmt(metrics.get(metric))
 
     lines = [
         "Forward-period F1 under each adaptation strategy, with the change against the unadapted model in "
@@ -237,14 +268,15 @@ def adaptation_block() -> List[str]:
         label = next((lbl for key, lbl in MODEL_ORDER if key == name), name)
         cells = [label]
         for strategy, _ in STRATEGY_ORDER:
-            entry = strategy_entry(model, strategy)
-            if "forward" not in entry:
+            record = strategy_entry(model, strategy)
+            if not record:
                 cells.append("-")
                 continue
-            cell = fmt(entry["forward"].get("f1"))
-            if entry.get("f1_gain") is not None:
-                cell += f" ({float(entry['f1_gain']):+.3f})"
-            cells.append(cell)
+            shown = cell(record, "f1")
+            gain = (record.get("recovery") or {}).get("f1_gain")
+            if gain is not None:
+                shown += f" ({float(gain):+.3f})"
+            cells.append(shown)
         rows.append(cells)
     lines += _table(header, rows) + [""]
 
@@ -255,8 +287,7 @@ def adaptation_block() -> List[str]:
         label = next((lbl for key, lbl in MODEL_ORDER if key == name), name)
         cells = [label]
         for strategy, _ in STRATEGY_ORDER:
-            entry = strategy_entry(model, strategy)
-            cells.append(fmt(entry.get("forward", {}).get("recall")) if "forward" in entry else "-")
+            cells.append(cell(strategy_entry(model, strategy), "recall"))
         rows.append(cells)
     lines += _table(header, rows) + [""]
     return lines
@@ -275,32 +306,35 @@ def drift_block() -> List[str]:
         ]
 
     lines = [
-        "An alert requires an effect size and a significance threshold together. A p-value alone is not treated as "
-        "an alert: across hundreds of comparisons a nominal threshold fires almost everywhere, which measures the "
-        "number of comparisons rather than the traffic.",
+        f"{summary['comparisons']} comparisons across {summary['windows']} windows and "
+        f"{len(summary.get('by_method', {}))} detectors, of which {summary['alerts']} raised an alert. The first "
+        f"alert fell on {summary.get('first_alert') or 'no window'}. An alert requires an effect size and a "
+        "significance threshold together. A p-value alone is not treated as an alert: across hundreds of "
+        "comparisons a nominal threshold fires almost everywhere, which measures the number of comparisons "
+        "rather than the traffic.",
         "",
     ]
-    rows = []
-    for method, stats in sorted(summary.items()):
-        if not isinstance(stats, dict):
-            continue
-        rows.append([
-            method,
-            str(stats.get("comparisons", stats.get("windows", "-"))),
-            pct(stats.get("alert_rate")),
-            fmt(stats.get("mean_effect_size")),
-            fmt(stats.get("max_effect_size")),
-        ])
-    return lines + _table(
-        ["Method", "Comparisons", "Alert rate", "Mean effect size", "Max effect size"], rows
-    ) + [""]
+
+    def rates(section: str) -> List[List[str]]:
+        out = []
+        for name, stats in sorted(summary.get(section, {}).items()):
+            comps = stats.get("comparisons", 0)
+            hits = stats.get("alerts", 0)
+            rate = (hits / comps) if comps else float("nan")
+            out.append([name, str(comps), f"{hits}/{comps}", pct(rate)])
+        return out
+
+    lines += _table(["Detector", "Comparisons", "Alerts", "Alert rate"], rates("by_method"))
+    lines += [""]
+    lines += _table(["Feature", "Comparisons", "Alerts", "Alert rate"], rates("by_feature"))
+    lines += [""]
+    return lines
 
 
 def shift_block() -> List[str]:
-    runs = completed_runs("shift")
-    if not runs:
+    run = latest("shift")
+    if run is None:
         return ["_No controlled-shift experiment has been completed yet._", ""]
-    run = runs[-1]
     table = pd.read_csv(run / "controlled_shift_results.csv")
     if table.empty:
         return ["_The controlled-shift experiment recorded no rows._", ""]
@@ -312,17 +346,17 @@ def shift_block() -> List[str]:
         "",
     ]
     aggregate = (
-        table.groupby("kind", as_index=False)
+        table.groupby("shift", as_index=False)
         .agg(
             shifts=("magnitude", "count"),
             verified=("realized_verified", "sum"),
-            alerts=("drift_alert", "sum"),
+            alerts=("drift_alerts", "sum"),
             mean_degradation=("f1_degradation", "mean"),
         )
         .sort_values("mean_degradation", ascending=False)
     )
     rows = [
-        [str(r["kind"]), str(int(r["shifts"])),
+        [str(r["shift"]), str(int(r["shifts"])),
          f"{int(r['verified'])}/{int(r['shifts'])}",
          f"{int(r['alerts'])}/{int(r['shifts'])}",
          fmt(r["mean_degradation"])]
