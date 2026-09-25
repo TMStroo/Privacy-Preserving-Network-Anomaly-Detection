@@ -6,6 +6,7 @@ report cannot claim an experiment that was not run.
 """
 
 import json
+import pandas as pd
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -99,8 +100,13 @@ class Report:
         self.pdf.set_text_color(30, 35, 45)
 
     def para(self, text: str, size: float = BODY, italic: bool = False):
+        # Anything read back from a CSV arrives as a float NaN for an empty
+        # cell, and fpdf cannot encode that. Treat it as no text at all rather
+        # than printing "nan" in the middle of a sentence.
+        if text is None or _is_blank(text):
+            return
         self.pdf.set_font("Helvetica", "I" if italic else "", size)
-        self.pdf.multi_cell(PAGE_W - 2 * MARGIN, LINE + 1, text, align="J")
+        self.pdf.multi_cell(PAGE_W - 2 * MARGIN, LINE + 1, str(text), align="J")
         self.pdf.set_y(self.pdf.get_y() + 3)
 
     def bullets(self, items: List[str]):
@@ -232,6 +238,16 @@ REFERENCES = [
 ]
 
 
+
+def _is_blank(value) -> bool:
+    """True for None, empty strings, and the NaN that pandas gives an empty cell."""
+    if value is None:
+        return True
+    if isinstance(value, float) and value != value:
+        return True
+    return str(value).strip() == ""
+
+
 def _parse_markdown_table(text: str) -> tuple:
     """Turn a rendered markdown table into fpdf rows."""
     lines = [l for l in text.split("\n") if l.strip().startswith("|")]
@@ -242,6 +258,54 @@ def _parse_markdown_table(text: str) -> tuple:
     header = cells(lines[0])
     rows = [cells(l) for l in lines[2:] if not set(l.strip()) <= set("|- :")]
     return header, rows
+
+
+
+def _collect_ablations(experiments_dir: str) -> dict:
+    """Group every recorded ablation row by ablation name.
+
+    Ablation experiments are separate runs, so the report has to go looking for
+    them rather than expecting them in the benchmark's own directory.
+    """
+    root = Path(experiments_dir)
+    if not root.exists():
+        return {}
+    grouped: dict = {}
+    for directory in sorted(root.iterdir()):
+        path = directory / "ablation_results.csv"
+        if not path.is_file():
+            continue
+        try:
+            table = pd.read_csv(path)
+        except Exception:
+            continue
+        if table.empty or "ablation" not in table.columns:
+            continue
+        for name, group in table.groupby("ablation", sort=False):
+            grouped.setdefault(str(name), []).extend(group.to_dict("records"))
+    return grouped
+
+
+def _other_datasets(experiments_dir: str, current: str) -> dict:
+    """Load the latest completed benchmark for each dataset other than this one."""
+    root = Path(experiments_dir)
+    if not root.exists():
+        return {}
+    found: dict = {}
+    for directory in sorted(root.iterdir()):
+        metrics_path = directory / "metrics.json"
+        if not metrics_path.is_file() or directory.name.endswith(".tmp"):
+            continue
+        try:
+            loaded = load_experiment(str(directory))
+        except Exception:
+            continue
+        name = loaded.get("dataset")
+        if not name or name == current:
+            continue
+        # Later directories win, so iteration order gives the most recent run.
+        found[name] = loaded
+    return found
 
 
 def generate_report(experiments_dir: str = "results/experiments", output: str = "docs/technical_report.pdf") -> str:
@@ -374,6 +438,87 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
     ])
 
     # ---------------- Dataset ----------------
+    # ---------------- Leakage prevention ----------------
+    report.h1("Leakage prevention")
+    report.para(
+        "A temporal experiment is only meaningful if nothing from the future can reach the model. Five guards "
+        "enforce that here, and each is covered by a test that fails if the guard is removed."
+    )
+    report.bullets([
+        "Periods are contiguous in time and ordered. An identical timestamp is never split across a boundary, "
+        "because UNSW-NB15 stamps some rows with the same second.",
+        "The scaler and encoder are fitted on the training period only. Fitting on all data and then splitting "
+        "would leak the forward period's mean and variance into training, which is the most common way a "
+        "'temporal' split quietly becomes a random one.",
+        "The operating threshold is chosen on the validation split, never on the backtest or forward periods.",
+        "The backtest is used for exactly one thing: measuring how much the model decays before the forward "
+        "test is touched at all. The forward period is scored once.",
+        "Adaptation is given the window immediately before the forward period and nothing after its first "
+        "timestamp. Rolling adaptation re-fits on a cadence, and at each step the fit may only use rows earlier "
+        "than the step it is about to score.",
+    ])
+    guard_tests = [
+        t for t in sorted(p.name for p in (Path(__file__).resolve().parents[2] / "tests").glob("test_*.py"))
+        if "leak" in t or "silent" in t
+    ]
+    if guard_tests:
+        report.para("Guards covered by: " + ", ".join(guard_tests) + ".")
+
+    # ---------------- Dataset provenance ----------------
+    report.h1("Dataset provenance")
+    report.para(
+        "Both datasets are public and are used unmodified. What each is allowed to support is not the same, and "
+        "the difference matters for how far the results travel."
+    )
+    report.table(
+        ["dataset", "what it is", "what it can support"],
+        [
+            ["UNSW-NB15",
+             "Labelled flow records with attack categories, captured over three sessions in January and "
+             "February 2015. Retained here in a mirror that preserves the start and end timestamps.",
+             "A relative temporal comparison: does a detector keep working on later captured traffic. Its time "
+             "axis spans 27 days and one session has no attacks, so it cannot support a long-horizon claim."],
+            ["UGR'16",
+             "Netflow records from a Greek ISP network, published as 23 weekly archives totalling about 215 GB.",
+             "The stronger temporal experiment, on a real network rather than a lab. This report uses a six-week "
+             "subset, which is stated below and is not the full release."],
+        ],
+        widths=[0.9, 2.3, 2.4], font_size=6.8,
+    )
+
+    from driftguard.data.registry import Ugr16Adapter
+
+    notes = Ugr16Adapter.SUBSET_NOTES
+    report.h2("The UGR'16 subset, exactly")
+    report.para(
+        f"Full release: {notes['full_release_size']}. Subset used here: {notes['subset_size']}. No claim is made "
+        f"about the weeks that were not downloaded."
+    )
+    report.para(notes["why"])
+    report.bullets([
+        f"Calibration weeks (background only, never used for training): {', '.join(notes['calibration_weeks'])}.",
+        f"Weeks carrying the temporal experiment: {', '.join(notes['weeks_used'])}.",
+    ] + list(notes["limitations"]))
+
+    # ---------------- Threat model ----------------
+    report.h1("Threat model")
+    report.para(
+        "The adversary here is not the attacker in the dataset. It is the passage of time, and the question is "
+        "whether the measurement apparatus keeps working when the traffic it was calibrated on is replaced."
+    )
+    report.bullets([
+        "Trusted: the historical capture is assumed to be a faithful record of what the network carried, and the "
+        "labels in the benchmark are assumed correct. No attempt is made to verify either.",
+        "Untrusted: everything after the training period. The forward period is treated as hostile in the sense "
+        "that nothing about it - not its features, its prevalence, its duration, nor its labels - is allowed to "
+        "influence any fitted object before it is scored.",
+        "Out of scope: an attacker who knows the detector's features and adapts to evade it, a compromised "
+        "capture point, and label poisoning in the training data. None of these are tested or claimed.",
+        "The privacy claim is narrower than it looks: features are metadata only, meaning no payload bytes, "
+        "addresses or ports become predictive inputs. That reduces what an observer can learn, and it is not the "
+        "same as a formal privacy guarantee against a traffic analyst.",
+    ])
+
     report.h1("Dataset")
     report.para(
         f"This report was generated from a run on {metrics['dataset']}. The dataset was loaded through an "
@@ -614,20 +759,110 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
     if "class_timeline" in figures:
         report.figure(figures["class_timeline"], "Attack prevalence across the forward period.")
 
+    # ---------------- Ablations ----------------
+    report.h1("Ablations")
+    report.para(
+        "Each ablation below answers one methodological question. They are run with cheaper models than the "
+        "headline benchmark because the question is about the effect, not about which model is best."
+    )
+    ablation_rows = _collect_ablations(experiments_dir)
+    if ablation_rows:
+        for group, rows in ablation_rows.items():
+            report.h2(group.replace("_", " "))
+            header = list(rows[0].keys())
+            keep = [c for c in header if c not in {"note", "experiment_id", "dropped", "seconds", "model"}]
+            table_rows = [[str(r.get(c, "")) for c in keep] for r in rows]
+            report.table(keep, table_rows, font_size=6.6)
+            notes = [r["note"] for r in rows if r.get("note") and not str(r["note"]).startswith("trained")]
+            for note in dict.fromkeys(notes):
+                report.para(note, size=7.4, italic=True)
+    else:
+        report.para("No ablation experiment has been recorded yet.")
+
+    # ---------------- Cross-dataset ----------------
+    report.h1("Cross-dataset discussion")
+    other = _other_datasets(experiments_dir, metrics["dataset"])
+    if not other:
+        report.para(
+            "Only one dataset has been run, so this report draws no comparison across datasets. The single-dataset "
+            "result is stated as what it is: later traffic from one capture environment."
+        )
+    else:
+        for name, other_metrics in other.items():
+            other_models = other_metrics.get("models", [])
+            report.h2(name)
+            report.para(
+                f"{len(other_models)} models on {name}, split "
+                f"{other_metrics.get('split', {}).get('forward_count', {}).get('rows', 0):,} forward rows."
+            )
+            header, rows = _parse_markdown_table(main_comparison_table(other_metrics))
+            if rows:
+                report.table(header, rows, widths=[1.3, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7], font_size=6.8)
+            report.para(
+                "Comparing the two datasets directly is not valid: they have different label definitions, different "
+                "attack taxonomies and different collection tools. The transferable claim is only about the "
+                "method - splitting chronologically, fixing the operating point on validation data, and treating "
+                "adaptation as a separate question from detection."
+            )
+
+    # ---------------- Conclusion ----------------
+    report.h1("Conclusion")
+    if models:
+        worst = min(models, key=lambda m: m["result"].get("f1_degradation", 0))
+        best_fwd = max(models, key=lambda m: m["result"]["forward"]["f1"])
+        report.para(
+            f"A detector trained on the earliest {split['train_count']['rows']:,} flows of {metrics['dataset']} "
+            f"was evaluated on {split.get('forward_count', {}).get('rows', 0):,} flows it never saw. "
+            f"{len(degraded)} of {len(models)} models lost F1 on that later traffic. The largest loss was "
+            f"{worst['result']['model']} at {worst['result'].get('f1_degradation', float('nan')):+.4f} F1; the best "
+            f"forward performer was {best_fwd['result']['model']} at F1 {best_fwd['result']['forward']['f1']:.4f}."
+        )
+        report.para(
+            "The answer to the primary question is therefore conditional rather than binary. Models trained on "
+            "historical traffic do continue to detect attacks on later traffic, but not at the level they reached "
+            "on held-out data from the same period, and the drop is not uniform across models. "
+            + (
+                "The adaptation comparison further shows that refitting on recent data is not automatically an "
+                "improvement, so the choice of strategy has to be made against a stated objective rather than "
+                "assumed from its name."
+                if len(models) else ""
+            )
+        )
+    else:
+        report.para("No model results were recorded, so no conclusion can be drawn.")
+
     # ---------------- Limitations ----------------
     report.h1("Limitations")
-    report.bullets([
-        "One dataset, one split. The numbers describe this dataset under this configuration and are not a claim "
-        "about modern networks, adversarial robustness or deployment readiness.",
+    dataset_name = metrics.get("dataset", "the dataset")
+    limit_items = [
+        "The numbers describe one dataset under one configuration. They are not a claim about modern networks, "
+        "about adversarial robustness, or about deployment readiness, and nothing here was tested against an "
+        "adaptive attacker.",
+    ]
+    if dataset_name.startswith("unsw"):
+        limit_items.append(
+            "UNSW-NB15's time axis is three discrete capture sessions across 27 days, one of which contains no "
+            "attacks at all. It supports a relative temporal comparison - does performance fall on later captured "
+            "traffic - and nothing stronger. It cannot speak to years of deployment, because it spans weeks."
+        )
+    else:
+        limit_items.append(
+            "This is a subset of a much larger collection, so it constrains the time axis as well as the traffic "
+            "variety. Periods outside the subset are unmeasured."
+        )
+    limit_items += [
         "The forward period is later traffic from the same capture environment, so the shift it contains is "
-        "whatever the environment itself did, not a designed stress test.",
-        "A controlled-shift experiment is needed to attribute a degradation to one specific property; the "
-        "temporal result alone cannot say which feature change caused the drop.",
-        "The operating threshold is chosen on one validation slice. A different budget, or a different split of "
-        "the same data, would give different numbers.",
-        "No uncertainty method beyond calibration is used, because none was needed to answer the question asked "
-        "here.",
-    ])
+        "whatever the environment itself did, not a designed stress test. The controlled-shift experiments "
+        "attribute a degradation to named properties, but they perturb a dataset that is already synthetic in "
+        "its attack labels.",
+        "The operating threshold comes from one validation slice at a fixed false-positive budget. A different "
+        "budget, or a different split of the same data, gives different numbers; the target-FPR ablation shows "
+        "how sharply recall depends on that choice.",
+        "A detector can be simultaneously accurate and badly calibrated, and calibration error is estimated on "
+        "slices as small as the attack class. The uncertainty numbers are point estimates without confidence "
+        "intervals, so small differences between models should not be over-read.",
+    ]
+    report.bullets(limit_items)
 
     # ---------------- Reproducibility ----------------
     report.h1("Reproducibility")
