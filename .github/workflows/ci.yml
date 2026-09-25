@@ -6,63 +6,146 @@ on:
   pull_request:
     branches: [main, master]
 
+# The historical benchmarks need multi-gigabyte raw datasets and hours of CPU,
+# so they live in benchmarks.yml and run on demand. Everything that can be
+# checked in seconds is checked here.
 jobs:
-  test:
+  unit-tests:
+    name: tests (py${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
-
+        python-version: ["3.10", "3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip"
+          cache: pip
 
-      - name: Install dependencies
+      - name: Install
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
           pip install -e .
+          pip install pytest
 
-      - name: Run tests
-        run: python -m pytest tests/ -v
+      - name: Unit tests
+        run: python -m pytest tests/ -q
 
-  pipeline-smoke-test:
+  # Split out so a failure names the area that broke, rather than one line of a
+  # 260-test log.
+  targeted-suites:
+    name: ${{ matrix.suite }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - suite: temporal-leakage
+            files: tests/test_temporal_leakage.py
+          - suite: drift-detection
+            files: tests/test_drift_detectors.py tests/test_drift_method_registry.py
+          - suite: adaptation
+            files: tests/test_adaptation.py
+          - suite: controlled-shifts
+            files: tests/test_controlled_shift.py
+          - suite: dataset-adapters
+            files: tests/test_adapters.py tests/test_ugr16_adapter.py
+          - suite: config-validation
+            files: tests/test_config_validation.py
+          - suite: cli
+            files: tests/test_experiments_and_cli.py
+          - suite: silent-noop-regressions
+            files: tests/test_silent_noop_regressions.py
+          - suite: figures
+            files: tests/test_figures.py
+          - suite: v1-leakage-guard
+            files: tests/test_leakage.py
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest
+
+      - name: Run
+        run: python -m pytest ${{ matrix.files }} -q
+
+  # Exercises the real end-to-end pipeline on the synthetic fixture: the same
+  # code path as a real benchmark, without any dataset.
+  driftguard-smoke:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: "pip"
-
-      - name: Install dependencies
-        run: |
+          cache: pip
+      - run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
           pip install -e .
+          pip install pytest tabulate
 
-      # CI uses the development sample only; the research dataset is never
-      # fetched here (it is ~48 MB and is not needed to check the code).
-      - name: Write development sample
+      - name: Run the smoke benchmark
+        run: python -m driftguard benchmark --config configs/smoke.yaml
+
+      - name: Check it produced real output
+        run: |
+          RUN=$(ls -dt results/experiments/*_temporal_synthetic_* | head -1)
+          echo "run: $RUN"
+          test -f "$RUN/metrics.json"
+          test -f "$RUN/metadata.json"
+          test -f "$RUN/drift_events.csv"
+          python tools/verify_run.py "$RUN"
+
+      - name: Regenerate derived artifacts
+        run: |
+          python -m driftguard report --output docs/technical_report.pdf
+          python scripts/render_results.py
+          test -f docs/technical_report.pdf
+
+  # V1 is preserved rather than replaced, so its pipeline stays under test.
+  v1-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest tabulate
+
+      - name: Write the development sample
         run: python scripts/create_sample_data.py
 
-      - name: Run pipeline (development sample)
+      - name: Run the V1 pipeline on the sample
         run: python -m privacy_preserving_nad.pipeline
 
-      - name: Verify outputs and smoke-test labeling
+      - name: Verify it labelled the run honestly
         run: |
           test -f results/metrics/evaluation_results.json
-          test -f results/metrics/comparison.csv
           test -f results/metrics/dataset_info.json
-          test -f results/figures/model_comparison_f1.png
-          python -c "import json; d = json.load(open('results/metrics/dataset_info.json')); assert d['kind'] == 'development-sample', d"
+          python -c "import json; d=json.load(open('results/metrics/dataset_info.json')); assert d['kind']=='development-sample', d"
 
-      - name: Report generator imports
-        run: python -c "import privacy_preserving_nad.pipeline, privacy_preserving_nad.data.dataset; print('imports ok')"
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the image
+        run: docker build -t driftguard .
+      - name: Tests inside the image
+        run: docker run --rm driftguard python -m pytest tests/ -q
+      - name: Smoke benchmark inside the image
+        run: docker run --rm driftguard python -m driftguard benchmark --config configs/smoke.yaml
