@@ -1,0 +1,59 @@
+# DriftGuard smoke test: the whole pipeline on a small deterministic fixture.
+#
+# Used by CI and by `docker compose run --rm smoke`. Runs in seconds and needs
+# no network access, no downloaded dataset, and no model download.
+# This is pipeline verification. Its numbers are NOT a research benchmark and
+# must not be quoted as a result.
+
+experiment:
+  kind: smoke
+  output_dir: results/experiments
+
+dataset:
+  name: synthetic
+  adapter: synthetic
+  raw_dir: data/raw
+  # Only the generator settings live here; the shape is fixed by the adapter.
+  rows: 6000
+  attack_rate: 0.12
+  shift_position: 0.6
+  shift_strength: 1.4
+  duration: 72h
+
+temporal:
+  train_fraction: 0.5
+  validation_fraction: 0.15
+  backtest_fraction: 0.15
+  forward_fraction: 0.2
+
+features:
+  max_rows: 6000
+
+models:
+  - majority
+  - logistic_regression
+
+target_fpr: 0.05
+
+drift:
+  window: 6h
+  stride: 3h
+  min_samples: 80
+  methods: [ks, wasserstein, psi, cusum]
+  alpha: 0.01
+  psi_threshold: 0.2
+  wasserstein_threshold: 0.1
+  cusum_threshold: 5.0
+
+adaptation:
+  strategies: [none, threshold_recalibration, recent_retrain]
+  recent_window: 12h
+  rolling_window: 6h
+  rolling_step: 6h
+  target_fpr: 0.05
+  min_adapt_rows: 150
+
+seed: 42
+
+shift:
+  models: [logistic_regression]

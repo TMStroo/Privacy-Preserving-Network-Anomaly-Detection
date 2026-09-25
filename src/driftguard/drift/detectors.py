@@ -7,6 +7,7 @@ distance that can be compared against a configured threshold.
 """
 
 from dataclasses import dataclass, field
+from functools import lru_cache
 from typing import Dict, List, Optional, Sequence
 
 import numpy as np
@@ -14,6 +15,51 @@ import pandas as pd
 from scipy import stats
 
 DRIFT_METHODS = ("ks", "wasserstein", "psi", "cusum")
+
+_METHOD_ALIASES = {
+    "ks": "ks",
+    "kolmogorov": "ks",
+    "kolmogorov_smirnov": "ks",
+    "kolmogorov-smirnov": "ks",
+    "wasserstein": "wasserstein",
+    "wd": "wasserstein",
+    "psi": "psi",
+    "population_stability_index": "psi",
+    "cusum": "cusum",
+    "cu_sum": "cusum",
+}
+
+
+def normalise_method(method: str) -> str:
+    """Resolve a method name to its canonical form.
+
+    Method names arrive from YAML and from command-line arguments, so the same
+    detector can be spelled several ways. Normalising once, here, keeps dispatch
+    in ``detect_window`` a plain equality check and makes a misspelled name fail
+    at the boundary with a usable message instead of falling through to the
+    unknown-method branch.
+    """
+    if not isinstance(method, str):
+        raise TypeError(f"drift method must be a string, got {type(method).__name__}")
+    key = method.strip().lower().replace(" ", "_")
+    try:
+        return _METHOD_ALIASES[key]
+    except KeyError:
+        raise ValueError(
+            f"unknown drift method {method!r}; choose from {', '.join(DRIFT_METHODS)}"
+        ) from None
+
+
+def resolve_methods(methods: Sequence[str]) -> List[str]:
+    """Normalise a configured method list, dropping duplicates, order preserved."""
+    resolved: List[str] = []
+    for entry in methods:
+        name = normalise_method(entry)
+        if name not in resolved:
+            resolved.append(name)
+    if not resolved:
+        raise ValueError("no drift methods configured")
+    return resolved
 
 
 @dataclass
@@ -174,6 +220,110 @@ class CusumDetector:
         return {"statistic": float(statistic), "alert": bool(alarm), "alarm": bool(alarm), "z": float(z)}
 
 
+def cusum_null_threshold(
+    length: int,
+    drift: float = 0.5,
+    warmup: int = 20,
+    target_false_alarm_rate: float = 0.01,
+    trials: int = 200,
+    seed: int = 0,
+) -> float:
+    """Calibrate a CUSUM threshold against the no-change null distribution.
+
+    A fixed threshold on an accumulating statistic is not a fixed false-alarm
+    rate: the longer the window, the further a random walk drifts on its own.
+    At ``drift=0.5`` a threshold of 5 alarms on roughly 63% of pure-noise
+    windows of 500 points, which would turn every experiment into a wall of
+    false alerts. Simulating the null once per window length and taking a
+    high quantile keeps the alert rate near ``target_false_alarm_rate``.
+    """
+    rng = np.random.default_rng(seed)
+    peaks = np.empty(trials, dtype=float)
+    for trial in range(trials):
+        z = rng.normal(0.0, 1.0, max(int(length), int(warmup) + 1))
+        pos = neg = 0.0
+        peak = 0.0
+        for value in z[int(warmup):]:
+            pos = max(0.0, pos + float(value) - drift)
+            neg = max(0.0, neg - float(value) - drift)
+            peak = max(peak, pos, neg)
+        peaks[trial] = peak
+    return float(np.quantile(peaks, 1.0 - float(target_false_alarm_rate)))
+
+
+@lru_cache(maxsize=128)
+def calibrated_cusum_threshold(
+    length: int,
+    drift: float = 0.5,
+    warmup: int = 20,
+    target_false_alarm_rate: float = 0.01,
+    trials: int = 200,
+    seed: int = 0,
+) -> float:
+    """Memoised :func:`cusum_null_threshold`.
+
+    The simulation depends only on the window length, and a full run compares
+    one window against dozens of features, so without the cache the same null
+    distribution would be rebuilt hundreds of times.
+    """
+    return cusum_null_threshold(
+        length, drift=drift, warmup=warmup,
+        target_false_alarm_rate=target_false_alarm_rate, trials=trials, seed=seed,
+    )
+
+
+def cusum_test(
+    reference: np.ndarray,
+    window: pd.Series,
+    threshold: float = 5.0,
+    drift: float = 0.5,
+    warmup: int = 20,
+):
+    """Apply a sequential CUSUM to one window, using the reference as the baseline.
+
+    The reference period supplies the mean and standard deviation the statistic
+    is standardised against, then the window is walked in timestamp order. The
+    returned statistic is the largest alarm reached, and the window counts as
+    drifting if that alarm fired at any point - a sustained shift inside the
+    window should not be missed because its later part diluted the average.
+    """
+    window_values = window.to_numpy(dtype=float) if isinstance(window, pd.Series) else np.asarray(window, float)
+    if isinstance(window, pd.Series) and window.index.is_monotonic_increasing is False:
+        window_values = window.sort_index().to_numpy(dtype=float)
+
+    mu = float(np.mean(reference))
+    sigma = float(np.std(reference)) or 1.0
+    values = (window_values - mu) / sigma
+
+    pos = 0.0
+    neg = 0.0
+    peak = 0.0
+    fired_at = None
+    # The first `warmup` observations only feed the baseline statistics; counting
+    # them would let a window alert on nothing but its own start-up noise.
+    for step, z in enumerate(values):
+        if step < warmup:
+            continue
+        pos = max(0.0, pos + float(z) - drift)
+        neg = max(0.0, neg - float(z) - drift)
+        peak = max(peak, pos, neg)
+        if fired_at is None and peak > threshold:
+            fired_at = step
+
+    # The effect size is the standardised mean shift the window carries, which
+    # is what a CUSUM accumulates: without it a p-value-free alert would say
+    # nothing about magnitude.
+    effect = abs(float(np.mean(window_values)) - mu) / sigma
+    out = {
+        "statistic": float(peak),
+        "p_value": None,
+        "effect_size": float(effect),
+        "alert": fired_at is not None,
+        "first_alarm_offset": fired_at,
+    }
+    return out, float(threshold)
+
+
 def detect_window(
     reference: pd.Series,
     window: pd.Series,
@@ -184,6 +334,7 @@ def detect_window(
     config: Dict,
 ) -> DriftResult:
     """Run one drift method over one feature in one window."""
+    method = normalise_method(method)
     ref_values = reference.to_numpy(dtype=float)
     cur_values = window.to_numpy(dtype=float)
     min_samples = int(config.get("min_samples", 100))
@@ -206,8 +357,24 @@ def detect_window(
             threshold=float(config.get("psi_threshold", 0.2)),
         )
         threshold = float(config.get("psi_threshold", 0.2))
+    elif method == "cusum":
+        # `window` here is the column of values, already ordered by the caller;
+        # pass it positionally so the name cannot collide with the keyword.
+        warmup = int(config.get("cusum_warmup", 20))
+        drift_param = float(config.get("cusum_drift", 0.5))
+        if config.get("cusum_threshold") is not None:
+            threshold = float(config["cusum_threshold"])
+        else:
+            threshold = calibrated_cusum_threshold(
+                len(window), drift=drift_param, warmup=warmup,
+                target_false_alarm_rate=float(config.get("cusum_false_alarm_rate", 0.01)),
+                seed=int(config.get("cusum_seed", 0)),
+            )
+        out, threshold = cusum_test(
+            ref_values, window, threshold=threshold, drift=drift_param, warmup=warmup,
+        )
     else:
-        raise KeyError(f"Unknown drift method '{method}'. Available: {DRIFT_METHODS}")
+        raise ValueError(f"unknown drift method {method!r}; choose from {', '.join(DRIFT_METHODS)}")
 
     return DriftResult(
         window_start=window_start,

@@ -64,4 +64,5 @@ Desktop.ini
 
 # Environment files (if any)
 .env
-.env.local
+.env.localbench_unsw.log
+bench_unsw.pid

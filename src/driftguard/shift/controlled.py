@@ -29,9 +29,18 @@ SHIFT_KINDS = (
 
 
 def _log_scale(series: pd.Series, factor: float, rng: np.random.Generator) -> pd.Series:
+    """Scale a non-negative series by ``factor`` in log space.
+
+    Working in log space keeps a value from flipping sign when the factor
+    shrinks it, which matters because several of these columns contain zeros.
+    The jitter is multiplicative-in-log too, so the perturbation scales with the
+    value instead of swamping small flows.
+    """
     if factor == 1.0:
         return series
-    return np.expm1(np.log1p(series.clip(lower=0)) * np.log(factor) + rng.normal(0.0, 0.02, len(series)))
+    jitter = rng.normal(0.0, 0.02, len(series))
+    scaled = np.expm1(np.log1p(series.clip(lower=0).to_numpy()) + np.log(factor) + jitter)
+    return pd.Series(scaled, index=series.index, name=series.name)
 
 
 def apply_shift(
@@ -42,12 +51,12 @@ def apply_shift(
 ) -> FlowFrame:
     """Return a copy of ``frame`` with one controlled shift applied.
 
-    ``magnitude`` is an interpretation depends on the kind: a multiplicative
-    factor for the scale shifts, a target attack fraction for the prevalence
-    shift, and a keep-rate for telemetry reduction.
+    ``magnitude`` means something different per kind: a multiplicative factor
+    for the scale shifts, a target attack fraction for the prevalence shift,
+    and a skew factor for the protocol mixture.
     """
     if kind not in SHIFT_KINDS:
-        raise KeyError(f"Unknown shift '{kind}'. Available: {SHIFT_KINDS}")
+        raise ValueError(f"unknown shift {kind!r}; choose from {', '.join(SHIFT_KINDS)}")
 
     rng = np.random.default_rng(seed)
     out = frame.frame.copy()
@@ -70,10 +79,17 @@ def apply_shift(
     elif kind == "byte_rate":
         out["byte_rate"] = _log_scale(out["byte_rate"], magnitude, rng)
     elif kind == "iat":
-        # Inter-arrival behaviour is expressed through rate and jitter proxies;
-        # UGR'16 and UNSW-NB15 expose no IAT column, so the shift acts on the
-        # rate features that the collector would derive IAT from.
-        out["packet_rate"] = _log_scale(out["packet_rate"], magnitude, rng)
+        # Neither UNSW-NB15 nor the UGR'16 netflow export carries an
+        # inter-arrival-time column, so there is nothing to shift directly. The
+        # observable consequence of changed inter-arrival spacing is that the
+        # same byte total arrives over a different time base: the rate features
+        # move, the packet count does not. So this scales the rate features and
+        # leaves total_packets and total_bytes alone, which is what separates it
+        # from the byte_rate shift above.
+        rate_factor = _log_scale(pd.Series(1.0, index=out.index), magnitude, rng).to_numpy()
+        for column in ("packet_rate", "byte_rate"):
+            if column in out.columns:
+                out[column] = (pd.to_numeric(out[column], errors="coerce").fillna(0.0).to_numpy() * rate_factor)
     elif kind == "protocol_mixture":
         if "protocol" not in out.columns:
             raise KeyError("protocol_mixture shift requires a protocol column")
@@ -93,15 +109,23 @@ def apply_shift(
         benign = np.flatnonzero(labels == 0)
         if attacks.size == 0 or benign.size == 0:
             raise ValueError("class_prevalence shift needs both classes present")
-        total = len(labels)
-        wanted_attacks = int(round(target_rate * total))
-        wanted_attacks = min(max(wanted_attacks, 1), attacks.size)
-        wanted_benign = min(benign.size, total - wanted_attacks)
-        keep = np.concatenate([rng.choice(attacks, wanted_attacks, replace=False),
-                               rng.choice(benign, wanted_benign, replace=False)])
+        if not 0.0 < target_rate < 1.0:
+            raise ValueError("class_prevalence magnitude must be a fraction in (0, 1)")
+
+        # Size the kept sample from the target rate and the smaller class, so the
+        # requested prevalence is actually reached instead of being capped by
+        # whichever class runs out. That makes the shift a change in the base
+        # rate only: the retained rows themselves are untouched.
+        wanted_attacks = min(attacks.size, int(round(target_rate / (1.0 - target_rate) * benign.size)))
+        wanted_attacks = max(wanted_attacks, 1)
+        keep = np.concatenate([
+            rng.choice(attacks, wanted_attacks, replace=False),
+            rng.choice(benign, benign.size, replace=False),
+        ])
         keep = np.sort(keep)
         out = out.iloc[keep].reset_index(drop=True)
         params["resulting_attack_rate"] = float(out["label"].mean())
+        params["rows_removed"] = int(len(labels) - len(out))
     elif kind == "telemetry_reduction":
         # Drop the features a reduced collector would no longer export, rather
         # than corrupting the values of features it still exports.

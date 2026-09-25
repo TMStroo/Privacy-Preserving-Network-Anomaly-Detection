@@ -1,0 +1,38 @@
+# Usage:
+#   docker compose run --rm tests          # full test suite
+#   docker compose run --rm demo           # deterministic pipeline demo
+#   docker compose run --rm smoke          # tiny benchmark on the fixture
+#   docker compose run --rm report         # technical report from results
+#   docker compose run --rm shell          # interactive python
+#
+# The research datasets are NOT in the image. For a full benchmark, mount them
+# and pass the path through DRIFTGUARD_RAW_DIR.
+
+services:
+  tests:
+    build: .
+    command: python -m pytest tests/ -q
+
+  demo:
+    build: .
+    command: python -m driftguard demo --output-dir results/demo
+
+  smoke:
+    build: .
+    command: >
+      python -m driftguard benchmark --config configs/smoke.yaml
+
+  report:
+    build: .
+    command: >
+      python -m driftguard report --experiments-dir results/experiments
+      --output docs/technical_report.pdf
+    volumes:
+      - ./results:/workspace/results
+      - ./docs:/workspace/docs
+
+  shell:
+    build: .
+    command: python
+    tty: true
+    stdin_open: true

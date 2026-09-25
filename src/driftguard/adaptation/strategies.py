@@ -17,6 +17,7 @@ from sklearn.base import clone
 from driftguard.data.schema import FlowFrame
 from driftguard.models.registry import build_model
 from driftguard.temporal import TemporalLeakageError
+from driftguard.utils import as_timedelta
 
 ADAPTATION_STRATEGIES = (
     "none",

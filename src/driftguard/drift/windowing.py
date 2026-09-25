@@ -13,7 +13,14 @@ from typing import Dict, List, Sequence
 import pandas as pd
 
 from driftguard.data.schema import FlowFrame
-from driftguard.drift.detectors import DRIFT_METHODS, DriftResult, detect_window, run_sequential_drift
+from driftguard.drift.detectors import (
+    DRIFT_METHODS,
+    DriftResult,
+    detect_window,
+    resolve_methods,
+    run_sequential_drift,
+)
+from driftguard.utils import as_timedelta
 
 DEFAULT_DRIFT_CONFIG = {
     "reference_period": "train",
@@ -49,29 +56,41 @@ def analyse_windows(
     config: Dict,
 ) -> List[DriftResult]:
     """Compare each window of ``target`` against the whole reference period."""
-    merged = config.get("window", DEFAULT_DRIFT_CONFIG["window"])
-    stride = config.get("stride", merged)
-    methods = list(config.get("methods", DEFAULT_DRIFT_CONFIG["methods"]))
+    window = as_timedelta(config.get("window", DEFAULT_DRIFT_CONFIG["window"]))
+    stride = as_timedelta(config.get("stride", config.get("window", DEFAULT_DRIFT_CONFIG["window"])))
+    methods = resolve_methods(config.get("methods", DEFAULT_DRIFT_CONFIG["methods"]))
     min_samples = int(config.get("min_samples", DEFAULT_DRIFT_CONFIG["min_samples"]))
 
     target_ordered = target.sorted_by_time()
     if target_ordered.frame.empty:
         return []
 
+    span = target_ordered.timestamps.max() - target_ordered.timestamps.min()
+    if window <= pd.Timedelta(0) or span < window:
+        return []
+
     edges = pd.date_range(
         start=target_ordered.timestamps.min(),
-        end=target_ordered.timestamps.max(),
-        freq=pd.Timedelta(stride),
+        end=target_ordered.timestamps.max() + stride,
+        freq=stride,
     )
     if len(edges) < 2:
         return []
 
+    # A feature the target does not carry cannot drift: a reduced collector
+    # simply does not report it. Skipping is the honest answer, and it keeps a
+    # telemetry-reduction experiment from failing on its own setup.
+    comparable = [f for f in features if f in target_ordered.frame.columns and f in reference.frame.columns]
+    if not comparable:
+        return []
+
     results: List[DriftResult] = []
-    for start, end in zip(edges[:-1], edges[1:]):
+    for start in edges[:-1]:
+        end = start + window
         sub = target_ordered.frame[(target_ordered.timestamps >= start) & (target_ordered.timestamps < end)]
         if len(sub) < min_samples:
             continue
-        for feature in features:
+        for feature in comparable:
             for method in methods:
                 results.append(
                     detect_window(

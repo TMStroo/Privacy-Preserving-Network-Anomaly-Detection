@@ -159,6 +159,99 @@ def cmd_report(args) -> int:
     return 0
 
 
+def cmd_shift(args) -> int:
+    from driftguard.data.registry import get_adapter
+    from driftguard.experiments.tracking import (
+        ExperimentRun,
+        experiment_id,
+        file_checksums,
+
+    )
+    from driftguard.shift.experiment import run_controlled_shift_experiments
+
+    config = load_config(args.config)
+    for assignment in args.set:
+        key, _, value = assignment.partition("=")
+        node = config
+        parts = key.split(".")
+        for part in parts[:-1]:
+            node = node.setdefault(part, {})
+        try:
+            node[parts[-1]] = yaml.safe_load(value)
+        except Exception:
+            node[parts[-1]] = value
+
+    dataset = config["dataset"]
+    frame = get_adapter(dataset["name"]).load(
+        dataset["raw_dir"], **dataset.get("load_options", {})
+    )
+    models = args.models or config.get("shift", {}).get("models", ["logistic_regression", "random_forest"])
+    params = model_params(config)
+    root = config.get("output", {}).get("experiments_dir", "results/experiments")
+
+    run = ExperimentRun(
+        experiment_id("shift", frame.name, config.get("tag")), root=root
+    )
+    meta = run.metadata(
+        dataset=frame.name,
+        dataset_checksums=file_checksums(
+            [f"{dataset['raw_dir']}/{f}" for f in frame.source_files]
+        ),
+        features=list(frame.frame.columns),
+        seed=int(config.get("seed", 42)),
+        config=config,
+        split_description=period_summary(frame, config.get("temporal", {})),
+    )
+    # The model parameters, adaptation strategies and drift methods are already
+    # inside `config`; recording them separately as well means a reader does not
+    # have to know where in the config to look.
+    meta["models"] = {m: params.get(m, {}) for m in models}
+    meta["adaptation"] = config.get("adaptation", {})
+    meta["drift"] = config.get("drift", {})
+    run.write_json("metadata.json", meta)
+    run.write_text("config.yaml", yaml.safe_dump(config, sort_keys=True))
+
+    print(f"running controlled shifts on {len(models)} model(s): {', '.join(models)}")
+    summary = run_controlled_shift_experiments(
+        frame, config, models, run.path, run.experiment_id,
+    )
+    run.write_json("controlled_shift_summary.json", summary)
+    print(f"\n  rows evaluated : {summary['rows']}")
+    print(f"  degraded      : {summary['degraded']}")
+    print(f"  recovered     : {summary['recovered']}")
+    print(f"  skipped       : {summary['skipped']}")
+    print(f"\nexperiment written to: {run.path}")
+    return 0
+
+
+def model_params(config: Dict) -> Dict[str, Dict]:
+    """Per-model hyperparameters, whichever way the config spells them.
+
+    ``models`` is either a list of names, meaning "use the registry defaults",
+    or a mapping of name to parameter overrides.
+    """
+    block = config.get("models")
+    if isinstance(block, dict):
+        return {k: (v if isinstance(v, dict) else {}) for k, v in block.items()}
+    if isinstance(block, list):
+        return {name: {} for name in block}
+    return {}
+
+
+def period_summary(frame, temporal_config: Dict) -> Dict:
+    """Record the period boundaries so a later reader can check them."""
+    from driftguard.temporal import build_temporal_split
+
+    split = build_temporal_split(frame, **(temporal_config or {}))
+    periods = ["train", "validation", "backtest"]
+    if split.has_forward:
+        periods.append("forward")
+    return {
+        name: [str(lo), str(hi)]
+        for name, (lo, hi) in ((p, split.time_range(p)) for p in periods)
+    }
+
+
 def cmd_experiments(args) -> int:
     from driftguard.experiments.tracking import list_experiments
 
@@ -213,6 +306,12 @@ def build_parser() -> argparse.ArgumentParser:
     bench.add_argument("--config", default=DEFAULT_CONFIG)
     bench.add_argument("--set", action="append", default=[])
     bench.set_defaults(func=cmd_benchmark)
+
+    shift = sub.add_parser("shift", help="run controlled distribution-shift experiments")
+    shift.add_argument("--config", default=DEFAULT_CONFIG)
+    shift.add_argument("--set", action="append", default=[])
+    shift.add_argument("--models", nargs="*", default=None)
+    shift.set_defaults(func=cmd_shift)
 
     report = sub.add_parser("report", help="render the technical report from experiment output")
     report.add_argument("--experiments-dir", default="results/experiments")
