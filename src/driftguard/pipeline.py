@@ -7,6 +7,7 @@ data beforehand.
 """
 
 import json
+import os
 import time
 from typing import Dict, List, Optional
 
@@ -50,7 +51,8 @@ class AdaptationStudyError(RuntimeError):
 def _load_dataset(config: Dict) -> FlowFrame:
     name = config["dataset"]["name"]
     adapter = get_adapter(name)
-    return adapter.load(config["dataset"]["raw_dir"], **config["dataset"].get("load_options", {}))
+    raw_dir = os.environ.get("DRIFTGUARD_RAW_DIR") or config["dataset"]["raw_dir"]
+    return adapter.load(raw_dir, **config["dataset"].get("load_options", {}))
 
 
 def _fit_preprocessor(train: FlowFrame, features: List[str], split: TemporalSplit) -> FeaturePreprocessor:
@@ -269,9 +271,10 @@ def run_benchmark(config: Dict, experiment_root: str = "results/experiments") ->
         root=experiment_root,
     )
     dataset_files = list(frame.source_files)
+    raw_dir = os.environ.get("DRIFTGUARD_RAW_DIR") or config["dataset"]["raw_dir"]
     meta = run.metadata(
         dataset=frame.name,
-        dataset_checksums=file_checksums([f"{config['dataset']['raw_dir']}/{f}" for f in dataset_files]),
+        dataset_checksums=file_checksums([f"{raw_dir}/{f}" for f in dataset_files]),
         features=features,
         seed=seed,
         config=config,

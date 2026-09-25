@@ -74,7 +74,7 @@ adaptation:
     - threshold_recalibration
     - recent_window_retrain
     - rolling_window_retrain
-    - historical_plus_recent_window_retrain
+    - historical_plus_recent_retrain
 
 output:
   experiments_dir: results/experiments

@@ -68,7 +68,8 @@ drift:
     - packet_rate
     - byte_rate
     - mean_packet_size
-    - packet_size_std
+    - bytes_per_packet
+    - duration_log1p
 
 adaptation:
   strategies:
@@ -76,7 +77,7 @@ adaptation:
     - threshold_recalibration
     - recent_window_retrain
     - rolling_window_retrain
-    - historical_plus_recent_window_retrain
+    - historical_plus_recent_retrain
   window: 24h
   target_fpr: 0.05
 

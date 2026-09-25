@@ -66,3 +66,4 @@ Desktop.ini
 .env
 .env.localbench_unsw.log
 bench_unsw.pid
+results/superseded/
