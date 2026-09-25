@@ -31,7 +31,8 @@ def sample_config():
             "normal_value": 0,
             "anomaly_value": 1
         },
-        "excluded_features": ["srcip", "dstip", "sport", "dsport", "srcpt", "dstpt", "Ltime", "Stime", "attack_cat"],
+        "excluded_features": ["srcip", "dstip", "sport", "dsport", "srcpt", "dstpt", "Ltime", "Stime", "attack_cat", "label", "id"],
+        "payload_derived_features": ["trans_depth", "response_body_len", "is_ftp_login", "ct_ftp_cmd", "ct_flw_http_mthd"],
         "categorical_features": ["proto", "service", "state"],
         "feature_sets": {
             "FULL_METADATA": [
@@ -39,10 +40,9 @@ def sample_config():
                 "sttl", "dttl", "sload", "dload", "sloss", "dloss",
                 "sinpkt", "dinpkt", "sjit", "djit", "swin", "dwin",
                 "stcpb", "dtcpb", "tcprtt", "synack", "ackdat",
-                "smean", "dmean", "trans_depth", "response_body_len",
+                "smean", "dmean",
                 "ct_srv_src", "ct_state_ttl", "ct_dst_ltm", "ct_src_dport_ltm",
-                "ct_dst_sport_ltm", "ct_dst_src_ltm", "is_ftp_login",
-                "ct_ftp_cmd", "ct_flw_http_mthd", "ct_src_ltm", "ct_srv_dst",
+                "ct_dst_sport_ltm", "ct_dst_src_ltm", "ct_src_ltm", "ct_srv_dst",
                 "is_sm_ips_ports", "proto", "service", "state"
             ],
             "RESTRICTED_METADATA": [
@@ -181,7 +181,11 @@ class TestDataPreprocessor:
         assert "RESTRICTED_METADATA" in preprocessor.feature_sets
 
     def test_clean_data(self, sample_config, sample_raw_data, tmp_path):
-        """Test data cleaning."""
+        """clean_data tidies rows but never drops rows or fills values.
+
+        Imputation belongs to the sklearn pipeline so that statistics are
+        fitted on the training split only.
+        """
         config_file = tmp_path / "config.yaml"
         with open(config_file, "w") as f:
             yaml.dump(sample_config, f)
@@ -189,18 +193,17 @@ class TestDataPreprocessor:
         preprocessor = DataPreprocessor(str(config_file))
         train_data, _ = sample_raw_data
 
-        # Add some missing values and duplicates
         dirty_data = train_data.copy()
         dirty_data.loc[0:5, "dur"] = np.nan
-        dirty_data.loc[10:12, "proto"] = np.nan
+        dirty_data.loc[10:12, "proto"] = "  tcp  "
         dirty_data = pd.concat([dirty_data, dirty_data.iloc[:3]], ignore_index=True)
 
         clean_data = preprocessor.clean_data(dirty_data)
 
-        # Check missing values handled
-        assert clean_data.isnull().sum().sum() == 0
-        # Check duplicates removed
-        assert len(clean_data) < len(dirty_data)
+        assert len(clean_data) == len(dirty_data)
+        # 6 injected NaNs plus their 3 duplicated copies are all preserved
+        assert clean_data["dur"].isna().sum() == 9
+        assert (clean_data["proto"].iloc[10:13] == "tcp").all()
 
     def test_prepare_target(self, sample_config, sample_raw_data, tmp_path):
         """Test target preparation."""

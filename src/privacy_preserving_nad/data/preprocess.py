@@ -48,45 +48,43 @@ class DataPreprocessor:
         return train_df, test_df
 
     def clean_data(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Clean the dataset: handle missing values, remove duplicates."""
+        """Tidy a raw split without removing rows or fitting any statistic.
+
+        The official splits are used as released: no rows are dropped and no
+        imputation happens here, because computing a median on the test split
+        would leak test statistics into preprocessing. Missing values are
+        handled later by the sklearn pipeline, which is fitted on train only.
+        """
         df = df.copy()
 
-        # Remove duplicate rows
-        initial_rows = len(df)
-        df = df.drop_duplicates()
-        if len(df) < initial_rows:
-            print(f"  Removed {initial_rows - len(df)} duplicate rows")
+        string_cols = df.select_dtypes(include=["object", "string"]).columns
+        for col in string_cols:
+            df[col] = df[col].map(lambda v: v.strip() if isinstance(v, str) else v)
 
-        # Handle missing values
-        missing_before = df.isnull().sum().sum()
-        if missing_before > 0:
-            print(f"  Found {missing_before} missing values")
-
-            # For numeric columns, fill with median
-            numeric_cols = df.select_dtypes(include=[np.number]).columns
-            for col in numeric_cols:
-                if df[col].isnull().any():
-                    median_val = df[col].median()
-                    df[col] = df[col].fillna(median_val)
-
-            # For categorical columns, fill with mode
-            categorical_cols = df.select_dtypes(include=["object"]).columns
-            for col in categorical_cols:
-                if df[col].isnull().any():
-                    mode_val = df[col].mode()[0] if not df[col].mode().empty else "unknown"
-                    df[col] = df[col].fillna(mode_val)
-
-            missing_after = df.isnull().sum().sum()
-            print(f"  Missing values after cleaning: {missing_after}")
+        missing = int(df.isnull().sum().sum())
+        if missing > 0:
+            print(f"  {missing} missing values present; handled by the train-fitted pipeline")
 
         return df
 
     def prepare_target(self, df: pd.DataFrame) -> pd.Series:
         """Convert target to binary classification (0=normal, 1=anomaly)."""
-        # The label column should already be 0/1, but ensure it's clean
-        y = df[self.target_column].copy()
-        y = y.astype(int)
-        return y
+        y = df[self.target_column]
+        if y.isna().any():
+            raise ValueError(f"Target column '{self.target_column}' contains missing values")
+
+        values = set(y.unique().tolist())
+        if not values.issubset({0, 1, 0.0, 1.0}):
+            raise ValueError(f"Target column must be binary 0/1, found values: {sorted(values)}")
+
+        return y.astype(int)
+
+    def forbidden_feature_names(self) -> set:
+        """Feature names the policy forbids: identity, labels, payload-derived."""
+        forbidden = set(self.excluded_features)
+        forbidden.add(self.target_column)
+        forbidden.update(self.config.get("payload_derived_features", []))
+        return forbidden
 
     def select_features(self, df: pd.DataFrame, feature_set: str) -> pd.DataFrame:
         """Select features based on the specified feature set."""
@@ -94,6 +92,12 @@ class DataPreprocessor:
             raise ValueError(f"Unknown feature set: {feature_set}")
 
         selected_features = self.feature_sets[feature_set]
+
+        violations = sorted(set(selected_features) & self.forbidden_feature_names())
+        if violations:
+            raise ValueError(
+                f"Feature set '{feature_set}' violates the metadata-only policy: {violations}"
+            )
 
         # Check which features are actually available
         available_features = [f for f in selected_features if f in df.columns]

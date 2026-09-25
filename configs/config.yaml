@@ -1,24 +1,42 @@
 # Privacy-Preserving Network Anomaly Detection - Configuration
+#
+# Two datasets can occupy data/raw/:
+#   - research dataset: the official UNSW-NB15 train/test split
+#     (175,341 / 82,332 rows) - required for benchmark results
+#   - development sample written by scripts/create_sample_data.py
+#     - for tests and pipeline smoke checks only
+# The pipeline reports which one it found and never substitutes one for the other.
 
-# Dataset paths
 dataset:
   raw_dir: "data/raw"
   processed_dir: "data/processed"
   train_file: "UNSW_NB15_training-set.csv"
   test_file: "UNSW_NB15_testing-set.csv"
   features_file: "UNSW_NB15_features.csv"
-  urls:
-    train: "https://cloudstor.aarnet.edu.au/plus/s/2DhnLGDdEECo4ys/download"
-    test: "https://cloudstor.aarnet.edu.au/plus/s/2DhnLGDdEECo4ys/download"
-    features: "https://cloudstor.aarnet.edu.au/plus/s/2DhnLGDdEECo4ys/download"
+  # Integrity specification for the official research split.
+  research_dataset:
+    train_rows: 175341
+    test_rows: 82332
+    train_sha256: "bec7dd5ec88dc2a0ccc7a07879d338395ed7421750f675fd0339e07dfe0648fa"
+    test_sha256: "734fe6642edf758f7c94d7d9149426b49d202fe8e7bf0bef47392489c3c0a559"
+  # Where the official files come from; see README for instructions.
+  sources:
+    official_page: "https://research.unsw.edu.au/projects/unsw-nb15-dataset"
+    official_sharepoint: "https://unsw-my.sharepoint.com/:f:/g/personal/z5025758_ad_unsw_edu_au/EnuQZZn3XuNBjgfcUu4DIVMBLCHyoLHqOswirpOQifr1ag?e=gKWkLS"
+    mirror_train: "https://huggingface.co/datasets/dileepa0011/unsw-nb15/resolve/main/UNSW_NB15_training-set.csv"
+    mirror_test: "https://huggingface.co/datasets/dileepa0011/unsw-nb15/resolve/main/UNSW_NB15_testing-set.csv"
 
-# Target column
+# Target column: the binary anomaly label shipped with UNSW-NB15.
+# The multi-class attack_cat column is never used as a feature.
 target:
   column: "label"
   normal_value: 0
   anomaly_value: 1
 
-# Feature sets
+# Feature sets. Every entry must qualify as metadata under the policy in
+# src/privacy_preserving_nad/features/build_features.py. Identity fields,
+# labels, absolute timestamps and application-payload-derived fields are
+# rejected at selection time.
 feature_sets:
   FULL_METADATA:
     - "dur"
@@ -46,17 +64,12 @@ feature_sets:
     - "ackdat"
     - "smean"
     - "dmean"
-    - "trans_depth"
-    - "response_body_len"
     - "ct_srv_src"
     - "ct_state_ttl"
     - "ct_dst_ltm"
     - "ct_src_dport_ltm"
     - "ct_dst_sport_ltm"
     - "ct_dst_src_ltm"
-    - "is_ftp_login"
-    - "ct_ftp_cmd"
-    - "ct_flw_http_mthd"
     - "ct_src_ltm"
     - "ct_srv_dst"
     - "is_sm_ips_ports"
@@ -88,7 +101,7 @@ categorical_features:
   - "service"
   - "state"
 
-# Features to exclude (IP addresses, payload, etc.)
+# Rejected by policy: identity, ports, absolute timestamps, labels, row ids.
 excluded_features:
   - "srcip"
   - "dstip"
@@ -99,6 +112,18 @@ excluded_features:
   - "Ltime"
   - "Stime"
   - "attack_cat"
+  - "label"
+  - "id"
+
+# Present in UNSW-NB15 but rejected by the payload-free policy. They exist
+# only because the capture tooling parsed application-layer content (HTTP/FTP),
+# which is unavailable once traffic is encrypted.
+payload_derived_features:
+  - "trans_depth"
+  - "response_body_len"
+  - "is_ftp_login"
+  - "ct_ftp_cmd"
+  - "ct_flw_http_mthd"
 
 # Model parameters
 models:
@@ -120,9 +145,20 @@ models:
 output:
   metrics_dir: "results/metrics"
   figures_dir: "results/figures"
+  models_dir: "results/models"
 
-# Preprocessing
+# Preprocessing: every statistic is fitted on the training split only.
 preprocessing:
-  test_size: 0.2
-  handle_missing: "median"  # median for numeric, mode for categorical
+  handle_missing: "median"  # numeric (train-fitted); categorical uses mode
   scale_numeric: true
+
+# Metrics computed for every model x feature-set pair. The decision threshold
+# stays at the models' default; nothing here is tuned against the test split.
+evaluation:
+  threshold: 0.5
+  metrics:
+    - "precision"
+    - "recall"
+    - "f1_score"
+    - "false_positive_rate"
+    - "false_negative_rate"

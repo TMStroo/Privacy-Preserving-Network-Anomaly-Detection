@@ -47,8 +47,6 @@ ALLOWED FEATURE CATEGORIES:
 4. Packet Size Statistics
    - smean: Mean packet size (source to destination)
    - dmean: Mean packet size (destination to source)
-   - trans_depth: Transaction depth (pipelen)
-   - response_body_len: HTTP response body length (if HTTP)
 
 5. TCP Connection State
    - sttl: Source TTL
@@ -75,22 +73,37 @@ ALLOWED FEATURE CATEGORIES:
 
 8. Protocol & Service Identification
    - proto: Transport protocol (tcp, udp, icmp, etc.)
-   - service: Application service (http, ftp, dns, smtp, etc.)
+   - service: Application service label (http, ftp, dns, smtp, etc.)
    - state: Connection state (FIN, CON, REQ, RST, etc.)
-
-9. FTP/HTTP Specific (behavioral, not content)
-   - is_ftp_login: FTP login attempted (1/0)
-   - ct_ftp_cmd: FTP command count
-   - ct_flw_http_mthd: HTTP method count in flow
 
 EXPLICITLY EXCLUDED FEATURES:
 -----------------------------
-- srcip, dstip: IP addresses (privacy-sensitive, not generalizable)
-- sport, dsport: Source/destination port numbers (can be identifying)
+- srcip, dstip: IP addresses (identity-bearing, not generalizable)
+- sport, dsport: Source/destination port numbers (identity-bearing)
 - srcpt, dstpt: Same as above (different naming in some versions)
-- Ltime, Stime: Absolute timestamps (not metadata, enables tracking)
-- attack_cat: Attack category (this is a label, not a feature)
+- Ltime, Stime: Absolute timestamps (enable tracking across flows)
+- attack_cat, label: Labels - the prediction target, never a feature
+- id: Row index from the dataset release - position, not traffic behavior
 - Any field containing payload text, strings, or content inspection
+
+EXCLUDED AS PAYLOAD-DERIVED (present in UNSW-NB15, rejected here):
+-------------------------------------------------------------------
+- trans_depth: application-layer transaction depth (needs HTTP parsing)
+- response_body_len: HTTP Content-Length (application header, inside TLS)
+- is_ftp_login: FTP login flag (FTP control-channel commands)
+- ct_ftp_cmd: FTP command counter (FTP control-channel commands)
+- ct_flw_http_mthd: HTTP method counter (HTTP request line)
+
+These five fields exist only because UNSW-NB15's capture tooling read
+application-layer content. With encrypted transports that content is not
+visible, so keeping them would make the "payload-free" claim false.
+
+NOTES ON FIELDS THAT ARE ALLOWED BUT DERIVE FROM HEADERS:
+- ct_src_dport_ltm, ct_dst_sport_ltm, is_sm_ips_ports are aggregate counts
+  keyed on addresses/ports. The raw addresses and ports never enter the model;
+  only the counts do, and a flow exporter produces them from headers alone.
+- service is assigned by capture tooling from protocol/port mapping, which a
+  flow exporter also produces without reading payload.
 
 RATIONALE FOR EACH FEATURE CATEGORY:
 ------------------------------------
@@ -101,8 +114,10 @@ All allowed features are observable from:
 - Behavioral aggregates over time windows
 
 These are exactly the features available to a network monitor that only
-sees packet headers and flow records - typical for encrypted traffic
-analysis where payloads are not accessible.
+sees packet headers and flow records. Fields that additionally require a
+visible TCP handshake (tcprtt, synack, ackdat) are noted as such in the
+per-feature documentation; on encrypted transports the handshake itself is
+still visible, only the payload is not.
 """
 
 # Feature set definitions (mirror config.yaml)
@@ -111,10 +126,9 @@ FULL_METADATA_FEATURES = [
     "sttl", "dttl", "sload", "dload", "sloss", "dloss",
     "sinpkt", "dinpkt", "sjit", "djit", "swin", "dwin",
     "stcpb", "dtcpb", "tcprtt", "synack", "ackdat",
-    "smean", "dmean", "trans_depth", "response_body_len",
+    "smean", "dmean",
     "ct_srv_src", "ct_state_ttl", "ct_dst_ltm", "ct_src_dport_ltm",
-    "ct_dst_sport_ltm", "ct_dst_src_ltm", "is_ftp_login",
-    "ct_ftp_cmd", "ct_flw_http_mthd", "ct_src_ltm", "ct_srv_dst",
+    "ct_dst_sport_ltm", "ct_dst_src_ltm", "ct_src_ltm", "ct_srv_dst",
     "is_sm_ips_ports", "proto", "service", "state"
 ]
 
@@ -129,6 +143,12 @@ CATEGORICAL_FEATURES = ["proto", "service", "state"]
 EXCLUDED_FEATURES = [
     "srcip", "dstip", "sport", "dsport", "srcpt", "dstpt",
     "Ltime", "Stime", "attack_cat"
+]
+
+# Rejected because they can only be produced by parsing application content.
+PAYLOAD_DERIVED_FEATURES = [
+    "trans_depth", "response_body_len", "is_ftp_login",
+    "ct_ftp_cmd", "ct_flw_http_mthd"
 ]
 
 # Documentation for each feature
@@ -158,22 +178,22 @@ FEATURE_DOCUMENTATION = {
     "ackdat": "Time between SYN-ACK and ACK. From packet timestamps.",
     "smean": "Mean packet size (source->dest). sbytes/spkts.",
     "dmean": "Mean packet size (dest->source). dbytes/dpkts.",
-    "trans_depth": "Transaction depth / pipelining. From TCP sequence analysis.",
-    "response_body_len": "HTTP response body length. From HTTP headers (Content-Length), not payload.",
+    "trans_depth": "Application-layer transaction depth. Requires HTTP parsing - excluded as payload-derived.",
+    "response_body_len": "HTTP response body length. Application header inside TLS - excluded as payload-derived.",
     "ct_srv_src": "Connection count: same service, same source (time window). Behavioral aggregate.",
     "ct_state_ttl": "Connection count: same state, same TTL. Behavioral aggregate.",
     "ct_dst_ltm": "Connection count: same destination (last time window). Behavioral aggregate.",
-    "ct_src_dport_ltm": "Connection count: same source, same dest port (last time window). Behavioral aggregate.",
-    "ct_dst_sport_ltm": "Connection count: same dest, same src port (last time window). Behavioral aggregate.",
-    "ct_dst_src_ltm": "Connection count: same dest and src pair (last time window). Behavioral aggregate.",
-    "is_ftp_login": "FTP login attempt indicator (1/0). From FTP command in control channel header.",
-    "ct_ftp_cmd": "FTP command count in flow. From FTP control channel commands.",
-    "ct_flw_http_mthd": "HTTP method count in flow. From HTTP request line in headers.",
+    "ct_src_dport_ltm": "Connection count: same source, same dest port (last time window). Aggregate count only; ports never enter the model.",
+    "ct_dst_sport_ltm": "Connection count: same dest, same src port (last time window). Aggregate count only; ports never enter the model.",
+    "ct_dst_src_ltm": "Connection count: same dest and src pair (last time window). Keyed on header addresses; only the count is used.",
+    "is_ftp_login": "FTP login flag. Requires FTP command parsing - excluded as payload-derived.",
+    "ct_ftp_cmd": "FTP command counter. Requires FTP command parsing - excluded as payload-derived.",
+    "ct_flw_http_mthd": "HTTP method counter. Requires HTTP request parsing - excluded as payload-derived.",
     "ct_src_ltm": "Connection count: same source (last time window). Behavioral aggregate.",
     "ct_srv_dst": "Connection count: same service, same destination. Behavioral aggregate.",
-    "is_sm_ips_ports": "Same source/dest IP and port indicator. From IP/TCP headers.",
+    "is_sm_ips_ports": "Same source/dest IP and port indicator. Aggregate derived from headers; raw addresses never enter the model.",
     "proto": "Transport protocol (tcp/udp/icmp). From IP header protocol field.",
-    "service": "Application service (http/ftp/dns/etc.). From port numbers and payload inspection in dataset creation, but in practice inferable from port + behavior.",
+    "service": "Application service label. Assigned by capture tooling from protocol/port mapping, obtainable from headers without payload.",
     "state": "Connection state (FIN/CON/REQ/RST/etc.). From TCP flags in headers.",
 }
 
@@ -257,16 +277,24 @@ def generate_feature_report(config_path: str = "configs/config.yaml") -> str:
     report.append("|---------|---------------------|")
     for f in EXCLUDED_FEATURES:
         if f in ["srcip", "dstip"]:
-            reason = "IP addresses - privacy sensitive, not generalizable"
+            reason = "IP addresses - identity-bearing, not generalizable"
         elif f in ["sport", "dsport", "srcpt", "dstpt"]:
-            reason = "Port numbers - can be identifying, not pure metadata"
+            reason = "Port numbers - identity-bearing when used raw"
         elif f in ["Ltime", "Stime"]:
-            reason = "Absolute timestamps - enables tracking, not flow metadata"
+            reason = "Absolute timestamps - enable cross-flow tracking"
         elif f == "attack_cat":
-            reason = "Attack category - this is a label, not a feature"
+            reason = "Attack category - a label, not a feature"
         else:
             reason = "Not traffic metadata"
         report.append(f"| {f} | {reason} |")
+    for f in PAYLOAD_DERIVED_FEATURES:
+        report.append(f"| {f} | Application-layer parsing - requires payload access |")
+
+    report.append("\n## Policy Compliance Summary\n")
+    report.append(f"- Features in FULL_METADATA: {len(FULL_METADATA_FEATURES)}")
+    report.append(f"- Features in RESTRICTED_METADATA: {len(RESTRICTED_METADATA_FEATURES)}")
+    report.append(f"- Rejected identity/label/timestamp fields: {len(EXCLUDED_FEATURES)}")
+    report.append(f"- Rejected payload-derived fields: {len(PAYLOAD_DERIVED_FEATURES)}")
 
     return "\n".join(report)
 

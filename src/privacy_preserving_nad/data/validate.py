@@ -20,16 +20,20 @@ class DataValidator:
         self.excluded_features = self.config["excluded_features"]
         self.categorical_features = self.config["categorical_features"]
 
-        # Expected columns from UNSW-NB15 features description
+        # Schema of the official UNSW-NB15 train/test CSV release:
+        # a row id, 42 traffic fields, the attack category and the binary label.
+        # Identity columns (srcip/dstip/sport/dsport/Stime/Ltime) exist only in
+        # the raw capture files, not in this standard ML split.
         self.expected_columns = [
-            "srcip", "dstip", "sport", "dsport", "proto", "state", "dur",
-            "sbytes", "dbytes", "sttl", "dttl", "sloss", "dloss", "service",
-            "sload", "dload", "spkts", "dpkts", "swin", "dwin", "stcpb", "dtcpb",
-            "tcprtt", "synack", "ackdat", "smean", "dmean", "trans_depth",
-            "response_body_len", "ct_srv_src", "ct_state_ttl", "ct_dst_ltm",
-            "ct_src_dport_ltm", "ct_dst_sport_ltm", "ct_dst_src_ltm",
-            "is_ftp_login", "ct_ftp_cmd", "ct_flw_http_mthd", "ct_src_ltm",
-            "ct_srv_dst", "is_sm_ips_ports", "attack_cat", "label"
+            "id", "dur", "proto", "service", "state", "spkts", "dpkts",
+            "sbytes", "dbytes", "rate", "sttl", "dttl", "sload", "dload",
+            "sloss", "dloss", "sinpkt", "dinpkt", "sjit", "djit", "swin",
+            "stcpb", "dtcpb", "dwin", "tcprtt", "synack", "ackdat",
+            "smean", "dmean", "trans_depth", "response_body_len",
+            "ct_srv_src", "ct_state_ttl", "ct_dst_ltm", "ct_src_dport_ltm",
+            "ct_dst_sport_ltm", "ct_dst_src_ltm", "is_ftp_login",
+            "ct_ftp_cmd", "ct_flw_http_mthd", "ct_src_ltm", "ct_srv_dst",
+            "is_sm_ips_ports", "attack_cat", "label"
         ]
 
     def load_dataset(self, filename: str) -> pd.DataFrame:
