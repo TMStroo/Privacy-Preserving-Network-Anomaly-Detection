@@ -20,6 +20,11 @@ COPY pyproject.toml README.md ./
 COPY src ./src
 RUN python -m pip install --upgrade pip && python -m pip install -e .
 
+# pytest is a runtime dependency of the verification story, not a test-only
+# extra: the documented `docker compose run --rm tests` command runs it from
+# this image, so it has to be present or that command fails immediately.
+RUN python -m pip install pytest
+
 COPY configs ./configs
 COPY tests ./tests
 COPY fixtures ./fixtures
