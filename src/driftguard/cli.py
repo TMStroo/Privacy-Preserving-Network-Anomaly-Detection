@@ -15,6 +15,7 @@ import argparse
 import json
 import os
 import sys
+from pathlib import Path
 from typing import Dict, List, Optional
 
 import yaml
@@ -315,6 +316,11 @@ def build_parser() -> argparse.ArgumentParser:
     shift.add_argument("--models", nargs="*", default=None)
     shift.set_defaults(func=cmd_shift)
 
+    ablate = sub.add_parser("ablate", help="run the targeted ablation suite")
+    ablate.add_argument("--config", default="configs/ablations.yaml")
+    ablate.add_argument("--set", action="append", default=[])
+    ablate.set_defaults(func=cmd_ablate)
+
     report = sub.add_parser("report", help="render the technical report from experiment output")
     report.add_argument("--experiments-dir", default="results/experiments")
     report.add_argument("--output", default="docs/technical_report.pdf")
@@ -329,6 +335,55 @@ def build_parser() -> argparse.ArgumentParser:
     demo.set_defaults(func=cmd_demo)
 
     return parser
+
+
+
+def cmd_ablate(args) -> int:
+    """Run the targeted ablation suite and record it as an experiment."""
+    from driftguard.experiments.ablations import run_ablations
+    from driftguard.experiments.tracking import (
+        ExperimentRun,
+        experiment_id,
+        file_checksums,
+    )
+    import yaml as _yaml
+
+    config = load_config(args.config)
+    for override in getattr(args, "set", []) or []:
+        key, _, value = override.partition("=")
+        config[key] = _yaml.safe_load(value)
+
+    dataset = config["dataset"]
+    raw_dir = resolve_raw_dir(config)
+    run = ExperimentRun(
+        experiment_id("ablation", dataset["name"], config.get("tag")),
+        root=config.get("output", {}).get("experiments_dir", "results/experiments"),
+    )
+    meta = run.metadata(
+        dataset=dataset["name"],
+        dataset_checksums={},
+        features=list(config.get("features", [])),
+        seed=int(config.get("seed", 42)),
+        config=config,
+        split_description={"note": "the ablation suite re-splits inside each function; "
+                                   "see ablation_results.csv for the rows it produced"},
+    )
+    meta["models"] = config.get("ablation", {}).get("models", [])
+    meta["raw_dir"] = raw_dir
+    run.write_json("metadata.json", meta)
+    run.write_text("config.yaml", _yaml.safe_dump(config, sort_keys=True))
+
+    print(f"running ablations: {', '.join(config.get('ablation', {}).get('names', []))}")
+    summary = run_ablations(
+        config, Path(run.path), run.experiment_id,
+        ablations=config.get("ablation", {}).get("names"),
+        models=config.get("ablation", {}).get("models"),
+    )
+    run.write_json("ablation_summary.json", summary)
+    print(f"  rows      : {summary['rows']}")
+    print(f"  failed    : {summary['failed']}")
+    print(f"experiment written to: {run.path}")
+    return 0
 
 
 def main(argv: Optional[List[str]] = None) -> int:

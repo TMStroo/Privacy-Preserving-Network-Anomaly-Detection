@@ -109,3 +109,21 @@ def test_model_params_is_empty_for_a_list_style_block():
 def test_unknown_model_name_is_rejected_with_a_useful_message():
     with pytest.raises(KeyError, match="unknown models in config"):
         model_config_names({"models": {"enabled": ["not_a_model"]}})
+
+
+def test_ablation_config_names_known_ablations():
+    """A typo in the ablation matrix should fail here, not four hours in."""
+    from driftguard.experiments.ablations import ABLATIONS
+
+    config = _load(CONFIG_DIR / "ablations.yaml")
+    for name in config["ablation"]["names"]:
+        assert name in ABLATIONS, f"unknown ablation {name!r}"
+
+
+def test_every_shipped_config_ablation_models_are_known():
+    from driftguard.models.registry import model_config_names
+
+    config = _load(CONFIG_DIR / "ablations.yaml")
+    known = set(model_config_names(config))
+    for name in config["ablation"]["models"]:
+        assert name in known, f"unknown ablation model {name!r}"

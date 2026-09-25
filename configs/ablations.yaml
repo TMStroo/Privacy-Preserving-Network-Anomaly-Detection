@@ -1,0 +1,57 @@
+# Targeted ablations, run on real data.
+#
+# Six axes, each answering one methodological question. The expensive models are
+# deliberately absent: gradient boosting costs about 220 s per fit on 2.5M rows,
+# and this matrix has six axes x two models, so the headline benchmark is where
+# the expensive models belong.
+
+experiment:
+  kind: ablation
+  output_dir: results/experiments
+
+dataset:
+  name: unsw_nb15
+  adapter: unsw_nb15
+  raw_dir: data/raw
+
+temporal:
+  train_fraction: 0.5
+  validation_fraction: 0.15
+  backtest_fraction: 0.15
+  forward_fraction: 0.2
+  use_forward: true
+
+models:
+  - logistic_regression
+  - random_forest
+
+ablation:
+  models: [logistic_regression, random_forest]
+  names:
+    - split_mode
+    - feature_policy
+    - drift_threshold
+    - adaptation_window
+    - telemetry_family
+    - target_fpr
+
+metrics:
+  target_fpr: 0.05
+
+drift:
+  enabled: true
+  reference_period: train
+  window: 1h
+  stride: 1h
+  min_samples: 200
+  methods: [ks, wasserstein, psi, cusum]
+  alpha: 0.01
+  wasserstein_threshold: 0.10
+  psi_threshold: 0.20
+  psi_bins: 10
+
+adaptation:
+  window: 6h
+  target_fpr: 0.05
+
+seed: 42
