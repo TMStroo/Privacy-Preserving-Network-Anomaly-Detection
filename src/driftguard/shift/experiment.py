@@ -131,8 +131,12 @@ def run_controlled_shift_experiments(
                 y = shifted.targets.to_numpy()
 
                 # What the shift actually did to the data, measured rather than
-                # assumed from the requested parameter.
-                realized = realized_shift(backtest, shifted, drift_features)
+                # assumed from the requested parameter. The measurement covers
+                # every column the shift could have touched, not just the ones
+                # the drift stage watches: a protocol-mixture shift changes no
+                # numeric feature, so restricting this to drift_features reports
+                # it as having done nothing.
+                realized = realized_shift(backtest, shifted)
 
                 start = time.perf_counter()
                 if inapplicable:
