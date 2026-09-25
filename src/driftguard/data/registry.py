@@ -50,8 +50,25 @@ class Unswnb15Adapter(DatasetAdapter):
         "sbytes": "forward_bytes",
         "dbytes": "backward_bytes",
         "label": TARGET_COLUMN,
-        "tcp_flags": "tcp_flags",
+        # The raw export names the transport column 'proto', and it carries no
+        # tcp_flags column at all despite the common schema listing one. Mapping
+        # proto here is what lets the protocol_mixture controlled shift run on
+        # UNSW-NB15 instead of being skipped for want of a column.
+        "proto": "protocol",
     }
+
+    # Flow statistics the raw export provides and this project keeps. Declared
+    # as a class constant so a test can assert that every field the common
+    # schema promises is actually loaded; an allowlist that silently omits a
+    # column makes whole shift families skip without anyone noticing.
+    KEPT_COLUMNS = (
+        "flow_duration",
+        "forward_packets",
+        "backward_packets",
+        "forward_bytes",
+        "backward_bytes",
+        "protocol",
+    )
 
     def load(self, raw_dir: str, max_rows: int = None, **kwargs) -> FlowFrame:
         import os
@@ -73,7 +90,7 @@ class Unswnb15Adapter(DatasetAdapter):
         if TARGET_COLUMN in frame.columns:
             frame[TARGET_COLUMN] = pd.to_numeric(frame[TARGET_COLUMN], errors="coerce").fillna(0).astype(int)
         keep = [c for c in frame.columns if c in {TIMESTAMP_COLUMN, TARGET_COLUMN} | set(
-            ["flow_duration", "forward_packets", "backward_packets", "forward_bytes", "backward_bytes", "tcp_flags"]
+            self.KEPT_COLUMNS
         )]
         frame = add_derived_features(frame[keep])
         return FlowFrame(
@@ -230,20 +247,21 @@ class Ugr16Adapter(DatasetAdapter):
             # chunked read can hand back a trailing partial line, so one extra
             # line is read and the newest complete one is kept.
             buffer: List[str] = []
+            data_lines = 0
             for line in handle:
                 text = line.decode("utf-8", "replace")
                 if not text.endswith("\n"):
                     text += "\n"  # complete the last line of a chunked read
-                buffer.append(text)
-                data_lines = sum(1 for b in buffer if b.strip())
-                if max_rows and data_lines > max_rows:
+                # The running count replaces what used to be a full rescan of the
+                # buffer on every line. That rescan made reading one archive
+                # quadratic in its length, which on a 12 GB weekly export meant
+                # hours of CPU for no emitted rows: the loop never got far
+                # enough to hand anything to read_csv.
+                if text.strip():
+                    data_lines += 1
+                    buffer.append(text)
+                if max_rows and data_lines >= max_rows:
                     break
-            # The exports open with a blank line, so the first entry is dropped
-            # when it holds no data at all.
-            if buffer and not buffer[0].strip():
-                buffer = buffer[1:]
-            if max_rows:
-                buffer = buffer[:max_rows]
             # These archives carry thirteen fields. The reader is given all
             # fourteen names so an archive that does include the documented
             # attack-name column still lines up, and index_col=False keeps the

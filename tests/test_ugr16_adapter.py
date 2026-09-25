@@ -131,3 +131,65 @@ def test_ugr16_has_no_direction_columns():
     must not invent one."""
     assert "forward_bytes" not in Ugr16Adapter.NETFLOW_COLUMNS
     assert "backward_bytes" not in Ugr16Adapter.NETFLOW_COLUMNS
+
+
+def test_reading_an_archive_is_linear_not_quadratic(tmp_path, monkeypatch):
+    """The row counter must not rescan the buffer for every line.
+
+    Counting with a generator over the accumulated buffer makes reading one
+    archive quadratic in its length. On a 12 GB weekly export that is hours of
+    CPU before a single row reaches read_csv, which is exactly what stalled the
+    first UGR'16 run. The test compares wall time across a 4x larger cap: a
+    linear reader gets close to 4x, a quadratic one gets about 16x.
+    """
+    import io
+    import tarfile
+    import time
+
+    from driftguard.data.registry import Ugr16Adapter
+
+    def make_archive(path, rows):
+        body = "\n" + "".join(          # the real exports open with a blank line
+            f"2016-07-27 13:43:21,1.5,10.0.0.1,10.0.0.2,1234,80,TCP,.A....,0,0,2,100,background\n"
+            for _ in range(rows)
+        )
+        payload = body.encode("utf-8")
+        info = tarfile.TarInfo("uniq/july.week5.csv.uniqblacklistremoved")
+        info.size = len(payload)
+        with tarfile.open(path, "w:gz") as tar:
+            tar.addfile(info, io.BytesIO(payload))
+
+    adapter = Ugr16Adapter()
+    small, large = 20_000, 80_000
+    for rows in (small, large):
+        path = tmp_path / f"a{rows}.tar.gz"
+        make_archive(path, rows)
+
+    timings = {}
+    for rows, cap in ((small, small), (large, large)):
+        start = time.perf_counter()
+        frame = adapter._read_archive(str(tmp_path / f"a{rows}.tar.gz"), cap)
+        timings[rows] = time.perf_counter() - start
+        assert len(frame) == cap
+
+    growth = timings[large] / max(timings[small], 1e-6)
+    # A linear reader scales with the data; quadratic would land near 16.
+    assert growth < 9.0, (
+        f"4x the rows cost {growth:.1f}x the time, which suggests the reader "
+        f"is still quadratic: {timings}"
+    )
+
+
+def test_unsw_adapter_loads_the_protocol_column():
+    """COMMON_SCHEMA declares 'protocol', so the UNSW adapter must supply it.
+
+    The raw export names it 'proto' and the adapter's column allowlist omitted
+    it entirely, which silently skipped the protocol_mixture controlled shift on
+    the one dataset this project has the most data for.
+    """
+    from driftguard.data.registry import Unswnb15Adapter
+    from driftguard.data.schema import COMMON_SCHEMA
+
+    assert "protocol" in COMMON_SCHEMA
+    assert Unswnb15Adapter.COLUMN_MAP["proto"] == "protocol"
+    assert "protocol" in Unswnb15Adapter.KEPT_COLUMNS
