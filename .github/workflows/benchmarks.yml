@@ -1,0 +1,108 @@
+name: Benchmarks
+
+# The historical benchmarks need the real datasets and hours of CPU, so they are
+# kept out of ordinary CI and run on demand instead. Triggers: manual dispatch,
+# a push touching the pipeline, or a weekly schedule so a drift in a dependency
+# shows up rather than accumulating silently.
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: Which stage to run
+        type: choice
+        options: [unsw, ugr16, shifts, ablations, all]
+        default: all
+  schedule:
+    - cron: "37 4 * * 1"
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        stage: [unsw, ugr16, shifts, ablations]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Benchmarks are only comparable to each other when the code did not
+          # change underneath them.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest tabulate
+
+      - name: Select the requested stage
+        run: |
+          echo "STAGE=${{ matrix.stage }}" >> "$GITHUB_ENV"
+          echo "SELECTED=${{ inputs.stage }}" >> "$GITHUB_ENV"
+          if [ "${{ inputs.stage }}" != "" ] && [ "${{ inputs.stage }}" != "all" ]; then
+            echo "STAGE=${{ inputs.stage }}" >> "$GITHUB_ENV"
+            echo "overriding matrix stage ${{ matrix.stage }} with ${{ inputs.stage }}"
+          fi
+
+      # The datasets are fetched explicitly and are never committed. UNSW-NB15
+      # is fetched by the pipeline's own downloader; UGR'16 is a documented
+      # subset pulled from the published archive, so a runner needs a place to
+      # put ~47 GB and this job is the one that has to be told where.
+      - name: Check for a dataset cache
+        run: |
+          if [ -n "${{ secrets.DRIFTGUARD_RAW_URL }}" ]; then
+            echo "dataset cache configured"
+          else
+            echo "::warning::No dataset cache configured. The unsw and ugr16 stages will"
+            echo "::warning::fail without one. See README 'Reproduction' for the manual path."
+          fi
+
+      - name: Run the UNSW-NB15 temporal benchmark
+        if: env.SELECTED == '' || env.SELECTED == 'unsw' || env.SELECTED == 'all'
+        run: |
+          python -m driftguard benchmark --config configs/benchmark.yaml
+          RUN=$(ls -dt results/experiments/*_temporal_unsw_nb15_* | head -1)
+          python tools/verify_run.py "$RUN" --strict
+
+      - name: Run the UGR'16 subset benchmark
+        if: env.SELECTED == '' || env.SELECTED == 'ugr16' || env.SELECTED == 'all'
+        run: |
+          python -m driftguard benchmark --config configs/ugr16_subset.yaml
+          RUN=$(ls -dt results/experiments/*_temporal_ugr16_* | head -1)
+          python tools/verify_run.py "$RUN" --strict
+
+      - name: Run the controlled shifts
+        if: env.SELECTED == '' || env.SELECTED == 'shifts' || env.SELECTED == 'all'
+        run: |
+          python -m driftguard shift --config configs/shifts.yaml
+
+      - name: Run the ablations
+        if: env.SELECTED == '' || env.SELECTED == 'ablations' || env.SELECTED == 'all'
+        run: |
+          python -m driftguard ablate --config configs/ablations.yaml
+
+      - name: Index the runs
+        if: always()
+        run: python tools/index_runs.py
+
+      - name: Upload the results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: driftguard-${{ matrix.stage }}
+          path: |
+            results/index.csv
+            results/experiments/**/metrics.json
+            results/experiments/**/metadata.json
+            results/experiments/**/drift_events.csv
+            results/experiments/**/controlled_shift_results.csv
+            results/experiments/**/ablation_results.csv
+            results/experiments/**/figures/*.png
+          retention-days: 90
+          if-no-files-found: warn

@@ -231,3 +231,20 @@ def test_git_commit_falls_back_to_git_when_no_argument_is_set(monkeypatch):
     monkeypatch.delenv("DRIFTGUARD_GIT_COMMIT", raising=False)
     # On a real checkout this reads the actual HEAD, which is never empty.
     assert len(git_commit()) > 0
+
+
+def test_experiment_directories_are_immutable(tmp_path):
+    """A recorded result must not be overwritable by a later run."""
+    from driftguard.experiments.tracking import ExperimentRun
+
+    root = tmp_path / "experiments"
+    first = ExperimentRun("20260101T000000Z_temporal_x_abc123", root=str(root))
+    first.write_json("metrics.json", {"models": ["original"]})
+
+    with pytest.raises(FileExistsError):
+        second = ExperimentRun("20260101T000000Z_temporal_x_abc123", root=str(root))
+        second.write_json("metrics.json", {"models": ["overwritten"]})
+
+    # The original content is untouched.
+    stored = json.loads((first.path / "metrics.json").read_text(encoding="utf-8"))
+    assert stored["models"] == ["original"]
