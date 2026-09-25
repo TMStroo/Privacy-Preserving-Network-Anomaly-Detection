@@ -1,0 +1,128 @@
+# Privacy-Preserving Network Anomaly Detection - Configuration
+
+# Dataset paths
+dataset:
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  train_file: "UNSW_NB15_training-set.csv"
+  test_file: "UNSW_NB15_testing-set.csv"
+  features_file: "UNSW_NB15_features.csv"
+  urls:
+    train: "https://cloudstor.aarnet.edu.au/plus/s/2DhnLGDdEECo4ys/download"
+    test: "https://cloudstor.aarnet.edu.au/plus/s/2DhnLGDdEECo4ys/download"
+    features: "https://cloudstor.aarnet.edu.au/plus/s/2DhnLGDdEECo4ys/download"
+
+# Target column
+target:
+  column: "label"
+  normal_value: 0
+  anomaly_value: 1
+
+# Feature sets
+feature_sets:
+  FULL_METADATA:
+    - "dur"
+    - "spkts"
+    - "dpkts"
+    - "sbytes"
+    - "dbytes"
+    - "rate"
+    - "sttl"
+    - "dttl"
+    - "sload"
+    - "dload"
+    - "sloss"
+    - "dloss"
+    - "sinpkt"
+    - "dinpkt"
+    - "sjit"
+    - "djit"
+    - "swin"
+    - "dwin"
+    - "stcpb"
+    - "dtcpb"
+    - "tcprtt"
+    - "synack"
+    - "ackdat"
+    - "smean"
+    - "dmean"
+    - "trans_depth"
+    - "response_body_len"
+    - "ct_srv_src"
+    - "ct_state_ttl"
+    - "ct_dst_ltm"
+    - "ct_src_dport_ltm"
+    - "ct_dst_sport_ltm"
+    - "ct_dst_src_ltm"
+    - "is_ftp_login"
+    - "ct_ftp_cmd"
+    - "ct_flw_http_mthd"
+    - "ct_src_ltm"
+    - "ct_srv_dst"
+    - "is_sm_ips_ports"
+    - "proto"
+    - "service"
+    - "state"
+  RESTRICTED_METADATA:
+    - "dur"
+    - "spkts"
+    - "dpkts"
+    - "sbytes"
+    - "dbytes"
+    - "rate"
+    - "sttl"
+    - "dttl"
+    - "sload"
+    - "dload"
+    - "sinpkt"
+    - "dinpkt"
+    - "sjit"
+    - "djit"
+    - "tcprtt"
+    - "synack"
+    - "ackdat"
+
+# Categorical features (will be one-hot encoded)
+categorical_features:
+  - "proto"
+  - "service"
+  - "state"
+
+# Features to exclude (IP addresses, payload, etc.)
+excluded_features:
+  - "srcip"
+  - "dstip"
+  - "sport"
+  - "dsport"
+  - "srcpt"
+  - "dstpt"
+  - "Ltime"
+  - "Stime"
+  - "attack_cat"
+
+# Model parameters
+models:
+  random_seed: 42
+  logistic_regression:
+    max_iter: 1000
+    C: 1.0
+    solver: "lbfgs"
+    class_weight: "balanced"
+  random_forest:
+    n_estimators: 200
+    max_depth: 15
+    min_samples_split: 5
+    min_samples_leaf: 2
+    class_weight: "balanced"
+    n_jobs: -1
+
+# Output paths
+output:
+  metrics_dir: "results/metrics"
+  figures_dir: "results/figures"
+
+# Preprocessing
+preprocessing:
+  test_size: 0.2
+  handle_missing: "median"  # median for numeric, mode for categorical
+  scale_numeric: true

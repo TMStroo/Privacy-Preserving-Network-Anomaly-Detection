@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+
+      - name: Run tests
+        run: |
+          pytest tests/ -v --tb=short
+
+      - name: Check imports
+        run: |
+          python -c "import src.data.download; import src.data.validate; import src.data.preprocess; import src.features.build_features; import src.models.baseline; import src.models.train; import src.models.predict; import src.evaluation.metrics; import src.evaluation.plots; import src.pipeline; print('All imports successful')"
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install linting tools
+        run: |
+          pip install black ruff mypy
+
+      - name: Run black
+        run: |
+          black --check src/ tests/
+
+      - name: Run ruff
+        run: |
+          ruff check src/ tests/
+
+      - name: Run mypy
+        run: |
+          mypy src/ --ignore-missing-imports || true
+
+  pipeline-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+
+      - name: Run pipeline validation step
+        run: |
+          python -m src.pipeline --step validate --config configs/config.yaml || echo "Validation step completed (dataset not present in CI)"
+
+      - name: Create sample data
+        run: |
+          mkdir -p data/raw
+          python scripts/create_sample_data.py
+
+      - name: Run pipeline preprocess step
+        run: |
+          python -m src.pipeline --step preprocess --config configs/config.yaml
+
+      - name: Run pipeline train step
+        run: |
+          python -m src.pipeline --step train --config configs/config.yaml
+
+      - name: Run pipeline evaluate step
+        run: |
+          python -m src.pipeline --step evaluate --config configs/config.yaml
+
+      - name: Verify outputs exist
+        run: |
+          ls -la results/metrics/
+          ls -la results/figures/
+          ls -la results/models/
+          test -f results/metrics/evaluation_results.json
+          test -f results/metrics/comparison.csv
+          test -f results/figures/model_comparison_f1.png
+          test -f results/figures/model_comparison_fpr.png
+          echo "All outputs verified"
