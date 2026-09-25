@@ -69,7 +69,7 @@ All features are observable from packet headers, flow records, or behavioral cou
 
 ## Feature Policy
 
-The project enforces an explicit metadata-only feature policy defined in [`src/features/build_features.py`](src/features/build_features.py) and [`configs/config.yaml`](configs/config.yaml).
+The project enforces an explicit metadata-only feature policy defined in [`src/privacy_preserving_nad/features/build_features.py`](src/privacy_preserving_nad/features/build_features.py) and [`configs/config.yaml`](configs/config.yaml).
 
 ### Two Feature Sets
 
@@ -127,28 +127,40 @@ All experiments run on the official UNSW-NB15 train/test split with sample data 
 |-------------|-------|-----------|--------|----------|-----|-----|
 | FULL_METADATA | Majority Baseline | 0.5300 | 1.0000 | 0.6928 | 1.0000 | 0.0000 |
 | FULL_METADATA | Logistic Regression | 0.6250 | 0.5660 | 0.5941 | 0.3830 | 0.4340 |
-| FULL_METADATA | Random Forest | 0.9623 | 0.9623 | 0.9623 | 0.0426 | 0.0377 |
+| FULL_METADATA | Random Forest | 0.9630 | 0.9811 | 0.9720 | 0.0426 | 0.0189 |
 | RESTRICTED_METADATA | Majority Baseline | 0.5300 | 1.0000 | 0.6928 | 1.0000 | 0.0000 |
 | RESTRICTED_METADATA | Logistic Regression | 0.6250 | 0.5660 | 0.5941 | 0.3830 | 0.4340 |
-| RESTRICTED_METADATA | Random Forest | 1.0000 | 0.9623 | 0.9808 | 0.0000 | 0.0377 |
+| RESTRICTED_METADATA | Random Forest | 0.9630 | 0.9811 | 0.9720 | 0.0426 | 0.0189 |
 
 ### Key Findings
 
-**Logistic Regression** performance is identical between feature sets (F1: 0.5941 both; FPR: 0.3830 both). The restricted 12-feature subset captures the same linear discriminative information as the full 37-feature set for this linear model on this sample.
+**The two feature sets produced identical classification results on this run.** Random Forest reached F1 0.9720 on both the full 37-feature set and the restricted 12-feature set; Logistic Regression reached F1 0.5941 on both. The only differences appear in probability-based metrics: Random Forest ROC AUC was 0.99398 (FULL) versus 0.99478 (RESTRICTED), a gap of less than 0.001. On this sample, the extra features in FULL_METADATA carry redundant signal rather than new signal.
 
-**Random Forest** performs slightly better on the RESTRICTED_METADATA set (F1: 0.9808 vs 0.9623, +0.0185) with notably lower false positive rate (FPR: 0.0000 vs 0.0426). The reduced feature space may reduce overfitting on this small sample. On the full dataset, we would expect FULL_METADATA to perform at least as well due to richer feature information.
+**Random Forest is the only model that clearly works here.** It reduces the majority baseline's 47 false positives to 2, with 1 false negative (F1 0.9720 versus 0.6928 for the baseline). **Logistic Regression does not beat the baseline** (F1 0.5941 versus 0.6928) — a linear boundary cannot separate these classes well at this scale.
 
-**Both models substantially outperform the majority baseline** on F1 score (Random Forest +0.27–0.29 F1; Logistic Regression −0.10 F1 — the linear model underperforms the baseline on this sample due to class imbalance and small data size).
-
-> **Note**: These results are on a 100-sample synthetic dataset. Results on the full UNSW-NB15 (~175K train / ~82K test) will differ. Download the full dataset and re-run the pipeline for publication-quality results.
+> **Note**: These results are on a 100-row sample dataset (47 normal, 53 anomalous in the test split) and serve as a pipeline smoke test, not a benchmark. Results on the full UNSW-NB15 (~175K train / ~82K test) will differ — download the complete dataset and re-run the pipeline for publication-quality results. A full project report explaining the system is available at [docs/project_report.pdf](docs/project_report.pdf).
 
 ### Figures
 
-- **Confusion Matrix (Random Forest, FULL_METADATA)**: `results/figures/confusion_matrix_random_forest_FULL_METADATA.png`
-- **Model Comparison by F1**: `results/figures/model_comparison_f1.png`
-- **Model Comparison by FPR**: `results/figures/model_comparison_fpr.png`
-- **Feature Importance (Random Forest, FULL_METADATA)**: `results/figures/feature_importance_random_forest_FULL_METADATA.png`
-- **Class Distribution**: `results/figures/class_distribution.png`
+**Confusion matrix (Random Forest, FULL_METADATA)**
+
+![Confusion matrix - Random Forest, FULL_METADATA](results/figures/confusion_matrix_random_forest_FULL_METADATA.png)
+
+**Model comparison by F1 score**
+
+![Model comparison by F1](results/figures/model_comparison_f1.png)
+
+**Model comparison by false positive rate**
+
+![Model comparison by FPR](results/figures/model_comparison_fpr.png)
+
+**Feature importance (Random Forest, FULL_METADATA)**
+
+![Feature importance - Random Forest](results/figures/feature_importance_random_forest_FULL_METADATA.png)
+
+**Class distribution**
+
+![Class distribution](results/figures/class_distribution.png)
 
 ## Reproduction Instructions
 
@@ -175,18 +187,18 @@ Place the following files in `data/raw/`:
 
 ### Run Full Pipeline
 ```bash
-python -m src.pipeline
+python -m privacy_preserving_nad.pipeline
 ```
 
 This executes all steps: validation → preprocessing → training → evaluation → plotting.
 
 ### Run Individual Steps
 ```bash
-python -m src.pipeline --step validate
-python -m src.pipeline --step preprocess
-python -m src.pipeline --step train
-python -m src.pipeline --step evaluate
-python -m src.pipeline --step plot
+python -m privacy_preserving_nad.pipeline --step validate
+python -m privacy_preserving_nad.pipeline --step preprocess
+python -m privacy_preserving_nad.pipeline --step train
+python -m privacy_preserving_nad.pipeline --step evaluate
+python -m privacy_preserving_nad.pipeline --step plot
 ```
 
 ### Configuration
@@ -202,6 +214,13 @@ Modify `configs/config.yaml` to adjust:
 pytest tests/ -v
 ```
 
+### Generate the Project Report
+```bash
+pip install fpdf2
+python scripts/generate_report.py
+```
+This renders [docs/project_report.pdf](docs/project_report.pdf) from the current `results/` output.
+
 ## Project Structure
 
 ```
@@ -212,30 +231,32 @@ Privacy-Preserving-Network-Anomaly-Detection/
 │   ├── raw/                     # Raw dataset (gitignored)
 │   └── processed/               # Processed data (gitignored)
 ├── docs/
-│   └── feature_policy.md        # Detailed feature documentation
+│   └── project_report.pdf       # Generated project report
 ├── notebooks/
 │   └── exploratory_analysis.ipynb
 ├── results/
-│   ├── metrics/                 # JSON/CSV metrics (gitignored)
+│   ├── metrics/                 # JSON/CSV metrics
 │   ├── figures/                 # Generated plots
 │   └── models/                  # Trained models (gitignored)
 ├── scripts/
-│   └── create_sample_data.py    # CI sample data generator
+│   ├── create_sample_data.py    # CI sample data generator
+│   └── generate_report.py       # PDF report generator
 ├── src/
-│   ├── data/
-│   │   ├── download.py          # Dataset download helper
-│   │   ├── validate.py          # Data validation
-│   │   └── preprocess.py        # Preprocessing pipeline
-│   ├── features/
-│   │   └── build_features.py    # Feature policy & documentation
-│   ├── models/
-│   │   ├── baseline.py          # Model definitions
-│   │   ├── train.py             # Training logic
-│   │   └── predict.py           # Inference & evaluation
-│   ├── evaluation/
-│   │   ├── metrics.py           # Metric computation
-│   │   └── plots.py             # Visualization
-│   └── pipeline.py              # Main orchestration
+│   └── privacy_preserving_nad/
+│       ├── data/
+│       │   ├── download.py      # Dataset download helper
+│       │   ├── validate.py      # Data validation
+│       │   └── preprocess.py    # Preprocessing pipeline
+│       ├── features/
+│       │   └── build_features.py  # Feature policy & documentation
+│       ├── models/
+│       │   ├── baseline.py      # Model definitions
+│       │   ├── train.py         # Training logic
+│       │   └── predict.py       # Inference & evaluation
+│       ├── evaluation/
+│       │   ├── metrics.py       # Metric computation
+│       │   └── plots.py         # Visualization
+│       └── pipeline.py          # Main orchestration
 ├── tests/
 │   ├── test_validation.py
 │   ├── test_preprocess.py
