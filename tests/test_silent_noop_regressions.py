@@ -150,3 +150,59 @@ def test_errored_strategies_fail_the_run_instead_of_being_recorded():
     assert "adaptation strategy" in source and "failed" in source, (
         "an errored adaptation strategy is no longer reported as a result"
     )
+
+
+@pytest.fixture
+def smoke_config():
+    """A loaded, valid smoke config; each test gets its own copy to mutate."""
+    import copy
+    from pathlib import Path
+
+    import yaml
+
+    root = Path(__file__).resolve().parents[1]
+    return copy.deepcopy(yaml.safe_load((root / "configs" / "smoke.yaml").read_text(encoding="utf-8")))
+
+
+def test_rolling_adaptation_is_not_the_same_as_recent_window(smoke_config):
+    """The two strategies used one shared window and one single fit, so they
+    produced byte-identical scores in the first completed run.
+
+    Rolling re-fits as the forward period advances; recent-window takes one
+    snapshot before it. They must be separate strategies.
+    """
+    from driftguard.pipeline import run_adaptation_study, run_model, _fit_preprocessor
+    from driftguard.data.registry import get_adapter
+    from driftguard.temporal import build_temporal_split
+
+    config = smoke_config
+    config["adaptation"] = {
+        "window": "6h",
+        "rolling_step": "2h",
+        "rolling_window": "4h",
+        "strategies": ["none", "recent_window_retrain", "rolling_window_retrain"],
+    }
+    config["models"] = {"enabled": ["logistic_regression"]}
+
+    adapter = get_adapter(config["dataset"]["name"])
+    frame = adapter.load(config["dataset"]["raw_dir"], **config["dataset"].get("load_options", {}))
+    split = build_temporal_split(frame, **config.get("temporal", {}))
+    features = [f for f in frame.numeric_features()][:6]
+    pre = _fit_preprocessor(split.period("train"), features, split)
+
+    result = run_model("logistic_regression", pre, split, config, frame, 42)
+    study = run_adaptation_study(result, pre, split, config, frame, 42)
+
+    by_strategy = {s["strategy"]: s for s in study["strategies"]}
+    assert set(by_strategy) == {"none", "recent_window_retrain", "rolling_window_retrain"}
+    for name, entry in by_strategy.items():
+        assert "error" not in entry, f"{name} failed: {entry.get('error')}"
+
+    recent = by_strategy["recent_window_retrain"]["metrics"]
+    rolling = by_strategy["rolling_window_retrain"]["metrics"]
+    # PR AUC does not depend on the threshold, so identical PR AUC would mean
+    # the two strategies scored identically.
+    assert recent["pr_auc"] != rolling["pr_auc"], (
+        "rolling and recent-window produced identical scores; the rolling "
+        "strategy is not actually re-fitting"
+    )

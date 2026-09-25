@@ -72,13 +72,37 @@ def schema_hash(columns: List[str]) -> str:
 
 
 def package_versions() -> Dict[str, str]:
+    """Installed versions of everything that can move a number.
+
+    The import name and the distribution name differ for two of these
+    (``scikit-learn`` installs as ``sklearn``, ``PyYAML`` as ``yaml``), so the
+    module is imported by its real name and the distribution metadata is the
+    fallback. Getting this wrong records "not installed" for a library the run
+    plainly used.
+    """
     versions = {"python": sys.version.split()[0], "platform": platform.platform()}
-    for name in ["numpy", "pandas", "scikit-learn", "scipy", "matplotlib", "PyYAML"]:
+    for name, module_name in [
+        ("numpy", "numpy"),
+        ("pandas", "pandas"),
+        ("scikit-learn", "sklearn"),
+        ("scipy", "scipy"),
+        ("matplotlib", "matplotlib"),
+        ("PyYAML", "yaml"),
+    ]:
+        version = "unknown"
         try:
-            module = __import__(name)
-            versions[name] = getattr(module, "__version__", "unknown")
+            module = __import__(module_name)
+            version = getattr(module, "__version__", None) or "unknown"
         except Exception:
-            versions[name] = "not installed"
+            pass
+        if version == "unknown":
+            try:
+                from importlib.metadata import version as dist_version
+
+                version = dist_version(name)
+            except Exception:
+                version = "not installed"
+        versions[name] = version
     return versions
 
 

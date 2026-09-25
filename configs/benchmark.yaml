@@ -75,6 +75,11 @@ adaptation:
     - recent_window_retrain
     - rolling_window_retrain
     - historical_plus_recent_retrain
+  # Rolling adaptation re-fits on a cadence as the forward period advances; it is
+  # a distinct strategy from recent_window_retrain, which takes one snapshot
+  # immediately before the forward test.
+  rolling_step: 1h
+  rolling_window: 6h
 
 output:
   experiments_dir: results/experiments

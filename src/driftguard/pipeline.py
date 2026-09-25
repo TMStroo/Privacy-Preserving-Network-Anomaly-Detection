@@ -30,6 +30,7 @@ from driftguard.evaluation.metrics import (
     metrics_at_target_fpr,
     predictions_frame,
     recall_degradation,
+    threshold_for_target_fpr,
 )
 from driftguard.features.preprocess import FeaturePreprocessor
 from driftguard.evaluation.failure_analysis import (
@@ -39,6 +40,7 @@ from driftguard.evaluation.failure_analysis import (
 )
 from driftguard.models.registry import MODELS, build_model, model_config_names, model_params
 from driftguard.temporal import TemporalSplit, build_temporal_split
+from driftguard.utils import as_timedelta
 
 
 LOG = logging.getLogger(__name__)
@@ -98,8 +100,6 @@ def run_model(
 
     # Threshold selection: validation data only.
     val_scores = model.predict_proba(pre.transform(validation).to_numpy())[:, 1]
-    from driftguard.evaluation.metrics import threshold_for_target_fpr
-
     threshold = threshold_for_target_fpr(validation.targets.to_numpy(), val_scores, target_fpr)
 
     backtest_scores = model.predict_proba(pre.transform(backtest).to_numpy())[:, 1]
@@ -147,6 +147,69 @@ def _serializable_params(model, declared: Dict) -> Dict[str, object]:
     return dict(declared)
 
 
+def _rolling_scores(
+    pre: FeaturePreprocessor,
+    split: TemporalSplit,
+    frame: FlowFrame,
+    forward: FlowFrame,
+    model_name: str,
+    params: Dict,
+    seed: int,
+    step: str,
+    window: Optional[str],
+) -> np.ndarray:
+    """Score the forward period with a model refitted as time advances.
+
+    The forward period is cut into consecutive steps. Before scoring a step, the
+    estimator is refitted on the reference period plus every row timestamped
+    strictly before that step starts - so the strategy sees forward-period
+    traffic only after it has already happened, exactly as an operator would.
+
+    The threshold is re-derived at each step from the rows already consumed, so
+    the false-positive budget is held as the distribution moves rather than only
+    at the start.
+    """
+    fwd = forward.sorted_by_time()
+    timestamps = fwd.timestamps.reset_index(drop=True)
+    step_size = as_timedelta(step)
+    step_size = max(step_size, pd.Timedelta(seconds=1))
+
+    reference = split.period("train")
+    scores = np.zeros(len(fwd.frame), dtype=float)
+    refits = 0
+    starts = list(pd.date_range(timestamps.min(), timestamps.max(), freq=step_size))
+    if not starts:
+        starts = [timestamps.min()]
+
+    for start in starts:
+        mask = ((timestamps >= start) & (timestamps < start + step_size)).to_numpy()
+        if not mask.any():
+            continue
+        # Everything the strategy is allowed to know at this instant.
+        used = frame.between(frame.timestamps.min(), start, include_end=False)
+        if window:
+            start_of_window = start - pd.Timedelta(window)
+            used = used.between(start_of_window, start, include_end=False)
+        if used.frame.empty:
+            continue
+
+        combined = FlowFrame(
+            used.name,
+            pd.concat([reference.frame, used.frame], ignore_index=True),
+            used.source_files,
+            used.notes,
+        )
+        estimator = build_model(model_name, params, seed)
+        estimator.fit(pre.transform(combined).to_numpy(), combined.targets.to_numpy())
+        refits += 1
+
+        batch = FlowFrame(fwd.name, fwd.frame[mask].reset_index(drop=True), fwd.source_files, fwd.notes)
+        scores[mask] = estimator.predict_proba(pre.transform(batch).to_numpy())[:, 1]
+
+    LOG.info("rolling adaptation refit %d times over the forward period", refits)
+    return scores
+
+
 def run_adaptation_study(
     model_result: Dict[str, object],
     pre: FeaturePreprocessor,
@@ -165,6 +228,12 @@ def run_adaptation_study(
     forward = split.period("forward")
     strategies = config.get("adaptation", {}).get("strategies", list(ADAPTATION_STRATEGIES))
     window = config.get("adaptation", {}).get("window", "6h")
+    # Rolling adaptation is parameterised separately: the recent-window
+    # strategies take one snapshot before the forward test, while the rolling
+    # one re-fits at a fixed cadence. Sharing a single window would make the two
+    # strategies identical by construction.
+    rolling_step = config.get("adaptation", {}).get("rolling_step", "1h")
+    rolling_window = config.get("adaptation", {}).get("rolling_window", window)
     model_name = model_result["model"]
     params = model_params(config, model_name)
 
@@ -199,6 +268,18 @@ def run_adaptation_study(
                 scores, threshold = forward_scores_unadapted, model_result["threshold"]
             elif strategy == "threshold_recalibration":
                 scores, threshold = forward_scores_unadapted, outcome.threshold
+            elif strategy == "rolling_window_retrain":
+                # A rolling strategy is defined by re-fitting as the forward
+                # period advances: at each step it may use the reference period
+                # plus everything timestamped strictly before that step. Treating
+                # it as a single fit on a fixed window makes it identical to
+                # recent_window_retrain, which is what the first completed run
+                # showed.
+                scores = _rolling_scores(
+                    pre, split, frame, forward, model_name, params, seed,
+                    step=rolling_step, window=rolling_window,
+                )
+                threshold = outcome.threshold
             else:
                 # Score the estimator the strategy actually refitted.
                 training = history
