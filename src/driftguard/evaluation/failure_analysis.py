@@ -172,24 +172,83 @@ def drift_vs_degradation(
 
 def alerts_without_degradation(
     drift_events: pd.DataFrame, windows: pd.DataFrame
-) -> Dict[str, int]:
+) -> Dict[str, object]:
     """Count drift alerts that landed in windows where the model was fine.
 
-    Drift is a property of the data, not a verdict on the model; this counts
+    Drift is a property of the data, not a verdict on the model, so this counts
     how often the two came apart.
+
+    The two tables are bucketed on different cadences: drift windows are as long
+    as the drift configuration asks for, and the model windows are as long as
+    the failure analysis asks for. Comparing their labels directly therefore
+    compares timestamps that need not mean the same interval, and every alert
+    falls outside both sets. The windows are therefore aligned by assigning each
+    drift window to whichever model window contains its midpoint, which is the
+    coarsest honest comparison, and the bucket that remains unassigned is
+    reported rather than dropped.
     """
-    if drift_events.empty or windows.empty:
-        return {"alerts": 0, "without_degradation": 0}
-    alert_windows = set(drift_events[drift_events["alert"]]["window_start"].astype(str))
-    windows = windows.copy()
-    windows["bucket"] = pd.to_datetime(windows["bucket"]).astype(str)
-    good = set(windows[windows["recall"].notna()]["bucket"])
-    degraded = set(windows[windows["recall"].notna() & (windows["recall"] < 0.5)]["bucket"])
-    quiet = good - degraded
+    empty = {"alerts": 0, "in_degraded_windows": 0, "without_degradation": 0,
+             "unmatched_alerts": 0, "model_windows": 0, "degraded_windows": 0,
+             "matched": False}
+    if drift_events is None or drift_events.empty or windows is None or windows.empty:
+        return empty
+
+    alert_windows = sorted(set(drift_events[drift_events["alert"]]["window_start"].astype(str)))
+    if not alert_windows:
+        return empty
+
+    frame = windows.copy()
+    if "bucket" not in frame.columns or "recall" not in frame.columns:
+        return empty
+    frame["bucket"] = pd.to_datetime(frame["bucket"], errors="coerce")
+    frame = frame[frame["bucket"].notna() & frame["recall"].notna()]
+    if frame.empty:
+        return empty
+
+    frame = frame.sort_values("bucket")
+    starts = frame["bucket"].tolist()
+    recalls = frame["recall"].tolist()
+
+    # Each drift window is assigned to the model window containing its midpoint.
+    # Midpoint rather than start, because a drift window can begin before the
+    # first model window and the question is which period the alert describes.
+    midpoints = []
+    for start in alert_windows:
+        start_ts = pd.Timestamp(start)
+        try:
+            end_ts = pd.Timestamp(drift_events[drift_events["window_start"].astype(str) == start]["window_end"].iloc[0])
+        except (IndexError, ValueError):
+            end_ts = start_ts
+        midpoints.append(start_ts + (end_ts - start_ts) / 2)
+
+    in_degraded = without = unmatched = 0
+    for midpoint in midpoints:
+        # Last model window that starts at or before the midpoint.
+        position = None
+        for i, bucket in enumerate(starts):
+            if bucket <= midpoint:
+                position = i
+            else:
+                break
+        if position is None or midpoint > starts[position] + pd.Timedelta(days=1):
+            # Either before the first window, or implausibly after the last.
+            unmatched += 1
+            continue
+        if recalls[position] < 0.5:
+            in_degraded += 1
+        else:
+            without += 1
+
     return {
         "alerts": len(alert_windows),
-        "in_degraded_windows": len(alert_windows & degraded),
-        "without_degradation": len(alert_windows & quiet),
+        "in_degraded_windows": in_degraded,
+        "without_degradation": without,
+        "unmatched_alerts": unmatched,
+        "model_windows": int(len(frame)),
+        "degraded_windows": int((frame["recall"] < 0.5).sum()),
+        # False when the buckets could not be aligned at all, which is itself
+        # worth knowing: it means the comparison below is not evidence.
+        "matched": unmatched < len(alert_windows),
     }
 
 

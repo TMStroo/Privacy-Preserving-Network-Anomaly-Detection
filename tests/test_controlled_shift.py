@@ -309,3 +309,61 @@ def test_class_prevalence_shift_reaches_every_target_above_the_current_rate():
         assert len(shifted.frame) <= n
         # A shift that removed everything but one class would be useless.
         assert 0 in set(shifted.frame["label"]) and 1 in set(shifted.frame["label"])
+
+
+def test_alerts_without_degradation_partitions_its_alerts():
+    """Every alert must land in a bucket, or the comparison means nothing.
+
+    The drift table and the model-window table are bucketed on different
+    cadences, so a naive label comparison puts every alert in neither set. The
+    three counters below have to add up.
+    """
+    import pandas as pd
+
+    from driftguard.evaluation.failure_analysis import alerts_without_degradation
+
+    # Four hourly drift windows starting 09:00, each one hour long.
+    drift = pd.DataFrame({
+        "window_start": pd.date_range("2015-02-18 09:00", periods=4, freq="h").astype(str),
+        "window_end": pd.date_range("2015-02-18 10:00", periods=4, freq="h").astype(str),
+        "alert": [True, True, True, True],
+    })
+    # Model windows on a 4-hour cadence over the same span.
+    windows = pd.DataFrame({
+        "bucket": pd.date_range("2015-02-18 08:00", periods=3, freq="4h").astype(str),
+        "recall": [0.9, 0.2, 0.8],
+    })
+
+    result = alerts_without_degradation(drift, windows)
+    assert result["alerts"] == 4
+    accounted = (result["in_degraded_windows"] + result["without_degradation"]
+                 + result["unmatched_alerts"])
+    assert accounted == result["alerts"], result
+    assert result["model_windows"] == 3
+    assert result["degraded_windows"] == 1
+    # Midpoints 09:30, 10:30, 11:30 and 12:30 fall in the 08:00, 08:00, 08:00 and
+    # 12:00 model windows respectively, so exactly one alert lands in the
+    # degraded (recall 0.2) window.
+    assert result["in_degraded_windows"] == 1, result
+    assert result["without_degradation"] == 3, result
+
+
+def test_alerts_without_degradation_reports_unmatched_instead_of_hiding_them():
+    import pandas as pd
+
+    from driftguard.evaluation.failure_analysis import alerts_without_degradation
+
+    drift = pd.DataFrame({
+        "window_start": ["2015-02-18 09:00:00"],
+        "window_end": ["2015-02-18 10:00:00"],
+        "alert": [True],
+    })
+    # Model windows nowhere near the alert.
+    windows = pd.DataFrame({
+        "bucket": ["2020-01-01 00:00:00", "2020-01-01 04:00:00"],
+        "recall": [0.9, 0.9],
+    })
+
+    result = alerts_without_degradation(drift, windows)
+    assert result["unmatched_alerts"] == 1, result
+    assert result["matched"] is False
