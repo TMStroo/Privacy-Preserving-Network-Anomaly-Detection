@@ -152,13 +152,18 @@ class Report:
         if not rows:
             return
         columns = len(header)
-        if widths is None:
+        if not widths or len(widths) != columns:
+            # A caller that supplies the wrong number of widths gets equal
+            # columns rather than an IndexError partway down the page. Tables
+            # here are built from CSV output, so the column count is data
+            # dependent and a hard failure here loses the whole report.
             widths = [1.0] * columns
         total = sum(widths)
         available = PAGE_W - 2 * MARGIN
         col_w = [w / total * available for w in widths]
 
-        aligns = aligns or ["L"] * columns
+        if not aligns or len(aligns) != columns:
+            aligns = ["L"] * columns
 
         def draw(cells, bold, size):
             self.pdf.set_font("Helvetica", "B" if bold else "", size)

@@ -158,3 +158,24 @@ def path_exists(p):
 
 def size_of(p):
     return os.path.getsize(p)
+
+
+def test_table_tolerates_a_mismatched_width_list(tmp_path):
+    """A wrong number of widths must not lose the report.
+
+    Tables here are built from recorded CSV output, so the column count varies
+    with the data. Passing three widths for a five-column table used to raise
+    IndexError partway down the page, which discarded the whole report rather
+    than rendering one imperfect table.
+    """
+    from driftguard.reporting.generate import Report
+
+    report = Report("t", "s")
+    report.add_page()
+    report.table(["a", "b", "c", "d", "e"], [["1", "2", "3", "4", "5"]],
+                 widths=[1.0, 1.0, 1.0])
+    report.table(["a", "b"], [["1", "2"]], aligns=["R"])
+    report.table(["a", "b", "c"], [["1", "2", "3"]], widths=None, aligns=None)
+    out = tmp_path / "r.pdf"
+    report.pdf.output(str(out))
+    assert out.is_file()
