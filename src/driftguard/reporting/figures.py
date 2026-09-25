@@ -4,6 +4,7 @@ Every figure is drawn from a recorded experiment's CSV or JSON, so a figure
 cannot show a number the run did not produce.
 """
 
+import json
 from pathlib import Path
 from typing import Dict, List, Optional
 

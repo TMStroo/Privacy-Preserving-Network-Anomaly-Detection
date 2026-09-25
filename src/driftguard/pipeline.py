@@ -7,6 +7,7 @@ data beforehand.
 """
 
 import json
+import logging
 import os
 import time
 from typing import Dict, List, Optional
@@ -38,6 +39,9 @@ from driftguard.evaluation.failure_analysis import (
 )
 from driftguard.models.registry import MODELS, build_model, model_config_names, model_params
 from driftguard.temporal import TemporalSplit, build_temporal_split
+
+
+LOG = logging.getLogger(__name__)
 
 
 class AdaptationStudyError(RuntimeError):
@@ -351,6 +355,18 @@ def run_benchmark(config: Dict, experiment_root: str = "results/experiments") ->
         "models": results,
     }
     run.write_json("metrics.json", payload)
+
+    # Figures are drawn from what was just written, so a run is self-contained:
+    # its directory holds the tables, the figures and the metadata a reader
+    # needs, without a second command.
+    if config.get("figures", {}).get("enabled", True):
+        from driftguard.reporting.figures import build_all_figures
+
+        try:
+            figures = build_all_figures(str(run.path), payload, str(run.path / "figures"))
+            run.write_json("figures.json", figures)
+        except Exception as exc:  # a plotting problem must not invalidate the run
+            LOG.warning("figure generation failed for %s: %s", frame.name, exc)
     return {"experiment": run.summary(), "metrics": payload, "run": run, "split": split}
 
 
