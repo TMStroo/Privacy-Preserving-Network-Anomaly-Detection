@@ -186,3 +186,126 @@ def test_shift_catalog_crosses_kinds_and_magnitudes():
     assert len(catalog) == 4
     assert {c["kind"] for c in catalog} == {"packet_size", "duration"}
     assert {c["magnitude"] for c in catalog} == {1.5, 3.0}
+
+
+def test_realized_shift_measures_the_change_rather_than_trusting_the_parameter():
+    """A requested magnitude is an instruction, not evidence.
+
+    The generator applies a log-space offset, so a 'magnitude 3' request does
+    not multiply a feature by three. Reporting the request alone would let a
+    weak shift look like a strong one.
+    """
+    import numpy as np
+    from driftguard.data.schema import FlowFrame
+    from driftguard.shift.controlled import realized_shift
+
+    rng = np.random.default_rng(11)
+    n = 4000
+    base = pd.DataFrame({
+        "timestamp": pd.date_range("2016-05-01", periods=n, freq="1min"),
+        "label": (rng.random(n) < 0.2).astype(int),
+        "total_bytes": rng.lognormal(5.0, 0.5, n),
+        "byte_rate": rng.lognormal(6.0, 0.5, n),
+    })
+    before = FlowFrame("t", base, ["s"], {})
+
+    for magnitude in (2.0, 5.0):
+        shifted = apply_shift(before, "byte_rate", magnitude, seed=1)
+        summary = realized_shift(before, shifted, ["byte_rate"])
+        entry = summary["features"]["byte_rate"]
+        assert summary["verified"] is True
+        assert entry["cohens_d"] > 0, "a positive shift must move the mean up"
+        # The realized median ratio must be near the requested factor, and the
+        # two must be distinguishable rather than conflated.
+        # The shift is applied in log space, so it lands as a genuine
+        # multiplicative factor; the measurement must recover it, and it must be
+        # derived from the data rather than copied from the request.
+        assert entry["median_ratio"] == pytest.approx(magnitude, rel=0.05)
+        assert summary["realized_verified"] if "realized_verified" in summary else summary["verified"]
+
+
+def test_realized_shift_flags_a_shift_that_did_nothing():
+    from driftguard.data.schema import FlowFrame
+    from driftguard.shift.controlled import realized_shift
+
+    rng = np.random.default_rng(12)
+    n = 2000
+    frame = pd.DataFrame({
+        "timestamp": pd.date_range("2016-05-01", periods=n, freq="1min"),
+        "label": (rng.random(n) < 0.2).astype(int),
+        "total_bytes": rng.lognormal(5.0, 0.5, n),
+    })
+    a = FlowFrame("t", frame, ["s"], {})
+    b = FlowFrame("t", frame.copy(), ["s"], {})
+    summary = realized_shift(a, b, ["total_bytes"])
+    assert summary["max_abs_cohens_d"] == 0.0
+    assert summary["verified"] is False, "an unshifted pair must not read as verified"
+
+
+def test_realized_shift_reports_removed_columns():
+    from driftguard.data.schema import FlowFrame
+    from driftguard.shift.controlled import realized_shift
+
+    rng = np.random.default_rng(13)
+    n = 2000
+    frame = pd.DataFrame({
+        "timestamp": pd.date_range("2016-05-01", periods=n, freq="1min"),
+        "label": (rng.random(n) < 0.2).astype(int),
+        "tcp_flags": ["A"] * n,
+        "tos": rng.integers(0, 4, n).astype(float),
+    })
+    a = FlowFrame("t", frame, ["s"], {})
+    b = FlowFrame("t", frame.drop(columns=["tcp_flags"]), ["s"], {})
+    summary = realized_shift(a, b)
+    assert "tcp_flags" in summary["columns_removed"]
+    assert summary["verified"] is True
+
+
+def test_realized_shift_measures_prevalence_change():
+    from driftguard.data.schema import FlowFrame
+    from driftguard.shift.controlled import realized_shift
+
+    rng = np.random.default_rng(14)
+    n = 6000
+    frame = pd.DataFrame({
+        "timestamp": pd.date_range("2016-05-01", periods=n, freq="1min"),
+        "label": (rng.random(n) < 0.2).astype(int),
+        "total_bytes": rng.lognormal(5.0, 0.5, n),
+    })
+    before = FlowFrame("t", frame, ["s"], {})
+    shifted = apply_shift(before, "class_prevalence", 0.5, seed=1)
+    summary = realized_shift(before, shifted)
+    assert summary["attack_rate_before"] == pytest.approx(0.2, abs=0.02)
+    assert summary["attack_rate_after"] == pytest.approx(0.5, abs=0.02)
+    assert summary["verified"] is True
+
+
+def test_class_prevalence_shift_reaches_every_target_above_the_current_rate():
+    """Regression: every request above the current prevalence used to return the
+    original data untouched, so the shift silently did nothing.
+
+    Attacks cannot be invented, so a higher target rate has to be reached by
+    thinning benign traffic rather than by adding attacks.
+    """
+    import numpy as np
+    from driftguard.data.schema import FlowFrame
+
+    rng = np.random.default_rng(21)
+    n = 6000
+    frame = pd.DataFrame({
+        "timestamp": pd.date_range("2016-05-01", periods=n, freq="1min"),
+        "label": (rng.random(n) < 0.2).astype(int),
+        "total_bytes": rng.lognormal(5.0, 0.5, n),
+    })
+    before = FlowFrame("t", frame, ["s"], {})
+    assert frame["label"].mean() == pytest.approx(0.2, abs=0.02)
+
+    for target in (0.05, 0.1, 0.3, 0.4, 0.5):
+        shifted = apply_shift(before, "class_prevalence", target, seed=1)
+        realized = shifted.frame["label"].mean()
+        assert realized == pytest.approx(target, abs=0.01), (
+            f"requested {target}, realised {realized:.4f}"
+        )
+        assert len(shifted.frame) <= n
+        # A shift that removed everything but one class would be useless.
+        assert 0 in set(shifted.frame["label"]) and 1 in set(shifted.frame["label"])

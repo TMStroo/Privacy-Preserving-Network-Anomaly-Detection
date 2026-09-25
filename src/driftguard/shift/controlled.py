@@ -112,20 +112,33 @@ def apply_shift(
         if not 0.0 < target_rate < 1.0:
             raise ValueError("class_prevalence magnitude must be a fraction in (0, 1)")
 
-        # Size the kept sample from the target rate and the smaller class, so the
-        # requested prevalence is actually reached instead of being capped by
-        # whichever class runs out. That makes the shift a change in the base
-        # rate only: the retained rows themselves are untouched.
-        wanted_attacks = min(attacks.size, int(round(target_rate / (1.0 - target_rate) * benign.size)))
-        wanted_attacks = max(wanted_attacks, 1)
+        # The attack class cannot be invented, so reaching a rate above the
+        # current one means thinning the other class. The earlier version sized
+        # the sample from whichever class was larger and then capped it, which
+        # meant every request above the current prevalence returned the original
+        # data unchanged: the shift silently did nothing.
+        current = float(labels.mean())
+        if target_rate <= current:
+            # Fewer attacks wanted: drop attacks, keep all benign traffic.
+            keep_benign = benign.size
+            wanted = int(round(target_rate / (1.0 - target_rate) * keep_benign))
+            wanted = min(max(wanted, 1), attacks.size)
+        else:
+            # More attacks wanted: keep all attacks, thin the benign class.
+            wanted = attacks.size
+            keep_benign = int(round(wanted * (1.0 - target_rate) / target_rate))
+            keep_benign = max(1, min(keep_benign, benign.size))
+
         keep = np.concatenate([
-            rng.choice(attacks, wanted_attacks, replace=False),
-            rng.choice(benign, benign.size, replace=False),
+            rng.choice(attacks, wanted, replace=False),
+            rng.choice(benign, keep_benign, replace=False),
         ])
         keep = np.sort(keep)
         out = out.iloc[keep].reset_index(drop=True)
         params["resulting_attack_rate"] = float(out["label"].mean())
         params["rows_removed"] = int(len(labels) - len(out))
+        params["requested_attack_rate"] = target_rate
+        params["previous_attack_rate"] = current
     elif kind == "telemetry_reduction":
         # Drop the features a reduced collector would no longer export, rather
         # than corrupting the values of features it still exports.
@@ -134,6 +147,75 @@ def apply_shift(
         params["dropped"] = drop
 
     return FlowFrame(frame.name, out, frame.source_files, {**frame.notes, "shift": params} )
+
+
+def realized_shift(
+    before: FlowFrame, after: FlowFrame, features: Optional[Sequence[str]] = None
+) -> Dict[str, object]:
+    """Measure what a shift actually did, rather than trusting its parameter.
+
+    A requested magnitude is an instruction to the generator, not evidence. A
+    multiplicative shift on a heavy-tailed feature can move the mean a long way
+    while barely touching the median, and a prevalence shift is capped by
+    whichever class runs out. Reporting only the requested value would let a
+    shift that did nothing look like one that worked.
+
+    Returns the per-feature standardised mean shift (Cohen's d, robust to scale
+    because it divides by the pooled standard deviation), the median ratio where
+    both medians are positive, and the realised class prevalence change.
+    """
+    out: Dict[str, object] = {"features": {}}
+    shared = [f for f in (features or before.frame.columns) if f in before.frame.columns and f in after.frame.columns]
+    numeric = before.frame[shared].select_dtypes(include="number").columns.tolist()
+
+    for feature in numeric:
+        a = before.frame[feature].to_numpy(dtype=float)
+        b = after.frame[feature].to_numpy(dtype=float)
+        a = a[np.isfinite(a)]
+        b = b[np.isfinite(b)]
+        if a.size < 2 or b.size < 2:
+            continue
+        mean_a, mean_b = float(a.mean()), float(b.mean())
+        sd = float(np.sqrt((a.var(ddof=1) + b.var(ddof=1)) / 2.0)) or 0.0
+        entry = {
+            "mean_before": mean_a,
+            "mean_after": mean_b,
+            "cohens_d": (mean_b - mean_a) / sd if sd else 0.0,
+            "median_before": float(np.median(a)),
+            "median_after": float(np.median(b)),
+        }
+        if entry["median_before"] > 0 and entry["median_after"] > 0:
+            entry["median_ratio"] = entry["median_after"] / entry["median_before"]
+        out["features"][feature] = entry
+
+    if "label" in before.frame.columns and "label" in after.frame.columns:
+        rate_before = float(before.frame["label"].mean())
+        rate_after = float(after.frame["label"].mean())
+        out["attack_rate_before"] = rate_before
+        out["attack_rate_after"] = rate_after
+        out["attack_rate_ratio"] = (rate_after / rate_before) if rate_before else None
+
+    out["rows_before"] = int(len(before.frame))
+    out["rows_after"] = int(len(after.frame))
+    dropped = sorted(set(before.frame.columns) - set(after.frame.columns))
+    if dropped:
+        out["columns_removed"] = dropped
+
+    effects = [abs(v["cohens_d"]) for v in out["features"].values()]
+    out["max_abs_cohens_d"] = float(max(effects)) if effects else 0.0
+    out["mean_abs_cohens_d"] = float(np.mean(effects)) if effects else 0.0
+    # A shift that moved nothing measurable has to be visible as such rather
+    # than being reported under its requested label.
+    out["verified"] = bool(out["max_abs_cohens_d"] >= 0.05 or dropped or rate_changed(out))
+    return out
+
+
+def rate_changed(summary: Dict[str, object], floor: float = 1e-6) -> bool:
+    before = summary.get("attack_rate_before")
+    after = summary.get("attack_rate_after")
+    if before is None or after is None:
+        return False
+    return abs(float(after) - float(before)) > floor
 
 
 def shift_catalog(magnitudes: Sequence[float], kinds: Sequence[str] = SHIFT_KINDS) -> List[Dict[str, object]]:

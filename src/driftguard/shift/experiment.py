@@ -34,7 +34,7 @@ from driftguard.evaluation.metrics import (
 from driftguard.features.preprocess import FeaturePreprocessor
 from driftguard.models.registry import build_model
 from driftguard.pipeline import _fit_preprocessor
-from driftguard.shift.controlled import SHIFT_KINDS, apply_shift
+from driftguard.shift.controlled import SHIFT_KINDS, apply_shift, realized_shift
 from driftguard.temporal import TemporalSplit, build_temporal_split
 
 # Magnitudes bracket a plausible operational change rather than reaching for an
@@ -130,6 +130,10 @@ def run_controlled_shift_experiments(
                 inapplicable = len(reduced_features) < len(rich_features)
                 y = shifted.targets.to_numpy()
 
+                # What the shift actually did to the data, measured rather than
+                # assumed from the requested parameter.
+                realized = realized_shift(backtest, shifted, drift_features)
+
                 start = time.perf_counter()
                 if inapplicable:
                     shifted_metrics = clean_metrics
@@ -199,6 +203,17 @@ def run_controlled_shift_experiments(
                     "detected_drift": bool(alerts["alerts"] > 0),
                     "strongest_drift_feature": (str(by_feature.index[0]) if len(by_feature) else ""),
                     "inference_seconds": round(inference, 4),
+                    "realized_max_abs_cohens_d": round(float(realized["max_abs_cohens_d"]), 6),
+                    "realized_mean_abs_cohens_d": round(float(realized["mean_abs_cohens_d"]), 6),
+                    "realized_verified": bool(realized["verified"]),
+                    "realized_attack_rate": realized.get("attack_rate_after"),
+                    "realized_rows": realized.get("rows_after"),
+                    "realized_columns_removed": realized.get("columns_removed", []),
+                    "realized_medians": {
+                        k: round(float(v.get("median_ratio", float("nan"))), 4)
+                        for k, v in realized["features"].items()
+                        if v.get("median_ratio") is not None
+                    },
                 }
                 record.update(adapted)
                 rows.append(record)
@@ -206,6 +221,8 @@ def run_controlled_shift_experiments(
                     "model": model_name, "kind": kind, "magnitude": float(magnitude),
                     "status": "ok",
                     "top_drift_features": {str(k): float(v) for k, v in by_feature.head(5).items()},
+                    "requested_magnitude": float(magnitude),
+                    "realized": realized,
                 })
 
     table = pd.DataFrame(rows)
