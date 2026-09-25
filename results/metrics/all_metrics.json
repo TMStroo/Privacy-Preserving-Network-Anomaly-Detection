@@ -1,0 +1,186 @@
+{
+  "FULL_METADATA": {
+    "majority_baseline": {
+      "precision": 0.5506000097167566,
+      "recall": 1.0,
+      "f1_score": 0.710176713873919,
+      "false_positive_rate": 1.0,
+      "false_negative_rate": 0.0,
+      "true_positive_rate": 1.0,
+      "true_negative_rate": 0.0,
+      "confusion_matrix": [
+        [
+          0,
+          37000
+        ],
+        [
+          0,
+          45332
+        ]
+      ],
+      "true_positives": 45332,
+      "true_negatives": 0,
+      "false_positives": 37000,
+      "false_negatives": 0,
+      "n_samples": 82332,
+      "n_normal": 37000,
+      "n_anomaly": 45332,
+      "roc_auc": 0.5,
+      "pr_auc": 0.5506000097167566,
+      "model_name": "majority_baseline",
+      "feature_set": "FULL_METADATA"
+    },
+    "logistic_regression": {
+      "precision": 0.8003343413662917,
+      "recall": 0.9399320568252008,
+      "f1_score": 0.8645341936269288,
+      "false_positive_rate": 0.2872972972972973,
+      "false_negative_rate": 0.06006794317479926,
+      "true_positive_rate": 0.9399320568252008,
+      "true_negative_rate": 0.7127027027027028,
+      "confusion_matrix": [
+        [
+          26370,
+          10630
+        ],
+        [
+          2723,
+          42609
+        ]
+      ],
+      "true_positives": 42609,
+      "true_negatives": 26370,
+      "false_positives": 10630,
+      "false_negatives": 2723,
+      "n_samples": 82332,
+      "n_normal": 37000,
+      "n_anomaly": 45332,
+      "roc_auc": 0.9576914732388789,
+      "pr_auc": 0.9680477692376441,
+      "model_name": "logistic_regression",
+      "feature_set": "FULL_METADATA"
+    },
+    "random_forest": {
+      "precision": 0.8771012178079457,
+      "recall": 0.9691608576722844,
+      "f1_score": 0.9208358659428644,
+      "false_positive_rate": 0.16637837837837838,
+      "false_negative_rate": 0.03083914232771552,
+      "true_positive_rate": 0.9691608576722844,
+      "true_negative_rate": 0.8336216216216216,
+      "confusion_matrix": [
+        [
+          30844,
+          6156
+        ],
+        [
+          1398,
+          43934
+        ]
+      ],
+      "true_positives": 43934,
+      "true_negatives": 30844,
+      "false_positives": 6156,
+      "false_negatives": 1398,
+      "n_samples": 82332,
+      "n_normal": 37000,
+      "n_anomaly": 45332,
+      "roc_auc": 0.9844465373782855,
+      "pr_auc": 0.9884479198553763,
+      "model_name": "random_forest",
+      "feature_set": "FULL_METADATA"
+    }
+  },
+  "RESTRICTED_METADATA": {
+    "majority_baseline": {
+      "precision": 0.5506000097167566,
+      "recall": 1.0,
+      "f1_score": 0.710176713873919,
+      "false_positive_rate": 1.0,
+      "false_negative_rate": 0.0,
+      "true_positive_rate": 1.0,
+      "true_negative_rate": 0.0,
+      "confusion_matrix": [
+        [
+          0,
+          37000
+        ],
+        [
+          0,
+          45332
+        ]
+      ],
+      "true_positives": 45332,
+      "true_negatives": 0,
+      "false_positives": 37000,
+      "false_negatives": 0,
+      "n_samples": 82332,
+      "n_normal": 37000,
+      "n_anomaly": 45332,
+      "roc_auc": 0.5,
+      "pr_auc": 0.5506000097167566,
+      "model_name": "majority_baseline",
+      "feature_set": "RESTRICTED_METADATA"
+    },
+    "logistic_regression": {
+      "precision": 0.7319363395225464,
+      "recall": 0.9130636195182211,
+      "f1_score": 0.812528218919927,
+      "false_positive_rate": 0.4097027027027027,
+      "false_negative_rate": 0.08693638048177887,
+      "true_positive_rate": 0.9130636195182211,
+      "true_negative_rate": 0.5902972972972973,
+      "confusion_matrix": [
+        [
+          21841,
+          15159
+        ],
+        [
+          3941,
+          41391
+        ]
+      ],
+      "true_positives": 41391,
+      "true_negatives": 21841,
+      "false_positives": 15159,
+      "false_negatives": 3941,
+      "n_samples": 82332,
+      "n_normal": 37000,
+      "n_anomaly": 45332,
+      "roc_auc": 0.8501499653606663,
+      "pr_auc": 0.8332843040505094,
+      "model_name": "logistic_regression",
+      "feature_set": "RESTRICTED_METADATA"
+    },
+    "random_forest": {
+      "precision": 0.8662551852668283,
+      "recall": 0.9535648107297273,
+      "f1_score": 0.9078155681328951,
+      "false_positive_rate": 0.1803783783783784,
+      "false_negative_rate": 0.04643518927027265,
+      "true_positive_rate": 0.9535648107297273,
+      "true_negative_rate": 0.8196216216216217,
+      "confusion_matrix": [
+        [
+          30326,
+          6674
+        ],
+        [
+          2105,
+          43227
+        ]
+      ],
+      "true_positives": 43227,
+      "true_negatives": 30326,
+      "false_positives": 6674,
+      "false_negatives": 2105,
+      "n_samples": 82332,
+      "n_normal": 37000,
+      "n_anomaly": 45332,
+      "roc_auc": 0.9774245515368895,
+      "pr_auc": 0.9833150873113494,
+      "model_name": "random_forest",
+      "feature_set": "RESTRICTED_METADATA"
+    }
+  }
+}

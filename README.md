@@ -1,310 +1,253 @@
 # Privacy-Preserving Network Anomaly Detection
 
-## Summary
+Detecting abnormal network behavior from traffic metadata alone - flow statistics, packet headers and connection behavior - without reading packet payloads. The project asks whether that metadata carries enough signal to separate normal traffic from attacks, and how much is lost when the feature set is cut down to a small core of flow statistics.
 
-This project investigates whether encrypted network traffic metadata—without inspecting packet payload contents—provides sufficient information to detect anomalous network behavior. Using the UNSW-NB15 dataset with its official train/test split, we evaluate baseline machine learning models under two feature regimes: a full set of traffic metadata features (43 features) and a restricted subset of basic flow statistics and timing information (17 features).
+All experiments use the official UNSW-NB15 train/test split (175,341 / 82,332 rows), never a random re-split of the combined data.
 
-## Research Questions
+## Research questions
 
-**Primary:** Can encrypted network traffic metadata provide enough information to detect abnormal network behavior without inspecting message contents?
+**Primary:** Can network traffic metadata provide enough information to detect abnormal network behavior without inspecting packet payload contents?
 
-**Secondary:** How much detection performance changes when the model is restricted to a small set of traffic metadata features?
+**Secondary:** How much detection performance changes when the detector is restricted to a smaller subset of traffic metadata?
 
-## Hypothesis
+**Hypothesis:** Metadata (duration, counts, byte volumes, timing, TCP state, protocol behavior) contains real signal for anomaly detection, and a small core subset of it keeps most of that signal while giving up some performance.
 
-Network traffic metadata (flow duration, packet counts, byte counts, timing statistics, protocol information, TCP header fields, and behavioral aggregates) contains sufficient signal to distinguish anomalous from normal traffic, even without payload inspection. Performance degradation when moving from the full metadata set to a restricted subset will be measurable but not catastrophic, suggesting that a small core of metadata features captures most of the discriminative information.
+> Metadata-only monitoring is not a formal privacy guarantee. The project studies payload-free detection, not complete traffic privacy.
 
-## Why This Matters
+## Why this matters
 
-Modern networks increasingly encrypt payloads (TLS 1.3, QUIC, encrypted DNS). Traditional deep packet inspection (DPI) becomes ineffective or privacy-violating. Network defenders need detection methods that work on observable metadata alone—flow records (NetFlow/IPFIX), packet headers, and connection state. This project establishes a rigorous, reproducible baseline for metadata-only anomaly detection.
+Encryption is now the default on the internet: TLS 1.3, QUIC and encrypted DNS leave content invisible on the wire. Defenders still need to find scanning, denial-of-service, exploitation and command-and-control traffic, but the classic answer - deep packet inspection - either stops working or requires breaking encryption. The alternative is to work only with what is still visible: flow records, packet headers, timing and connection state. Those are exactly what a NetFlow or IPFIX exporter produces. This project is a reproducible baseline for that idea: it measures how far payload-free detection gets you on a standard public dataset, under a written feature policy that can be audited.
 
-## Threat Model
+## Threat model
 
-- **Attacker**: Controls malicious traffic generation; may use encryption, obfuscation, or mimicry
-- **Defender**: Observes only traffic metadata (headers, flow records, timing); cannot decrypt payloads
-- **Assumption**: Attacker cannot fully replicate the statistical properties of legitimate traffic metadata across all dimensions
+- **Defender:** sees traffic metadata only (headers, flow records, timing). Never decrypts or parses payload.
+- **Attacker:** generates malicious traffic and may encrypt, obfuscate or imitate legitimate flows.
+- **Assumption:** an attacker cannot perfectly match the statistical profile of benign traffic across every metadata dimension simultaneously - the detection premise this experiment tests on UNSW-NB15.
 
-## What the System Does
+## What the system does
 
-1. Ingests network flow records (UNSW-NB15 format)
-2. Extracts metadata features per the defined feature policy
-3. Trains classifiers to distinguish normal vs. anomalous traffic
-4. Evaluates on the official UNSW-NB15 test set (no data leakage)
+1. Verifies which dataset is present in `data/raw/` and says so out loud (research split vs development sample).
+2. Validates schema, targets and feature policy before anything is trained.
+3. Preprocesses both feature sets with statistics fitted on the training split only.
+4. Trains three baselines per feature set with a fixed seed.
+5. Evaluates on the official held-out test split and writes metrics, figures and a PDF report.
 
-## Information Used (Metadata Only)
+## What information it uses
 
-| Category | Features |
-|----------|----------|
-| Flow timing | `dur`, `sinpkt`, `dinpkt`, `sjit`, `djit`, `tcprtt`, `synack`, `ackdat` |
-| Volume/Rate | `spkts`, `dpkts`, `sbytes`, `dbytes`, `rate`, `sload`, `dload` |
-| TCP state | `sttl`, `dttl`, `swin`, `dwin`, `stcpb`, `dtcpb`, `sloss`, `dloss` |
-| Packet size | `smean`, `dmean`, `trans_depth`, `response_body_len` |
-| Behavioral aggregates | `ct_srv_src`, `ct_state_ttl`, `ct_dst_ltm`, `ct_src_dport_ltm`, `ct_dst_sport_ltm`, `ct_dst_src_ltm`, `ct_src_ltm`, `ct_srv_dst`, `is_sm_ips_ports`, `is_ftp_login`, `ct_ftp_cmd`, `ct_flw_http_mthd` |
-| Protocol/Service | `proto`, `service`, `state` |
+Only traffic metadata: flow duration, packet and byte counts, rates, packet-size statistics, inter-arrival timing and jitter, TCP timing and window fields, protocol / service / connection state, and connection-count aggregates. The per-field reasoning is in [docs/feature_policy.md](docs/feature_policy.md), generated from [`src/privacy_preserving_nad/features/build_features.py`](src/privacy_preserving_nad/features/build_features.py).
 
-All features are observable from packet headers, flow records, or behavioral counting—no payload inspection required.
+## What it intentionally does not use
 
-## Information Intentionally NOT Used
+| Excluded | Reason |
+|---|---|
+| `srcip`, `dstip` | IP addresses are identity-bearing and do not generalize |
+| `sport`, `dsport` | raw ports are identity-bearing; only port-derived *counts* are allowed |
+| `Stime`, `Ltime` | absolute timestamps enable cross-flow tracking |
+| `label`, `attack_cat`, `id` | labels and row indices - target leakage, never features |
+| `trans_depth`, `response_body_len`, `is_ftp_login`, `ct_ftp_cmd`, `ct_flw_http_mthd` | these exist only because the capture tooling parsed HTTP/FTP content; with encrypted transports they are invisible, so keeping them would make the payload-free claim false |
+| any payload or content field | by definition |
 
-| Feature | Reason |
-|---------|--------|
-| `srcip`, `dstip` | IP addresses are privacy-sensitive, not generalizable, enable tracking |
-| `sport`, `dsport` | Port numbers can be identifying; not pure metadata |
-| `Ltime`, `Stime` | Absolute timestamps enable traffic correlation/tracking |
-| `attack_cat` | This is a label (attack category), not a predictive feature |
-| Any payload content | By design—this is the privacy constraint |
+A leakage guard enforces this at feature-selection time and fails the run if a forbidden name appears in a feature set (`tests/test_leakage.py`).
 
 ## Dataset
 
-**UNSW-NB15** (2015) — A hybrid dataset of normal and synthetic attack traffic generated by the Australian Centre for Cyber Security.
+**UNSW-NB15** (Australian Centre for Cyber Security, 2015): real normal traffic mixed with synthetic attack traffic across DoS, exploits, fuzzers, reconnaissance, shellcode, worms, backdoors and generic categories.
 
-- **Training set**: ~175,000 samples (official split)
-- **Test set**: ~82,000 samples (official split, held out)
-- **Features**: 49 columns including 45 predictive features + `label` (0=normal, 1=anomaly) + `attack_cat`
-- **Attacks**: DoS, Exploits, Fuzzers, Reconnaissance, Shellcode, Worms, Backdoors, Generic
+| Split | Rows | Classes |
+|---|---:|---|
+| Training | 175,341 | 56,000 normal / 119,341 anomalous |
+| Testing | 82,332 | 37,000 normal / 45,332 anomalous |
 
-> **Important**: We use the official train/test split provided by the dataset authors. No random mixing. This prevents data leakage and ensures realistic evaluation.
+45 columns per file: a row id, 42 traffic fields, `attack_cat`, and the binary `label` (0 = normal, 1 = anomalous) used as the target.
 
-> **Note**: The current repository includes sample data (100 rows each) in `data/raw/` for CI and demonstration. For full experiments, download the complete UNSW-NB15 dataset and place the files in `data/raw/`.
+The repository distinguishes two things that share these filenames:
 
-## Feature Policy
+- **Research dataset** - the official split above, verified by row count and sha256 (`configs/config.yaml` records both checksums). This is the only input that produces benchmark results.
+- **Development sample** - synthetic rows written by `scripts/create_sample_data.py` for tests and CI. The pipeline detects it, labels the run a smoke test, and never presents it as UNSW-NB15 results. It refuses to overwrite the research dataset.
 
-The project enforces an explicit metadata-only feature policy defined in [`src/privacy_preserving_nad/features/build_features.py`](src/privacy_preserving_nad/features/build_features.py) and [`configs/config.yaml`](configs/config.yaml).
+Getting the official files:
 
-### Two Feature Sets
+```bash
+python -m privacy_preserving_nad.data.download            # status + instructions
+python -m privacy_preserving_nad.data.download --fetch    # download, sha256-verify
+```
 
-| Feature Set | Size | Description |
-|-------------|------|-------------|
-| **FULL_METADATA** | 43 | All metadata features allowed by policy |
-| **RESTRICTED_METADATA** | 17 | Basic flow statistics and timing only |
+or download manually from the [official UNSW page](https://research.unsw.edu.au/projects/unsw-nb15-dataset) and place `UNSW_NB15_training-set.csv` and `UNSW_NB15_testing-set.csv` in `data/raw/`. Raw and processed data are gitignored; no dataset file is committed.
 
-The restricted set contains only: `dur`, `spkts`, `dpkts`, `sbytes`, `dbytes`, `rate`, `sttl`, `dttl`, `sload`, `dload`, `sinpkt`, `dinpkt`, `sjit`, `djit`, `tcprtt`, `synack`, `ackdat`.
+## Feature policy
 
-Feature definitions are stored in configuration, not hard-coded.
+Feature definitions live in configuration ([`configs/config.yaml`](configs/config.yaml)), not scattered through the code:
+
+| Feature set | Selected features | After encoding | Contents |
+|---|---:|---:|---|
+| `FULL_METADATA` | 37 | 189 columns | all policy-compliant metadata |
+| `RESTRICTED_METADATA` | 17 | 17 columns | basic flow statistics and timing only |
+
+`FULL_METADATA` = duration, packet/byte counts, rates, TTLs, loss, inter-arrival times, jitter, TCP windows and sequence bases, TCP timing (`tcprtt`, `synack`, `ackdat`), mean packet sizes, nine connection-count aggregates, plus `proto` / `service` / `state`.
+
+`RESTRICTED_METADATA` = `dur`, `spkts`, `dpkts`, `sbytes`, `dbytes`, `rate`, `sttl`, `dttl`, `sload`, `dload`, `sinpkt`, `dinpkt`, `sjit`, `djit`, `tcprtt`, `synack`, `ackdat`.
+
+Two fields deserve honest notes: `ct_*_dport/sport` and `is_sm_ips_ports` are aggregate counts *keyed on* addresses and ports - the raw addresses and ports never enter the model. `tcprtt`, `synack` and `ackdat` assume a visible TCP handshake, which encrypted transports still expose.
 
 ## Methodology
 
-### Preprocessing
-- Missing values: median imputation (numeric), mode imputation (categorical)
-- Categorical encoding: One-hot encoding (`proto`, `service`, `state`)
-- Numeric scaling: StandardScaler (fit on training data only)
-- No test data used during preprocessing fitting
+- **Split:** the official UNSW-NB15 train/test files, used as released. Rows are never merged across the split, never shuffled, never re-partitioned.
+- **Cleaning:** no rows are dropped. The official files contain zero missing values and zero duplicates (verified by the validator). If a file ever had missing values, imputation happens inside the sklearn pipeline.
+- **Preprocessing:** numeric columns are median-imputed and standardized; `proto`, `service`, `state` are one-hot encoded with `handle_unknown='ignore'`. Every statistic is fitted on the training split only, then applied to the test split - the test split never contributes to imputation, scaling or vocabulary.
+- **Seed:** 42 for numpy, Python's `random` and every estimator.
+- **Models:** majority-class baseline (DummyClassifier); Logistic Regression (`C=1.0`, `max_iter=1000`, `lbfgs`, `class_weight='balanced'`); Random Forest (200 trees, `max_depth=15`, `min_samples_split=5`, `min_samples_leaf=2`, `class_weight='balanced'`). Deliberately simple baselines - no tuning, no architecture search.
+- **Target:** `label` cast to binary, 0 = normal, 1 = anomalous. Values outside {0,1} abort the run.
+- **Threshold:** default 0.5 for both models; nothing is tuned against the test set.
+- **Metrics:** precision, recall, F1, false positive rate, false negative rate, confusion matrix, ROC AUC, PR AUC, and per-class sample counts.
+- **Class imbalance:** anomalous is the majority class in both splits (68% train, 55% test), which is why the majority baseline scores a deceptively high F1 - the reading guide in the results section handles this.
 
-### Models
-| Model | Configuration |
-|-------|---------------|
-| Majority Baseline | Predicts most frequent class |
-| Logistic Regression | `C=1.0`, `max_iter=1000`, `lbfgs`, `class_weight=balanced` |
-| Random Forest | `n_estimators=200`, `max_depth=15`, `min_samples_split=5`, `class_weight=balanced` |
+## Experiments
 
-All models use fixed random seed (`42`) for reproducibility.
+Five training runs, one validation step:
 
-### Evaluation Metrics
-- Precision, Recall, F1 Score
-- False Positive Rate (FPR), False Negative Rate (FNR)
-- Confusion Matrix
-- ROC AUC, PR AUC (where probabilities available)
-- Class sample counts
-
-## Experimental Design
-
-We run a 2×3 factorial experiment:
-
-| Feature Set | Majority Baseline | Logistic Regression | Random Forest |
-|-------------|-------------------|---------------------|---------------|
-| FULL_METADATA | ✓ | ✓ | ✓ |
-| RESTRICTED_METADATA | ✓ | ✓ | ✓ |
-
-Each combination is trained on the official training set and evaluated on the official test set.
+| # | Model | Feature set |
+|---|---|---|
+| 1 | Majority baseline | (feature-independent; reported for both sets) |
+| 2 | Logistic Regression | `FULL_METADATA` |
+| 3 | Random Forest | `FULL_METADATA` |
+| 4 | Logistic Regression | `RESTRICTED_METADATA` |
+| 5 | Random Forest | `RESTRICTED_METADATA` |
 
 ## Results
 
-All experiments run on the official UNSW-NB15 train/test split with sample data (100 samples each) for demonstration. For full results, download the complete dataset and re-run.
+<!-- BEGIN GENERATED RESULTS -->
 
-### Main Comparison Table
+**Experiment status: research run.** Official UNSW-NB15 split as released - 175,341 training rows and 82,332 test rows, verified against recorded sha256 checksums. The official split is used as-is: no rows are merged, shuffled or re-split, and no hyperparameter or threshold was chosen against the test set.
 
-| Feature Set | Model | Precision | Recall | F1 Score | FPR | FNR |
-|-------------|-------|-----------|--------|----------|-----|-----|
-| FULL_METADATA | Majority Baseline | 0.5300 | 1.0000 | 0.6928 | 1.0000 | 0.0000 |
-| FULL_METADATA | Logistic Regression | 0.6250 | 0.5660 | 0.5941 | 0.3830 | 0.4340 |
-| FULL_METADATA | Random Forest | 0.9630 | 0.9811 | 0.9720 | 0.0426 | 0.0189 |
-| RESTRICTED_METADATA | Majority Baseline | 0.5300 | 1.0000 | 0.6928 | 1.0000 | 0.0000 |
-| RESTRICTED_METADATA | Logistic Regression | 0.6250 | 0.5660 | 0.5941 | 0.3830 | 0.4340 |
-| RESTRICTED_METADATA | Random Forest | 0.9630 | 0.9811 | 0.9720 | 0.0426 | 0.0189 |
+### Main comparison
 
-### Key Findings
+| Feature set | Model | Precision | Recall | F1 | FPR | FNR |
+|---|---|---:|---:|---:|---:|---:|
+| FULL_METADATA | Majority baseline | 0.5506 | 1.0000 | 0.7102 | 1.0000 | 0.0000 |
+| FULL_METADATA | Logistic Regression | 0.8003 | 0.9399 | 0.8645 | 0.2873 | 0.0601 |
+| FULL_METADATA | Random Forest | 0.8771 | 0.9692 | 0.9208 | 0.1664 | 0.0308 |
+| RESTRICTED_METADATA | Majority baseline | 0.5506 | 1.0000 | 0.7102 | 1.0000 | 0.0000 |
+| RESTRICTED_METADATA | Logistic Regression | 0.7319 | 0.9131 | 0.8125 | 0.4097 | 0.0869 |
+| RESTRICTED_METADATA | Random Forest | 0.8663 | 0.9536 | 0.9078 | 0.1804 | 0.0464 |
 
-**The two feature sets produced identical classification results on this run.** Random Forest reached F1 0.9720 on both the full 37-feature set and the restricted 12-feature set; Logistic Regression reached F1 0.5941 on both. The only differences appear in probability-based metrics: Random Forest ROC AUC was 0.99398 (FULL) versus 0.99478 (RESTRICTED), a gap of less than 0.001. On this sample, the extra features in FULL_METADATA carry redundant signal rather than new signal.
+### Reading the table
 
-**Random Forest is the only model that clearly works here.** It reduces the majority baseline's 47 false positives to 2, with 1 false negative (F1 0.9720 versus 0.6928 for the baseline). **Logistic Regression does not beat the baseline** (F1 0.5941 versus 0.6928) — a linear boundary cannot separate these classes well at this scale.
+**Class balance.** The test split holds 82,332 flows: 37,000 normal (44.9%) and 45,332 anomalous (55.1%). The anomaly class is the majority here, so always answering 'anomalous' gives the majority baseline an F1 of 0.7102 while flagging every normal flow as malicious (FPR 1.0000). That is the floor both models had to clear, and both cleared it.
 
-> **Note**: These results are on a 100-row sample dataset (47 normal, 53 anomalous in the test split) and serve as a pipeline smoke test, not a benchmark. Results on the full UNSW-NB15 (~175K train / ~82K test) will differ — download the complete dataset and re-run the pipeline for publication-quality results. A full project report explaining the system is available at [docs/project_report.pdf](docs/project_report.pdf).
+**Best result of this run: Random Forest (FULL_METADATA)**, F1 0.9208 (precision 0.8771, recall 0.9692). In counts: it caught 43,934 of 45,332 anomalous flows and missed 1,398 (3.1% false negatives), while flagging 6,156 of 37,000 normal flows as attacks (16.6% false positives). In an operational setting that false-positive column is the price of the recall.
+
+**Effect of the restricted feature set (37 -> 17 features).** Random Forest moved from F1 0.9208 to 0.9078 (-0.0130) and its false-positive rate from 0.1664 to 0.1804. Logistic Regression moved from F1 0.8645 to 0.8125 (-0.0520) with its false-positive rate from 0.2873 to 0.4097. On this run the tree model gave up little when the feature set was cut down while the linear model lost more ground - the extra features helped the model that can exploit interactions more than the one that cannot.
+
+**Precision-recall posture.** Recall on the full set was 0.9399 for logistic regression and 0.9692 for the forest - most anomalous flows detected - at false-positive rates of 0.2873 and 0.1664 respectively. class_weight='balanced' pushes models toward recall under this class distribution; a deployment would pick an operating threshold to trade some recall for fewer false alarms. This experiment used the default 0.5 threshold and did not tune anything against the test set.
+
+**Scope.** 4 model/feature-set combinations were trained and evaluated on this single dataset and split. The ranking above describes this run only - it is not a claim that any model is generally superior, and no claim of privacy, production readiness or adversarial robustness follows from it.
+
+This block is generated from `results/metrics/evaluation_results.json` by `python scripts/render_results.py`; the pipeline plus that script reproduce it exactly.
+
+<!-- END GENERATED RESULTS -->
 
 ### Figures
 
-**Confusion matrix (Random Forest, FULL_METADATA)**
+Confusion matrix, Random Forest on `FULL_METADATA`:
 
 ![Confusion matrix - Random Forest, FULL_METADATA](results/figures/confusion_matrix_random_forest_FULL_METADATA.png)
 
-**Model comparison by F1 score**
+Model comparison by F1:
 
 ![Model comparison by F1](results/figures/model_comparison_f1.png)
 
-**Model comparison by false positive rate**
+Model comparison by false positive rate:
 
 ![Model comparison by FPR](results/figures/model_comparison_fpr.png)
 
-**Feature importance (Random Forest, FULL_METADATA)**
+Feature importance, Random Forest on `FULL_METADATA`:
 
 ![Feature importance - Random Forest](results/figures/feature_importance_random_forest_FULL_METADATA.png)
 
-**Class distribution**
+Class distribution of the official split:
 
 ![Class distribution](results/figures/class_distribution.png)
 
-## Reproduction Instructions
+The numbers above come from `results/metrics/evaluation_results.json`; refresh them with:
 
-### Prerequisites
-- Python 3.9+
-- UNSW-NB15 dataset (download manually, see below)
+```bash
+python -m privacy_preserving_nad.pipeline
+python scripts/render_results.py
+```
 
-### Installation
+## Limitations
+
+1. **Dataset age.** UNSW-NB15 is from 2015 and predates widespread TLS 1.3, QUIC and encrypted SNI; modern traffic looks different.
+2. **Synthetic attacks.** The attack traffic was generated in a lab. It does not reproduce a determined human adversary, and the train/test split is dataset-internal rather than a capture from a production network.
+3. **Distribution shift.** Any deployment will see traffic distributions this dataset does not contain.
+4. **Feature availability.** Some selected fields assume a vantage point that sees the TCP handshake and enough packets per flow for timing statistics; short or sampled flows would provide weaker versions of them.
+5. **Binary simplification.** Nine attack categories are collapsed into one anomaly class; per-attack behavior is not reported.
+6. **Single threshold, no tuning.** Results are at the default 0.5 decision threshold; they are one point on the precision-recall curve, not an optimized operating point.
+7. **Scope of the privacy claim.** The experiment shows payload-free *detection*. Metadata alone can still fingerprint and profile users, and nothing here is a formal privacy guarantee, a production system, or evidence of robustness against evasion.
+
+## Reproduction
+
 ```bash
 git clone https://github.com/TMStroo/Privacy-Preserving-Network-Anomaly-Detection
 cd Privacy-Preserving-Network-Anomaly-Detection
 pip install -r requirements.txt
 pip install -e .
+
+python -m privacy_preserving_nad.data.download --fetch   # official split into data/raw/
+python -m privacy_preserving_nad.pipeline                # full experiment
+python scripts/render_results.py                         # refresh README results
+python -m pytest tests/ -v                               # test suite
 ```
 
-### Dataset Download
-The UNSW-NB15 dataset must be downloaded manually from:
-https://www.unsw.adfa.edu.au/australian-centre-for-cyber-security/cybersecurity/ADFA-NB15-Datasets/
+Without the research dataset, the pipeline still runs on a development sample and says so on screen and in `results/metrics/dataset_info.json`. CI works the same way - it never downloads the full dataset.
 
-Place the following files in `data/raw/`:
-- `UNSW_NB15_training-set.csv`
-- `UNSW_NB15_testing-set.csv`
-- `UNSW_NB15_features.csv`
+Individual stages: `python -m privacy_preserving_nad.pipeline --step validate|preprocess|train|evaluate|plot`. PDF report: `python scripts/generate_report.py` writes [docs/project_report.pdf](docs/project_report.pdf) from the current `results/`.
 
-### Run Full Pipeline
-```bash
-python -m privacy_preserving_nad.pipeline
-```
-
-This executes all steps: validation → preprocessing → training → evaluation → plotting.
-
-### Run Individual Steps
-```bash
-python -m privacy_preserving_nad.pipeline --step validate
-python -m privacy_preserving_nad.pipeline --step preprocess
-python -m privacy_preserving_nad.pipeline --step train
-python -m privacy_preserving_nad.pipeline --step evaluate
-python -m privacy_preserving_nad.pipeline --step plot
-```
-
-### Configuration
-Modify `configs/config.yaml` to adjust:
-- Dataset paths
-- Feature sets
-- Model hyperparameters
-- Random seed
-- Output directories
-
-### Run Tests
-```bash
-pytest tests/ -v
-```
-
-### Generate the Project Report
-```bash
-pip install fpdf2
-python scripts/generate_report.py
-```
-This renders [docs/project_report.pdf](docs/project_report.pdf) from the current `results/` output.
-
-## Project Structure
+## Project structure
 
 ```
-Privacy-Preserving-Network-Anomaly-Detection/
-├── configs/
-│   └── config.yaml              # All configuration
-├── data/
-│   ├── raw/                     # Raw dataset (gitignored)
-│   └── processed/               # Processed data (gitignored)
-├── docs/
-│   └── project_report.pdf       # Generated project report
-├── notebooks/
-│   └── exploratory_analysis.ipynb
-├── results/
-│   ├── metrics/                 # JSON/CSV metrics
-│   ├── figures/                 # Generated plots
-│   └── models/                  # Trained models (gitignored)
-├── scripts/
-│   ├── create_sample_data.py    # CI sample data generator
-│   └── generate_report.py       # PDF report generator
-├── src/
-│   └── privacy_preserving_nad/
-│       ├── data/
-│       │   ├── download.py      # Dataset download helper
-│       │   ├── validate.py      # Data validation
-│       │   └── preprocess.py    # Preprocessing pipeline
-│       ├── features/
-│       │   └── build_features.py  # Feature policy & documentation
-│       ├── models/
-│       │   ├── baseline.py      # Model definitions
-│       │   ├── train.py         # Training logic
-│       │   └── predict.py       # Inference & evaluation
-│       ├── evaluation/
-│       │   ├── metrics.py       # Metric computation
-│       │   └── plots.py         # Visualization
-│       └── pipeline.py          # Main orchestration
-├── tests/
-│   ├── test_validation.py
-│   ├── test_preprocess.py
-│   ├── test_features.py
-│   └── test_config_and_metrics.py
-├── .github/workflows/ci.yml     # CI pipeline
-├── requirements.txt
-├── pyproject.toml
-└── README.md
+configs/config.yaml          dataset paths, feature sets, seeds, model parameters
+data/raw/                    dataset files (gitignored)
+data/processed/              transformed splits (gitignored)
+docs/feature_policy.md       per-feature policy table (generated)
+docs/project_report.pdf      full project report (generated)
+notebooks/                   exploratory analysis
+results/metrics/             JSON/CSV metrics, dataset info (tracked)
+results/figures/             generated plots (tracked)
+results/models/              trained model files (gitignored)
+scripts/create_sample_data.py   development sample generator
+scripts/render_results.py       README results renderer
+scripts/generate_report.py      PDF report generator
+src/privacy_preserving_nad/
+  data/                      download, detect, validate, preprocess
+  features/                  feature policy definitions and documentation
+  models/                    baselines, training, inference
+  evaluation/                metrics and plots
+  pipeline.py                orchestration
+tests/                       53 tests, including leakage guards
+.github/workflows/ci.yml     tests + sample-data pipeline check
 ```
 
-## Limitations
+## Future research directions
 
-1. **Dataset Age**: UNSW-NB15 (2015) may not reflect modern traffic patterns (TLS 1.3, QUIC, encrypted SNI).
-2. **Dataset-Specific Behavior**: Synthetic attack generation may not match real-world adversary behavior.
-3. **Distribution Shift**: Train/test split is temporal; production traffic may differ.
-4. **Feature Availability Assumption**: Assumes all metadata features are observable; some (e.g., `tcprtt`, `synack`) require TCP handshake visibility.
-5. **Binary Classification Simplification**: Reduces multi-class attack categories to binary normal/anomaly.
-6. **No Adversarial Evaluation**: Does not test against evasion attacks on metadata.
-7. **No Privacy Guarantee**: "Privacy-preserving" refers to not using payload content; metadata itself can be identifying (traffic analysis).
-
-## Future Research Directions
-
-- Evaluate on newer datasets (CIC-IDS2017, CIC-DDoS2019, UNSW-NB15-v2)
-- Test adversarial robustness of metadata-only detectors
-- Investigate feature attribution and explainability
-- Explore few-shot / zero-shot detection for novel attacks
-- Study temporal concept drift in metadata distributions
-- Extend to multi-class attack categorization
-- Evaluate in real network deployment (NetFlow/IPFIX integration)
+- Run the same policy against newer captures (CIC-IDS2017, CIC-DoS2019) to test transfer.
+- Adversarial evaluation: how far can metadata be shuffled before detection breaks?
+- Per-attack-category results instead of binary detection.
+- Threshold selection for a target false-positive budget rather than fixed 0.5.
+- Concept drift of metadata statistics over time.
+- Deployment as a NetFlow/IPFIX consumer on a live mirror port.
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) for details.
+MIT - see [LICENSE](LICENSE).
 
 ## Citation
-
-If you use this work, please cite:
 
 ```bibtex
 @misc{privacy-preserving-nad,
   title={Privacy-Preserving Network Anomaly Detection},
   author={TMStroo},
-  year={2024},
+  year={2025},
   url={https://github.com/TMStroo/Privacy-Preserving-Network-Anomaly-Detection}
 }
 ```
-
----
-
-*This README is generated from the experimental pipeline. All metrics and figures reflect actual runs on the official UNSW-NB15 train/test split.*

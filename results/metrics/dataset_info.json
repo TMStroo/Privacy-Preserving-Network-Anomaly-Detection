@@ -1,0 +1,19 @@
+{
+  "raw_dir": "data\\raw",
+  "train_rows": 175341,
+  "test_rows": 82332,
+  "research_train_rows": 175341,
+  "research_test_rows": 82332,
+  "train_sha256": "bec7dd5ec88dc2a0ccc7a07879d338395ed7421750f675fd0339e07dfe0648fa",
+  "test_sha256": "734fe6642edf758f7c94d7d9149426b49d202fe8e7bf0bef47392489c3c0a559",
+  "checksums_match": true,
+  "kind": "research",
+  "train_class_counts": {
+    "1": 119341,
+    "0": 56000
+  },
+  "test_class_counts": {
+    "1": 45332,
+    "0": 37000
+  }
+}
