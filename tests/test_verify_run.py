@@ -175,3 +175,43 @@ def test_missing_temporal_boundaries_are_rejected(tmp_path):
     (run / "metadata.json").write_text(json.dumps(meta), encoding="utf-8")
     problems = verify(str(run))
     assert any("forward_period" in p for p in problems)
+
+
+def test_index_marks_a_finished_but_superseded_run_as_superseded(tmp_path, monkeypatch):
+    """A run can look complete and still be wrong; the index must say so."""
+    from tools import index_runs
+
+    experiments = tmp_path / "experiments"
+    superseded = tmp_path / "superseded"
+    run = _write_run(superseded / "20260101T000000Z_temporal_x_deadbee", models=[_model()])
+    (run / "calibration_logistic_regression.json").write_text(
+        json.dumps({"backtest": {"brier": 0.2, "ece": 0.1}, "forward": {"brier": 0.3, "ece": 0.1}}),
+        encoding="utf-8")
+    (run / "metrics.json").write_text(json.dumps({
+        "models": [_model()], "drift_summary": {"ks": {"comparisons": 4, "alert_rate": 0.25}}}),
+        encoding="utf-8")
+    experiments.mkdir(parents=True)
+
+    monkeypatch.setattr(index_runs, "EXPERIMENTS", experiments)
+    monkeypatch.setattr(index_runs, "SUPERSEDED", superseded)
+
+    rows = {r["experiment_id"]: r for r in index_runs.build()}
+    row = rows["20260101T000000Z_temporal_x_deadbee"]
+    assert row["status"] == "superseded", row
+    assert row["drift_comparisons"] == "4"
+
+
+def test_index_reports_a_run_with_no_metrics_as_incomplete(tmp_path, monkeypatch):
+    from tools import index_runs
+
+    experiments = tmp_path / "experiments"
+    _write_run(experiments / "20260101T000000Z_temporal_x_cafebabe", models=[], metrics=False)
+    (tmp_path / "superseded").mkdir()
+
+    monkeypatch.setattr(index_runs, "EXPERIMENTS", experiments)
+    monkeypatch.setattr(index_runs, "SUPERSEDED", tmp_path / "superseded")
+
+    rows = {r["experiment_id"]: r for r in index_runs.build()}
+    row = rows["20260101T000000Z_temporal_x_cafebabe"]
+    assert row["status"] == "incomplete", row
+    assert "did not finish" in row["notes"]

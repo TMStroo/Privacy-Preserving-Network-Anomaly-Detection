@@ -73,3 +73,11 @@ bench_ugr.log
 bench_ugr.pid
 bench_all.log
 bench_all.pid
+
+# Per-row prediction tables are 100+ MB across all runs. The summary that says
+# which run produced which number is tracked instead, in results/index.csv, so a
+# reviewer can see the evidence without the bulk. Regenerate it with
+# python tools/index_runs.py after any run.
+results/experiments/**/predictions_*.csv
+results/experiments/**/forward_windows_*.csv
+results/index.csv
