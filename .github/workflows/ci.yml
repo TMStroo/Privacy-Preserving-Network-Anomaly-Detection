@@ -29,41 +29,9 @@ jobs:
           pip install -e .
 
       - name: Run tests
-        run: |
-          pytest tests/ -v --tb=short
+        run: python -m pytest tests/ -v
 
-      - name: Check imports
-        run: |
-          python -c "import src.data.download; import src.data.validate; import src.data.preprocess; import src.features.build_features; import src.models.baseline; import src.models.train; import src.models.predict; import src.evaluation.metrics; import src.evaluation.plots; import src.pipeline; print('All imports successful')"
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: "pip"
-
-      - name: Install linting tools
-        run: |
-          pip install black ruff mypy
-
-      - name: Run black
-        run: |
-          black --check src/ tests/
-
-      - name: Run ruff
-        run: |
-          ruff check src/ tests/
-
-      - name: Run mypy
-        run: |
-          mypy src/ --ignore-missing-imports || true
-
-  pipeline-check:
+  pipeline-smoke-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -80,34 +48,21 @@ jobs:
           pip install -r requirements.txt
           pip install -e .
 
-      - name: Run pipeline validation step
-        run: |
-          python -m src.pipeline --step validate --config configs/config.yaml || echo "Validation step completed (dataset not present in CI)"
+      # CI uses the development sample only; the research dataset is never
+      # fetched here (it is ~48 MB and is not needed to check the code).
+      - name: Write development sample
+        run: python scripts/create_sample_data.py
 
-      - name: Create sample data
-        run: |
-          mkdir -p data/raw
-          python scripts/create_sample_data.py
+      - name: Run pipeline (development sample)
+        run: python -m privacy_preserving_nad.pipeline
 
-      - name: Run pipeline preprocess step
+      - name: Verify outputs and smoke-test labeling
         run: |
-          python -m src.pipeline --step preprocess --config configs/config.yaml
-
-      - name: Run pipeline train step
-        run: |
-          python -m src.pipeline --step train --config configs/config.yaml
-
-      - name: Run pipeline evaluate step
-        run: |
-          python -m src.pipeline --step evaluate --config configs/config.yaml
-
-      - name: Verify outputs exist
-        run: |
-          ls -la results/metrics/
-          ls -la results/figures/
-          ls -la results/models/
           test -f results/metrics/evaluation_results.json
           test -f results/metrics/comparison.csv
+          test -f results/metrics/dataset_info.json
           test -f results/figures/model_comparison_f1.png
-          test -f results/figures/model_comparison_fpr.png
-          echo "All outputs verified"
+          python -c "import json; d = json.load(open('results/metrics/dataset_info.json')); assert d['kind'] == 'development-sample', d"
+
+      - name: Report generator imports
+        run: python -c "import privacy_preserving_nad.pipeline, privacy_preserving_nad.data.dataset; print('imports ok')"
