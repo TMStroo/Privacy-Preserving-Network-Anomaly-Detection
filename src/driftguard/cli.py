@@ -19,6 +19,9 @@ from typing import Dict, List, Optional
 
 import yaml
 
+from driftguard.data.registry import get_adapter
+from driftguard.utils import resolve_raw_dir
+
 DEFAULT_CONFIG = "configs/benchmark.yaml"
 
 
@@ -28,8 +31,6 @@ def load_config(path: str) -> Dict:
 
 
 def _print_dataset(name: str, raw_dir: str, options: Optional[Dict] = None) -> int:
-    from driftguard.data.registry import get_adapter
-
     adapter = get_adapter(name)
     missing = adapter.missing_files(raw_dir)
     if missing:
@@ -49,7 +50,7 @@ def _print_dataset(name: str, raw_dir: str, options: Optional[Dict] = None) -> i
 
 def cmd_data_inspect(args) -> int:
     config = load_config(args.config) if os.path.exists(args.config) else {}
-    raw_dir = args.raw_dir or config.get("dataset", {}).get("raw_dir", "data/raw")
+    raw_dir = args.raw_dir or resolve_raw_dir(config)
     names = [args.dataset] if args.dataset else ["unsw_nb15", "ugr16", "synthetic"]
     status = 0
     for name in names:
@@ -182,8 +183,9 @@ def cmd_shift(args) -> int:
             node[parts[-1]] = value
 
     dataset = config["dataset"]
+    raw_dir = resolve_raw_dir(config)
     frame = get_adapter(dataset["name"]).load(
-        dataset["raw_dir"], **dataset.get("load_options", {})
+        raw_dir, **dataset.get("load_options", {})
     )
     models = args.models or config.get("shift", {}).get("models", ["logistic_regression", "random_forest"])
     params = model_params(config)
@@ -195,7 +197,7 @@ def cmd_shift(args) -> int:
     meta = run.metadata(
         dataset=frame.name,
         dataset_checksums=file_checksums(
-            [f"{dataset['raw_dir']}/{f}" for f in frame.source_files]
+            [f"{raw_dir}/{f}" for f in frame.source_files]
         ),
         features=list(frame.frame.columns),
         seed=int(config.get("seed", 42)),

@@ -67,3 +67,9 @@ Desktop.ini
 .env.localbench_unsw.log
 bench_unsw.pid
 results/superseded/
+bench_unsw.log
+bench_unsw.pid
+bench_ugr.log
+bench_ugr.pid
+bench_all.log
+bench_all.pid

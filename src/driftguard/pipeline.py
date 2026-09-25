@@ -40,7 +40,7 @@ from driftguard.evaluation.failure_analysis import (
 )
 from driftguard.models.registry import MODELS, build_model, model_config_names, model_params
 from driftguard.temporal import TemporalSplit, build_temporal_split
-from driftguard.utils import as_timedelta
+from driftguard.utils import as_timedelta, resolve_raw_dir
 
 
 LOG = logging.getLogger(__name__)
@@ -57,7 +57,7 @@ class AdaptationStudyError(RuntimeError):
 def _load_dataset(config: Dict) -> FlowFrame:
     name = config["dataset"]["name"]
     adapter = get_adapter(name)
-    raw_dir = os.environ.get("DRIFTGUARD_RAW_DIR") or config["dataset"]["raw_dir"]
+    raw_dir = resolve_raw_dir(config)
     return adapter.load(raw_dir, **config["dataset"].get("load_options", {}))
 
 
@@ -356,7 +356,7 @@ def run_benchmark(config: Dict, experiment_root: str = "results/experiments") ->
         root=experiment_root,
     )
     dataset_files = list(frame.source_files)
-    raw_dir = os.environ.get("DRIFTGUARD_RAW_DIR") or config["dataset"]["raw_dir"]
+    raw_dir = resolve_raw_dir(config)
     meta = run.metadata(
         dataset=frame.name,
         dataset_checksums=file_checksums([f"{raw_dir}/{f}" for f in dataset_files]),

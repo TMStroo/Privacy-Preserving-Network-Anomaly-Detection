@@ -1,0 +1,72 @@
+# Controlled-shift experiments.
+#
+# These run on the real datasets rather than the synthetic fixture, so a shift
+# is judged against the same traffic the temporal experiments used. The point is
+# to separate two questions the temporal split alone cannot answer: which
+# feature families actually break a detector, and whether the drift detectors
+# see the breakage before the metrics do.
+#
+# Cost control: the strongest two models rather than all four. Gradient
+# boosting alone costs about 220 s per fit on UNSW-NB15, and the shift matrix
+# multiplies that by the number of shift kinds and magnitudes.
+
+experiment:
+  kind: controlled_shift
+  output_dir: results/experiments
+
+dataset:
+  name: unsw_nb15
+  adapter: unsw_nb15
+  raw_dir: data/raw
+
+temporal:
+  train_fraction: 0.5
+  validation_fraction: 0.15
+  backtest_fraction: 0.15
+  forward_fraction: 0.2
+  use_forward: true
+
+# The two strongest models from the headline benchmark. Gradient boosting is
+# excluded here only for compute: the shift matrix is 8 kinds x 4 magnitudes x
+# adaptation strategies, and GB would dominate the wall clock without changing
+# the qualitative answer.
+models:
+  - logistic_regression
+  - random_forest
+
+shift:
+  models: [logistic_regression, random_forest]
+  magnitudes:
+    packet_size: [1.5, 2.0, 4.0]
+    flow_duration: [1.5, 3.0, 8.0]
+    packet_rate: [1.5, 3.0, 6.0]
+    iat: [1.5, 3.0, 6.0]
+    byte_rate: [1.5, 2.0, 4.0]
+    protocol_mixture: [0.3, 0.6]
+    class_prevalence: [0.05, 0.1, 0.4]
+    telemetry_reduction: [1.0]
+
+metrics:
+  target_fpr: 0.05
+
+drift:
+  enabled: true
+  reference_period: train
+  window: 1h
+  stride: 1h
+  min_samples: 200
+  methods: [ks, wasserstein, psi, cusum]
+  alpha: 0.01
+  wasserstein_threshold: 0.10
+  psi_threshold: 0.20
+  psi_bins: 10
+
+adaptation:
+  strategies:
+    - none
+    - threshold_recalibration
+    - recent_window_retrain
+  window: 6h
+  target_fpr: 0.05
+
+seed: 42
