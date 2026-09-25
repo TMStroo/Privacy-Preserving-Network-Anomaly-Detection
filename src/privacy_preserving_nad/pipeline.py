@@ -15,6 +15,12 @@ from typing import Dict, Any
 
 from privacy_preserving_nad.data.validate import DataValidator
 from privacy_preserving_nad.data.preprocess import DataPreprocessor
+from privacy_preserving_nad.data.dataset import (
+    detect_dataset,
+    is_research_dataset,
+    print_dataset_banner,
+    save_dataset_info,
+)
 from privacy_preserving_nad.models.train import train_all_models
 from privacy_preserving_nad.models.predict import run_all_inference
 from privacy_preserving_nad.evaluation.metrics import load_evaluation_results, print_summary, save_metrics_csv, save_metrics_json
@@ -27,24 +33,24 @@ def load_config(config_path: str = "configs/config.yaml") -> Dict:
         return yaml.safe_load(f)
 
 
-def run_validation(config: Dict) -> Dict[str, Any]:
+def run_validation(config_path: str) -> Dict[str, Any]:
     """Step 1: Validate dataset."""
     print("\n" + "=" * 60)
     print("STEP 1: DATA VALIDATION")
     print("=" * 60)
 
-    validator = DataValidator()
+    validator = DataValidator(config_path)
     results = validator.run_full_validation()
     return results
 
 
-def run_preprocessing(config: Dict) -> Dict[str, Any]:
+def run_preprocessing(config_path: str) -> Dict[str, Any]:
     """Step 2: Preprocess data for both feature sets."""
     print("\n" + "=" * 60)
     print("STEP 2: DATA PREPROCESSING")
     print("=" * 60)
 
-    preprocessor = DataPreprocessor()
+    preprocessor = DataPreprocessor(config_path)
     results = {}
 
     for feature_set in ["FULL_METADATA", "RESTRICTED_METADATA"]:
@@ -64,10 +70,14 @@ def run_training(config: Dict) -> Dict[str, Any]:
     print("=" * 60)
 
     all_results = {}
+    processed_dir = config["dataset"]["processed_dir"]
+    models_dir = config.get("output", {}).get("models_dir", "results/models")
 
     for feature_set in ["FULL_METADATA", "RESTRICTED_METADATA"]:
         try:
-            all_results[feature_set] = train_all_models(feature_set, config["models"])
+            all_results[feature_set] = train_all_models(
+                feature_set, config["models"], processed_dir, models_dir
+            )
         except Exception as e:
             print(f"Error training on {feature_set}: {e}")
             all_results[feature_set] = {"error": str(e)}
@@ -81,7 +91,14 @@ def run_evaluation(config: Dict) -> Dict[str, Any]:
     print("STEP 4: MODEL EVALUATION")
     print("=" * 60)
 
-    results = run_all_inference()
+    processed_dir = config["dataset"]["processed_dir"]
+    metrics_dir = config.get("output", {}).get("metrics_dir", "results/metrics")
+    models_dir = config.get("output", {}).get("models_dir", "results/models")
+    results = run_all_inference(
+        model_dir=models_dir,
+        processed_dir=processed_dir,
+        metrics_path=str(Path(metrics_dir) / "evaluation_results.json"),
+    )
     return results
 
 
@@ -92,16 +109,27 @@ def run_plotting(config: Dict, eval_results: Dict) -> Dict[str, Any]:
     print("=" * 60)
 
     # Load feature names
+    import json
+
+    processed_dir = config["dataset"]["processed_dir"]
+    metrics_dir = config.get("output", {}).get("metrics_dir", "results/metrics")
+    models_dir = config.get("output", {}).get("models_dir", "results/models")
+    figures_dir = config.get("output", {}).get("figures_dir", "results/figures")
+
     feature_names = {}
     for fs in ["FULL_METADATA", "RESTRICTED_METADATA"]:
         try:
-            import json
-            with open(f"data/processed/{fs}/feature_names.json", "r") as f:
+            with open(Path(processed_dir) / fs / "feature_names.json", "r") as f:
                 feature_names[fs] = json.load(f)
         except Exception:
             feature_names[fs] = []
 
-    plot_paths = generate_all_plots(eval_results, feature_names)
+    plot_paths = generate_all_plots(
+        eval_results, feature_names,
+        models_dir=models_dir,
+        output_dir=figures_dir,
+        processed_dir=processed_dir,
+    )
     return plot_paths
 
 
@@ -121,17 +149,45 @@ def run_full_pipeline(config_path: str = "configs/config.yaml") -> Dict[str, Any
     random.seed(seed)
 
     pipeline_results = {}
+    metrics_dir = config.get("output", {}).get("metrics_dir", "results/metrics")
+
+    # Step 0: identify which dataset is present before touching it
+    dataset_info = detect_dataset(config)
+    print_dataset_banner(dataset_info)
+    dataset_info_path = save_dataset_info(
+        dataset_info, str(Path(metrics_dir) / "dataset_info.json")
+    )
+    pipeline_results["dataset"] = dataset_info
+    if dataset_info["kind"] == "missing":
+        print("\nNo dataset present - stopping before validation.")
+        print("Fetch the research dataset (python -m privacy_preserving_nad.data.download)")
+        print("or write a development sample (python scripts/create_sample_data.py).")
+        return pipeline_results
 
     # Step 1: Validation
     try:
-        pipeline_results["validation"] = run_validation(config)
+        pipeline_results["validation"] = run_validation(config_path)
+        # class counts ride along in dataset_info.json so the README block and
+        # the PDF report can show the split without re-reading the raw CSVs
+        validator = DataValidator(config_path)
+        for key, filename in (
+            ("train_class_counts", config["dataset"]["train_file"]),
+            ("test_class_counts", config["dataset"]["test_file"]),
+        ):
+            counts = validator.validate_target(validator.load_dataset(filename))
+            dataset_info[key] = {
+                str(int(k)): int(v) for k, v in counts["value_counts"].items()
+            }
+        dataset_info_path = save_dataset_info(
+            dataset_info, str(Path(metrics_dir) / "dataset_info.json")
+        )
     except Exception as e:
         print(f"Validation failed: {e}")
         pipeline_results["validation"] = {"error": str(e)}
 
     # Step 2: Preprocessing
     try:
-        pipeline_results["preprocessing"] = run_preprocessing(config)
+        pipeline_results["preprocessing"] = run_preprocessing(config_path)
     except Exception as e:
         print(f"Preprocessing failed: {e}")
         pipeline_results["preprocessing"] = {"error": str(e)}
@@ -159,13 +215,25 @@ def run_full_pipeline(config_path: str = "configs/config.yaml") -> Dict[str, Any
 
     # Print final summary
     if "evaluation" in pipeline_results and "error" not in pipeline_results["evaluation"]:
+        metrics_dir = config.get("output", {}).get("metrics_dir", "results/metrics")
         print_summary(pipeline_results["evaluation"])
-        save_metrics_csv(pipeline_results["evaluation"])
-        save_metrics_json(pipeline_results["evaluation"])
+        save_metrics_csv(
+            pipeline_results["evaluation"],
+            str(Path(metrics_dir) / "comparison.csv"),
+        )
+        save_metrics_json(
+            pipeline_results["evaluation"],
+            str(Path(metrics_dir) / "all_metrics.json"),
+        )
 
     print("\n" + "=" * 60)
     print("PIPELINE COMPLETE")
     print("=" * 60)
+    if is_research_dataset(dataset_info):
+        print("Dataset: official UNSW-NB15 research split - results are benchmark results.")
+    else:
+        print("Dataset: DEVELOPMENT SAMPLE - results are a smoke test, not benchmark results.")
+    print(f"Dataset info: {dataset_info_path}")
     print("Results saved to: results/")
     print("  - Metrics: results/metrics/")
     print("  - Figures: results/figures/")
@@ -185,6 +253,10 @@ def main():
                         default="all", help="Pipeline step to run")
     args = parser.parse_args()
 
+    if args.step == "all":
+        run_full_pipeline(args.config)
+        return
+
     config = load_config(args.config)
 
     # Set random seeds
@@ -194,29 +266,25 @@ def main():
     np.random.seed(seed)
     random.seed(seed)
 
-    if args.step == "validate" or args.step == "all":
-        run_validation(config)
+    metrics_dir = config.get("output", {}).get("metrics_dir", "results/metrics")
+    dataset_info = detect_dataset(config)
+    print_dataset_banner(dataset_info)
+    save_dataset_info(dataset_info, str(Path(metrics_dir) / "dataset_info.json"))
 
-    if args.step == "preprocess" or args.step == "all":
-        run_preprocessing(config)
-
-    if args.step == "train" or args.step == "all":
+    if args.step == "validate":
+        run_validation(args.config)
+    elif args.step == "preprocess":
+        run_preprocessing(args.config)
+    elif args.step == "train":
         run_training(config)
-
-    if args.step == "evaluate" or args.step == "all":
+    elif args.step == "evaluate":
         results = run_evaluation(config)
+        metrics_dir = config.get("output", {}).get("metrics_dir", "results/metrics")
         print_summary(results)
-        save_metrics_csv(results)
-        save_metrics_json(results)
-
-    if args.step == "plot" or args.step == "all":
-        if args.step != "all":
-            # Load evaluation results if running plot alone
-            from src.evaluation.metrics import load_evaluation_results
-            results = load_evaluation_results()
-        else:
-            results = pipeline_results.get("evaluation", {})
-        run_plotting(config, results)
+        save_metrics_csv(results, str(Path(metrics_dir) / "comparison.csv"))
+        save_metrics_json(results, str(Path(metrics_dir) / "all_metrics.json"))
+    elif args.step == "plot":
+        run_plotting(config, load_evaluation_results())
 
 
 if __name__ == "__main__":
