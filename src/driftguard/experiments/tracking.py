@@ -11,6 +11,7 @@ import os
 import platform
 import subprocess
 import sys
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -29,10 +30,14 @@ EXPERIMENT_FILES = [
 
 
 def experiment_id(kind: str, dataset: str, tag: Optional[str] = None, now: Optional[datetime] = None) -> str:
+    """Build a run identifier. A short random suffix keeps two runs started in
+    the same second from colliding, which matters because experiment directories
+    are immutable and a collision would abort the second run."""
     stamp = (now or datetime.now(timezone.utc)).strftime("%Y%m%dT%H%M%SZ")
     parts = [stamp, kind, dataset]
     if tag:
         parts.append(tag)
+    parts.append(uuid.uuid4().hex[:6])
     return "_".join(parts)
 
 

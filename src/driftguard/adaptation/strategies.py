@@ -97,6 +97,13 @@ def apply_adaptation(
             details={"note": "model is evaluated as trained; threshold unchanged"},
         )
 
+    # The adaptation cutoff is the first instant of the period this strategy is
+    # scored on. Validating against the history's own maximum would be a
+    # tautology, so the limit always comes from the evaluation period.
+    evaluation_start = forward.timestamps.min() if not forward.frame.empty else None
+    if evaluation_start is not None:
+        _assert_within(history, evaluation_start, strategy)
+
     if strategy == "threshold_recalibration":
         # Uses recent labelled data only to move the operating point, never to
         # change model parameters.
@@ -121,8 +128,8 @@ def apply_adaptation(
         combined = pd.concat([reference.frame, history.frame], ignore_index=True)
         training = FlowFrame(reference.name, combined, reference.source_files, reference.notes)
 
-    _assert_within(training, history.timestamps.max(), strategy)
-    _assert_within(history, history.timestamps.max(), strategy)
+    if evaluation_start is not None:
+        _assert_within(training, evaluation_start, strategy)
 
     start = time.perf_counter()
     adapted = clone(model)
