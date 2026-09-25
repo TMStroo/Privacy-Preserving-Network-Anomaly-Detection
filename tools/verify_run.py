@@ -43,6 +43,17 @@ REQUIRED_METADATA = [
 REQUIRED_PACKAGES = ["python", "numpy", "pandas", "scikit-learn"]
 
 
+REQUIRED_SHIFTS = [
+    "packet_size", "duration", "packet_rate", "iat",
+    "byte_rate", "protocol_mixture", "class_prevalence", "telemetry_reduction",
+]
+
+REQUIRED_ABLATIONS = [
+    "split_mode", "feature_policy", "drift_threshold",
+    "adaptation_window", "telemetry_family", "target_fpr",
+]
+
+
 def _walk_floats(node, path=""):
     """Yield (path, value) for every float in a nested structure."""
     if isinstance(node, dict):
@@ -62,6 +73,17 @@ def verify(run_dir: str, strict_models: bool = False) -> list:
 
     if not run.is_dir():
         return [f"{run} is not a directory"]
+
+    # A shift or ablation run records its findings in its own artifact, so
+    # demanding metrics.json of one reports a finished experiment as unfinished.
+    # The checks below are the ones that apply to a temporal benchmark; the
+    # others verify the artifact this kind actually writes.
+    kind = next((k for k in ("temporal", "shift", "ablation")
+                 if f"_{k}_" in run.name), "temporal")
+    if kind == "shift":
+        return _verify_shift(run)
+    if kind == "ablation":
+        return _verify_ablation(run)
 
     metrics_path = run / "metrics.json"
     if not metrics_path.is_file():
@@ -175,6 +197,79 @@ def verify(run_dir: str, strict_models: bool = False) -> list:
             if png.stat().st_size < 1000:
                 problems.append(f"figure {png.name} is {png.stat().st_size} bytes, likely empty")
 
+    return problems
+
+
+def _verify_shift(run: Path) -> list:
+    """A controlled-shift run is complete when it wrote its results table."""
+    import csv
+
+    problems = []
+    results = run / "controlled_shift_results.csv"
+    if not results.is_file():
+        return [f"{results} is missing, so this run never finished"]
+
+    with results.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    if not rows:
+        return ["controlled_shift_results.csv is empty"]
+
+    families = {r.get("shift") for r in rows}
+    missing = [f for f in REQUIRED_SHIFTS if f not in families]
+    if missing:
+        problems.append(f"shift families did not run: {missing}")
+
+    # Every row must record what was asked for and what actually happened. A
+    # shift that moved nothing has to say so rather than appearing as a result.
+    for row in rows:
+        label = f"{row.get('model')}/{row.get('shift')}/{row.get('magnitude')}"
+        if row.get("realized_verified") in (None, ""):
+            problems.append(f"{label}: realized_verified is not recorded")
+        for field in ("realized_max_abs_cohens_d", "realized_max_categorical_tvd"):
+            if row.get(field) in (None, ""):
+                problems.append(f"{label}: {field} is not recorded")
+
+    notes_path = run / "controlled_shift_notes.json"
+    if notes_path.is_file():
+        notes = json.loads(notes_path.read_text(encoding="utf-8"))
+        if isinstance(notes, dict):
+            notes = notes.get("notes", [])
+        for note in notes:
+            if note.get("status") not in (None, "ok"):
+                problems.append(
+                    f"{note.get('model')}/{note.get('kind')}: "
+                    f"{note.get('status')} - {note.get('reason', '')[:90]}")
+
+    unverified = [r for r in rows if str(r.get("realized_verified")).lower() in ("false", "0")]
+    if unverified:
+        problems.append(
+            f"{len(unverified)} shift rows report realized_verified=False: "
+            + ", ".join(f"{r.get('model')}/{r.get('shift')}" for r in unverified[:4]))
+    return problems
+
+
+def _verify_ablation(run: Path) -> list:
+    """An ablation run is complete when every family it names produced rows."""
+    import csv
+
+    problems = []
+    results = run / "ablation_results.csv"
+    if not results.is_file():
+        return [f"{results} is missing, so this run never finished"]
+
+    with results.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    if not rows:
+        return ["ablation_results.csv is empty"]
+
+    names = {r.get("ablation") for r in rows}
+    missing = [a for a in REQUIRED_ABLATIONS if a not in names]
+    if missing:
+        problems.append(f"ablation families did not run: {missing}")
+
+    failed = [r for r in rows if str(r.get("status", "")).lower() in ("failed", "error")]
+    if failed:
+        problems.append(f"{len(failed)} ablation rows failed")
     return problems
 
 
