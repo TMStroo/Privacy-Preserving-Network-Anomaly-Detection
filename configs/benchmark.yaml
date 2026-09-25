@@ -1,0 +1,80 @@
+# DriftGuard full research benchmark.
+#
+# Requires the research datasets in the raw directory. Run
+#   python -m driftguard data fetch --dataset unsw_nb15
+# before running the benchmark, or point raw_dir at an existing copy.
+
+seed: 42
+tag: full
+
+dataset:
+  name: unsw_nb15
+  raw_dir: data/raw
+  load_options: {}
+
+features:
+  # The cross-dataset intersection is the default so that a model trained on one
+  # dataset can be evaluated on another without silently using fields the other
+  # source does not export.
+  use_cross_dataset_only: false
+
+temporal:
+  train_fraction: 0.50
+  validation_fraction: 0.15
+  backtest_fraction: 0.15
+  forward_fraction: 0.20
+  use_forward: true
+
+metrics:
+  # Operating thresholds are chosen on the validation split to meet this
+  # false-positive rate. The forward test is never used to pick a threshold.
+  target_fpr: 0.05
+
+models:
+  enabled: [majority, logistic_regression, random_forest, gradient_boosting]
+  logistic_regression:
+    max_iter: 1000
+    C: 1.0
+    solver: lbfgs
+    class_weight: balanced
+  random_forest:
+    n_estimators: 200
+    max_depth: 15
+    min_samples_split: 5
+    min_samples_leaf: 2
+    class_weight: balanced
+    n_jobs: -1
+  gradient_boosting:
+    n_estimators: 100
+    max_depth: 3
+    learning_rate: 0.1
+    subsample: 1.0
+
+drift:
+  enabled: true
+  reference_period: train
+  # UGR'16 resolves flows to one-second buckets across months of traffic and
+  # UNSW-NB15's capture sessions are days long, so a six-hour window is long
+  # enough to clear the minimum sample count in both yet still resolves
+  # week-to-week movement. Override these in an experiment config to study
+  # sensitivity; the window-size ablation does exactly that.
+  window: 6h
+  stride: 6h
+  min_samples: 200
+  methods: [ks, wasserstein, psi]
+  alpha: 0.01
+  wasserstein_threshold: 0.10
+  psi_threshold: 0.20
+  psi_bins: 10
+
+adaptation:
+  window: 6h
+  strategies:
+    - none
+    - threshold_recalibration
+    - recent_window_retrain
+    - rolling_window_retrain
+    - historical_plus_recent_retrain
+
+output:
+  experiments_dir: results/experiments
