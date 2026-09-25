@@ -261,6 +261,20 @@ def _parse_markdown_table(text: str) -> tuple:
 
 
 
+
+def _latest_shift_csv(experiments_dir: str) -> Optional[str]:
+    """The most recent completed controlled-shift table, if one exists."""
+    root = Path(experiments_dir)
+    if not root.exists():
+        return None
+    candidates = sorted(
+        d / "controlled_shift_results.csv"
+        for d in root.iterdir()
+        if d.is_dir() and (d / "controlled_shift_results.csv").is_file()
+    )
+    return str(candidates[-1]) if candidates else None
+
+
 def _collect_ablations(experiments_dir: str) -> dict:
     """Group every recorded ablation row by ablation name.
 
@@ -311,6 +325,7 @@ def _other_datasets(experiments_dir: str, current: str) -> dict:
 def generate_report(experiments_dir: str = "results/experiments", output: str = "docs/technical_report.pdf") -> str:
     """Build the technical report from whatever experiments are on disk."""
     from driftguard.reporting.figures import build_all_figures
+    from driftguard.reporting.figures_extra import build_extra_figures
 
     experiment = latest_experiment(experiments_dir)
     if not experiment:
@@ -328,6 +343,7 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
 
     figures_dir = base / "figures"
     figures = build_all_figures(str(base), metrics, str(figures_dir))
+    figures.update(build_extra_figures(str(base), metrics, str(figures_dir), _latest_shift_csv(experiments_dir)))
 
     report = Report(
         "DriftGuard: Reliable Network Anomaly Detection Under Distribution Shift",
@@ -568,6 +584,11 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
     ])
 
     # ---------------- Design ----------------
+    if "split_timeline" in figures:
+        report.figure(figures["split_timeline"],
+                       "The four periods on the real capture axis, drawn to scale. "
+                       "Every conclusion here is bounded by how short that axis is.", width=380)
+
     report.h1("Experimental design")
     report.h2("Periods")
     rows = []
@@ -652,8 +673,18 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
     if "degradation" in figures:
         report.figure(figures["degradation"], "Change in F1 and recall on later traffic.")
 
+    if "recall_vs_fpr" in figures:
+        report.figure(figures["recall_vs_fpr"],
+                       "Each model's operating point: recall against the false-positive rate it "
+                       "actually achieved, backtest versus forward.", width=380)
+
     # ---------------- Drift ----------------
     report.h1("Distribution shift and drift detection")
+    if "drift_detectors" in figures:
+        report.figure(figures["drift_detectors"],
+                       "The four detectors on the same windows. The disagreement between them is the "
+                       "result; agreement would have been the surprising outcome.", width=380)
+
     report.para(
         "Drift is measured with a sliding window over the forward period, each window compared against the whole "
         "training period. Three two-sample methods are used - Kolmogorov-Smirnov, scaled Wasserstein distance and "
@@ -699,6 +730,10 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
 
     # ---------------- Failure analysis ----------------
     report.h1("Failure analysis")
+    if "failure_analysis" in figures:
+        report.figure(figures["failure_analysis"],
+                       "Error volume and mean error score per model on the forward period.", width=380)
+
     report.para(
         "The findings below are computed from the prediction-level tables and drift events of this run. A model "
         "that produced no such finding would show an empty section rather than a plausible sentence."
@@ -761,6 +796,11 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
 
     # ---------------- Ablations ----------------
     report.h1("Ablations")
+    if "shift_degradation" in figures:
+        report.figure(figures["shift_degradation"],
+                       "Controlled shifts, labelled with how many of each family moved the "
+                       "distribution as intended.", width=380)
+
     report.para(
         "Each ablation below answers one methodological question. They are run with cheaper models than the "
         "headline benchmark because the question is about the effect, not about which model is best."

@@ -7,6 +7,7 @@ which left every experiment directory with an empty figures/ folder.
 """
 
 import json
+import os
 from pathlib import Path
 
 import pandas as pd
@@ -87,3 +88,73 @@ def test_figures_handles_an_empty_metric_set(tmp_path):
     assert backtest_vs_forward({"models": []}, str(tmp_path / "x.png")) is None
     assert degradation_by_model({"models": []}, str(tmp_path / "y.png")) is None
     assert drift_timeline(str(tmp_path / "missing.csv"), str(tmp_path / "z.png")) is None
+
+
+def test_extra_figures_render_from_a_recorded_run(tmp_path):
+    """The five added figures must be drawable, not just importable."""
+    import json
+
+    from driftguard.reporting.figures_extra import build_extra_figures
+
+    run = tmp_path / "run"
+    run.mkdir()
+    metrics = {
+        "split": {
+            "train_period": {"start": "2015-01-22 09:00:00", "end": "2015-01-22 12:00:00"},
+            "validation_period": {"start": "2015-01-22 12:00:00", "end": "2015-01-22 14:00:00"},
+            "backtest_period": {"start": "2015-01-22 14:00:00", "end": "2015-01-22 16:00:00"},
+            "forward_period": {"start": "2015-02-18 09:00:00", "end": "2015-02-18 13:00:00"},
+            "train_count": {"rows": 1000}, "validation_count": {"rows": 200},
+            "backtest_count": {"rows": 200}, "forward_count": {"rows": 300},
+        },
+        "models": [
+            {"result": {"model": "logistic_regression",
+                        "backtest": {"recall": 0.7, "false_positive_rate": 0.05},
+                        "forward": {"recall": 0.5, "false_positive_rate": 0.09}}},
+            {"result": {"model": "random_forest",
+                        "backtest": {"recall": 0.8, "false_positive_rate": 0.03},
+                        "forward": {"recall": 0.6, "false_positive_rate": 0.07}}},
+        ],
+    }
+    (run / "metrics.json").write_text(json.dumps(metrics), encoding="utf-8")
+    (run / "drift_events.csv").write_text(
+        "feature,method,alert,effect_size\nx,ks,True,0.4\nx,psi,False,0.1\n"
+        "y,cusum,True,0.3\ny,wasserstein,False,0.2\n", encoding="utf-8")
+    (run / "failure_analysis_logistic_regression.json").write_text(json.dumps({
+        "false_positives": {"count": 40, "mean_score": 0.61},
+        "false_negatives": {"count": 25, "mean_score": 0.38}}), encoding="utf-8")
+
+    shift_csv = tmp_path / "shift.csv"
+    shift_csv.write_text(
+        "kind,magnitude,realized_verified,f1_degradation\n"
+        "packet_size,2.0,True,-0.03\npacket_size,3.0,True,0.04\n"
+        "byte_rate,1.5,False,0.001\n", encoding="utf-8")
+
+    out = run / "figures"
+    figures = build_extra_figures(str(run), metrics, str(out), str(shift_csv))
+
+    for key in ("split_timeline", "recall_vs_fpr", "drift_detectors",
+                "failure_analysis", "shift_degradation"):
+        assert key in figures, f"{key} was not produced"
+        path = figures[key]
+        assert path.endswith(".png")
+        assert os.path.exists(path), f"{key} produced no file"
+        assert os.path.getsize(path) > 2000, f"{key} is suspiciously small"
+
+
+def test_extra_figures_degrade_gracefully_when_data_is_absent(tmp_path):
+    """A missing optional table must cost one figure, not the whole report."""
+    from driftguard.reporting.figures_extra import build_extra_figures
+
+    run = tmp_path / "run"
+    run.mkdir()
+    figures = build_extra_figures(str(run), {"models": []}, str(run / "figures"), None)
+    assert figures == {}
+
+
+def path_exists(p):
+    return os.path.exists(p) and os.path.getsize(p) > 0
+
+
+def size_of(p):
+    return os.path.getsize(p)
