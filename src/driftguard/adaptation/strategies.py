@@ -40,9 +40,16 @@ class AdaptationResult:
     details: Dict[str, object] = field(default_factory=dict)
 
     def as_dict(self) -> Dict[str, object]:
+        # The threshold is stored at full precision. Rounding it to six decimals
+        # made the recorded operating point unable to reproduce the metrics
+        # recorded beside it: on the UGR'16 random forest a threshold of
+        # 0.4598784961389474 was applied while 0.459878 was written, and the
+        # gap moved 8,701 of 1.76 million forward predictions across the
+        # decision boundary. An artifact you cannot reproduce from itself is not
+        # auditable, so the value is kept exactly as it was applied.
         return {
             "strategy": self.strategy,
-            "threshold": round(float(self.threshold), 6),
+            "threshold": float(self.threshold),
             "rows_used": int(self.rows_used),
             "latest_row_used": None if self.latest_row_used is None else str(self.latest_row_used),
             "training_seconds": round(float(self.training_seconds), 4),

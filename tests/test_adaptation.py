@@ -128,3 +128,31 @@ def test_recovery_is_negative_when_adaptation_hurts():
     after = {"f1": 0.50, "recall": 0.60, "precision": 0.42, "false_positive_rate": 0.30}
     recovery = recovery_summary(before, after, backtest)
     assert recovery["f1_recovery_pct"] < 0
+
+
+def test_a_recorded_threshold_reproduces_its_own_metrics():
+    """The stored operating point must be the one that was applied.
+
+    as_dict() rounded the threshold to six decimals. On UGR'16's random forest
+    the applied threshold was 0.4598784961389474 and 0.459878 was written, and
+    the gap moved 8,701 of 1,763,251 forward predictions across the decision
+    boundary, so the recorded metrics could not be recomputed from the recorded
+    threshold. Nothing about the metrics was wrong; the record simply no longer
+    described them.
+    """
+    from driftguard.adaptation.strategies import AdaptationResult
+
+    exact = 0.4598784961389474
+    outcome = AdaptationResult(
+        strategy="none",
+        threshold=exact,
+        rows_used=0,
+        latest_row_used=None,
+        training_seconds=0.0,
+        refits=0,
+    )
+    assert outcome.as_dict()["threshold"] == exact
+    # A value that survives a JSON round trip unchanged is the actual test.
+    import json
+
+    assert json.loads(json.dumps(outcome.as_dict()))["threshold"] == exact
