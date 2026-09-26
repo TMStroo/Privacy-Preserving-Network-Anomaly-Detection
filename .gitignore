@@ -81,3 +81,18 @@ bench_all.pid
 results/experiments/**/predictions_*.csv
 results/experiments/**/forward_windows_*.csv
 results/index.csv
+
+# The four runs the README and the report cite are tracked. Everything else under
+# results/experiments is a smoke fixture, a superseded run or an interrupted
+# attempt: useful on disk, cited by nothing, and not worth a repository entry.
+# scripts/audit_experiments.py still inspects all of them.
+results/experiments/*synthetic*/
+results/experiments/*_1a0d5a/
+results/experiments/*_f7e934/
+results/experiments/*_88d8b4/
+results/experiments/*_b421b0/
+results/experiments/*_5484b2/
+results/experiments/*_e6b598/
+
+# The V1 pipeline's demo output, superseded by results/experiments.
+results/demo/
