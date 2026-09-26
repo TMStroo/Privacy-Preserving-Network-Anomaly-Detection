@@ -1,0 +1,59 @@
+experiment:
+  kind: temporal
+  output_dir: results/experiments
+dataset:
+  name: ugr16
+  adapter: ugr16
+  raw_dir: data/raw
+  load_options:
+    max_rows_per_file: 1500000
+temporal:
+  train_fraction: 0.5
+  validation_fraction: 0.15
+  backtest_fraction: 0.15
+  forward_fraction: 0.2
+  use_forward: true
+models:
+- majority
+- logistic_regression
+- random_forest
+- gradient_boosting
+metrics:
+  target_fpr: 0.05
+drift:
+  enabled: true
+  reference_period: train
+  window: 12h
+  stride: 12h
+  min_samples: 500
+  methods:
+  - ks
+  - wasserstein
+  - psi
+  - cusum
+  alpha: 0.01
+  psi_threshold: 0.2
+  wasserstein_threshold: 0.1
+  cusum_drift: 0.5
+  cusum_false_alarm_rate: 0.01
+  features:
+  - flow_duration
+  - total_packets
+  - total_bytes
+  - packet_rate
+  - byte_rate
+  - mean_packet_size
+  - bytes_per_packet
+  - duration_log1p
+adaptation:
+  strategies:
+  - none
+  - threshold_recalibration
+  - recent_window_retrain
+  - rolling_window_retrain
+  - historical_plus_recent_retrain
+  rolling_step: 12h
+  rolling_window: 48h
+  window: 24h
+  target_fpr: 0.05
+seed: 42

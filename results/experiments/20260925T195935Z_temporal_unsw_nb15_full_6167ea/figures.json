@@ -1,0 +1,9 @@
+{
+  "backtest_vs_forward": "results\\experiments\\20260925T195935Z_temporal_unsw_nb15_full_6167ea\\figures\\backtest_vs_forward.png",
+  "degradation": "results\\experiments\\20260925T195935Z_temporal_unsw_nb15_full_6167ea\\figures\\degradation_by_model.png",
+  "drift_timeline": "results\\experiments\\20260925T195935Z_temporal_unsw_nb15_full_6167ea\\figures\\drift_timeline.png",
+  "forward_windows": "results\\experiments\\20260925T195935Z_temporal_unsw_nb15_full_6167ea\\figures\\forward_windows.png",
+  "calibration": "results\\experiments\\20260925T195935Z_temporal_unsw_nb15_full_6167ea\\figures\\calibration_gradient_boosting.png",
+  "adaptation": "results\\experiments\\20260925T195935Z_temporal_unsw_nb15_full_6167ea\\figures\\adaptation_strategies.png",
+  "class_timeline": "results\\experiments\\20260925T195935Z_temporal_unsw_nb15_full_6167ea\\figures\\class_timeline.png"
+}

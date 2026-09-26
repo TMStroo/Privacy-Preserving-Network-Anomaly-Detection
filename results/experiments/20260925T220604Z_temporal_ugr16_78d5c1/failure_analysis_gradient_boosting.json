@@ -1,0 +1,134 @@
+{
+  "window_frequency": "12h",
+  "windows_analyzed": 2,
+  "largest_degradation_windows": [
+    {
+      "metric": "recall",
+      "window": "1",
+      "value": 0.05461811722912966,
+      "backtest_value": 0.22052067381316998,
+      "delta": -0.16590255658404032
+    },
+    {
+      "metric": "recall",
+      "window": "0",
+      "value": 0.3694829760403531,
+      "backtest_value": 0.22052067381316998,
+      "delta": 0.1489623022271831
+    },
+    {
+      "metric": "fpr",
+      "window": "0",
+      "value": 0.039282261063592415,
+      "backtest_value": 0.04336123993350993,
+      "delta": -0.004078978869917517
+    },
+    {
+      "metric": "fpr",
+      "window": "1",
+      "value": 0.036350221547168125,
+      "backtest_value": 0.04336123993350993,
+      "delta": -0.007011018386341807
+    }
+  ],
+  "strongest_drift_features": [
+    {
+      "feature": "byte_rate",
+      "median_effect_size": 5.2879065,
+      "max_effect_size": 11.095186,
+      "alerting_windows": 6
+    },
+    {
+      "feature": "total_bytes",
+      "median_effect_size": 1.96627,
+      "max_effect_size": 6.010669,
+      "alerting_windows": 6
+    },
+    {
+      "feature": "packet_rate",
+      "median_effect_size": 0.5017495000000001,
+      "max_effect_size": 1.066958,
+      "alerting_windows": 6
+    },
+    {
+      "feature": "total_packets",
+      "median_effect_size": 0.259932,
+      "max_effect_size": 0.792097,
+      "alerting_windows": 6
+    },
+    {
+      "feature": "flow_duration",
+      "median_effect_size": 0.2575905,
+      "max_effect_size": 1.625578,
+      "alerting_windows": 6
+    },
+    {
+      "feature": "bytes_per_packet",
+      "median_effect_size": 0.1299825,
+      "max_effect_size": 0.242485,
+      "alerting_windows": 6
+    },
+    {
+      "feature": "mean_packet_size",
+      "median_effect_size": 0.1299825,
+      "max_effect_size": 0.242485,
+      "alerting_windows": 6
+    },
+    {
+      "feature": "duration_log1p",
+      "median_effect_size": 0.10471,
+      "max_effect_size": 0.281331,
+      "alerting_windows": 5
+    }
+  ],
+  "false_positives": {
+    "count": 64363,
+    "rate": 0.03650246051186133,
+    "mean_score": 0.015034258374787174,
+    "worst_windows": {
+      "2016-08-15 00:00:00": 53800,
+      "2016-08-08 00:00:00": 10563
+    }
+  },
+  "false_negatives": {
+    "count": 13274,
+    "rate": 0.0075281397827081905,
+    "mean_score": 0.0025853254128003905,
+    "high_confidence_misses": 0,
+    "worst_windows": {
+      "2016-08-15 00:00:00": 12774,
+      "2016-08-08 00:00:00": 500
+    }
+  },
+  "high_confidence_errors": {
+    "confidence_threshold": 0.9,
+    "confident_predictions": 22,
+    "wrong": 21,
+    "error_rate_among_confident": 0.9545454545454546
+  },
+  "drift_vs_degradation": {
+    "available": true,
+    "first_alert": "2016-08-08 00:26:09",
+    "first_degraded_window": "2016-08-08 00:00:00",
+    "drift_precedes_degradation": false,
+    "lag": "-1 days +23:33:51",
+    "tolerance": "6h"
+  },
+  "alerts_without_degradation": {
+    "alerts": 3,
+    "in_degraded_windows": 2,
+    "without_degradation": 0,
+    "unmatched_alerts": 1,
+    "model_windows": 2,
+    "degraded_windows": 2,
+    "matched": true
+  },
+  "calibration": {
+    "brier_backtest": 0.0034253063548808685,
+    "brier_forward": 0.008055701717281798,
+    "brier_change": 0.004630395362400929,
+    "ece_backtest": 0.0010039560082626348,
+    "ece_forward": 0.005634399046858274,
+    "ece_change": 0.004630443038595639
+  }
+}

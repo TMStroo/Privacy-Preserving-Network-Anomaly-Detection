@@ -1,0 +1,146 @@
+{
+  "experiment_id": "20260925T220604Z_temporal_ugr16_78d5c1",
+  "created_utc": "2026-09-25T22:25:01.352890+00:00",
+  "git_commit": "7b92aa9d954e789383ec08cb9bb5c5961d0197bc",
+  "dataset": "ugr16",
+  "dataset_checksums": {
+    "march_week3_csv.tar.gz": "76a6b14648a07c4de4dffc2d2fb76df008facecb8a1e4d274e154165c83df428",
+    "may_week1_csv.tar.gz": "5aeebc092ed383435ab920f58fb1e377244291687de838129f5429e531bd4112",
+    "july_week5_csv.tar.gz": "69ad4f8d56d6602cf5f7daef77fbc4d851021f96a9097865d34affa2abcc23db",
+    "august_week1_csv.tar.gz": "1650d31d6ee5d07df6ca64467092f6929134681e420ab174f3dad84b91ee5b5e",
+    "august_week2_csv.tar.gz": "2e92eba04e7355afa02d711bdb2eb1b06ea8e3463c14c884700331aa93a0b34b",
+    "august_week3_csv.tar.gz": "defc3162ced2010679229640826398fbfd8c09f39e024339dc8afc3eb4e5ffbf"
+  },
+  "feature_schema_hash": "a391a5d53ff59d2e",
+  "feature_count": 13,
+  "random_seed": 42,
+  "package_versions": {
+    "python": "3.14.7",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "numpy": "2.5.2",
+    "pandas": "3.0.5",
+    "scikit-learn": "1.8.0",
+    "scipy": "1.18.0",
+    "matplotlib": "3.11.1",
+    "PyYAML": "6.0.3"
+  },
+  "temporal_split": {
+    "dataset": "ugr16",
+    "has_forward_test": true,
+    "fractions": {
+      "train": 0.5,
+      "validation": 0.15,
+      "backtest": 0.15,
+      "forward": 0.2
+    },
+    "rows_total": 8817287,
+    "train_period": [
+      "2016-03-18 10:52:40",
+      "2016-07-27 13:56:49"
+    ],
+    "train_count": {
+      "rows": 4409934,
+      "attacks": 27724,
+      "attack_rate": 0.006287
+    },
+    "validation_period": [
+      "2016-07-27 13:56:50",
+      "2016-08-01 00:27:16"
+    ],
+    "validation_count": {
+      "rows": 1322041,
+      "attacks": 2124,
+      "attack_rate": 0.001607
+    },
+    "backtest_period": [
+      "2016-08-01 00:27:17",
+      "2016-08-08 00:26:08"
+    ],
+    "backtest_count": {
+      "rows": 1322061,
+      "attacks": 4571,
+      "attack_rate": 0.003457
+    },
+    "forward_period": [
+      "2016-08-08 00:26:09",
+      "2016-08-15 00:30:10"
+    ],
+    "forward_count": {
+      "rows": 1763251,
+      "attacks": 14305,
+      "attack_rate": 0.008113
+    }
+  },
+  "config": {
+    "experiment": {
+      "kind": "temporal",
+      "output_dir": "results/experiments"
+    },
+    "dataset": {
+      "name": "ugr16",
+      "adapter": "ugr16",
+      "raw_dir": "data/raw",
+      "load_options": {
+        "max_rows_per_file": 1500000
+      }
+    },
+    "temporal": {
+      "train_fraction": 0.5,
+      "validation_fraction": 0.15,
+      "backtest_fraction": 0.15,
+      "forward_fraction": 0.2,
+      "use_forward": true
+    },
+    "models": [
+      "majority",
+      "logistic_regression",
+      "random_forest",
+      "gradient_boosting"
+    ],
+    "metrics": {
+      "target_fpr": 0.05
+    },
+    "drift": {
+      "enabled": true,
+      "reference_period": "train",
+      "window": "12h",
+      "stride": "12h",
+      "min_samples": 500,
+      "methods": [
+        "ks",
+        "wasserstein",
+        "psi",
+        "cusum"
+      ],
+      "alpha": 0.01,
+      "psi_threshold": 0.2,
+      "wasserstein_threshold": 0.1,
+      "cusum_drift": 0.5,
+      "cusum_false_alarm_rate": 0.01,
+      "features": [
+        "flow_duration",
+        "total_packets",
+        "total_bytes",
+        "packet_rate",
+        "byte_rate",
+        "mean_packet_size",
+        "bytes_per_packet",
+        "duration_log1p"
+      ]
+    },
+    "adaptation": {
+      "strategies": [
+        "none",
+        "threshold_recalibration",
+        "recent_window_retrain",
+        "rolling_window_retrain",
+        "historical_plus_recent_retrain"
+      ],
+      "rolling_step": "12h",
+      "rolling_window": "48h",
+      "window": "24h",
+      "target_fpr": 0.05
+    },
+    "seed": 42
+  }
+}

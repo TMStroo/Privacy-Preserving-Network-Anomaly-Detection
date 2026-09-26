@@ -1,0 +1,151 @@
+{
+  "experiment_id": "20260925T195935Z_temporal_unsw_nb15_full_6167ea",
+  "created_utc": "2026-09-25T19:59:35.954781+00:00",
+  "git_commit": "4c843b1d4d55f82232f198e03f29748489ab626c",
+  "dataset": "unsw_nb15",
+  "dataset_checksums": {
+    "UNSW_NB15_full_raw.parquet": "499b3220bafaf7f6e793dc31cda7861d49f31d96a2a1deda217d307c570260f3"
+  },
+  "feature_schema_hash": "c1dccf270a833392",
+  "feature_count": 16,
+  "random_seed": 42,
+  "package_versions": {
+    "python": "3.14.7",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "numpy": "2.5.2",
+    "pandas": "3.0.5",
+    "scikit-learn": "1.8.0",
+    "scipy": "1.18.0",
+    "matplotlib": "3.11.1",
+    "PyYAML": "6.0.3"
+  },
+  "temporal_split": {
+    "dataset": "unsw_nb15",
+    "has_forward_test": true,
+    "fractions": {
+      "train": 0.5,
+      "validation": 0.15,
+      "backtest": 0.15,
+      "forward": 0.2
+    },
+    "rows_total": 2540047,
+    "train_period": [
+      "2015-01-22 11:49:37",
+      "2015-02-18 02:36:17"
+    ],
+    "train_count": {
+      "rows": 1270025,
+      "attacks": 53367,
+      "attack_rate": 0.04202
+    },
+    "validation_period": [
+      "2015-02-18 02:36:18",
+      "2015-02-18 05:37:13"
+    ],
+    "validation_count": {
+      "rows": 381021,
+      "attacks": 79930,
+      "attack_rate": 0.209778
+    },
+    "backtest_period": [
+      "2015-02-18 05:37:14",
+      "2015-02-18 08:22:37"
+    ],
+    "backtest_count": {
+      "rows": 380999,
+      "attacks": 88892,
+      "attack_rate": 0.233313
+    },
+    "forward_period": [
+      "2015-02-18 08:22:38",
+      "2015-02-18 12:21:08"
+    ],
+    "forward_count": {
+      "rows": 508002,
+      "attacks": 99094,
+      "attack_rate": 0.195066
+    }
+  },
+  "config": {
+    "seed": 42,
+    "tag": "full",
+    "dataset": {
+      "name": "unsw_nb15",
+      "raw_dir": "data/raw",
+      "load_options": {}
+    },
+    "features": {
+      "use_cross_dataset_only": false
+    },
+    "temporal": {
+      "train_fraction": 0.5,
+      "validation_fraction": 0.15,
+      "backtest_fraction": 0.15,
+      "forward_fraction": 0.2,
+      "use_forward": true
+    },
+    "metrics": {
+      "target_fpr": 0.05
+    },
+    "models": {
+      "enabled": [
+        "majority",
+        "logistic_regression",
+        "random_forest",
+        "gradient_boosting"
+      ],
+      "logistic_regression": {
+        "max_iter": 1000,
+        "C": 1.0,
+        "solver": "lbfgs",
+        "class_weight": "balanced"
+      },
+      "random_forest": {
+        "n_estimators": 200,
+        "max_depth": 15,
+        "min_samples_split": 5,
+        "min_samples_leaf": 2,
+        "class_weight": "balanced",
+        "n_jobs": -1
+      },
+      "gradient_boosting": {
+        "n_estimators": 100,
+        "max_depth": 3,
+        "learning_rate": 0.1,
+        "subsample": 1.0
+      }
+    },
+    "drift": {
+      "enabled": true,
+      "reference_period": "train",
+      "window": "1h",
+      "stride": "1h",
+      "min_samples": 200,
+      "methods": [
+        "ks",
+        "wasserstein",
+        "psi",
+        "cusum"
+      ],
+      "alpha": 0.01,
+      "wasserstein_threshold": 0.1,
+      "psi_threshold": 0.2,
+      "psi_bins": 10
+    },
+    "adaptation": {
+      "window": "6h",
+      "strategies": [
+        "none",
+        "threshold_recalibration",
+        "recent_window_retrain",
+        "rolling_window_retrain",
+        "historical_plus_recent_retrain"
+      ],
+      "rolling_step": "1h",
+      "rolling_window": "6h"
+    },
+    "output": {
+      "experiments_dir": "results/experiments"
+    }
+  }
+}

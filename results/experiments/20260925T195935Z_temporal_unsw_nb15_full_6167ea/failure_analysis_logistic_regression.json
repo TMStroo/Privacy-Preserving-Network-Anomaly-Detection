@@ -1,0 +1,172 @@
+{
+  "window_frequency": "1h",
+  "windows_analyzed": 5,
+  "largest_degradation_windows": [
+    {
+      "metric": "recall",
+      "window": "2",
+      "value": 0.8704527189927672,
+      "backtest_value": 0.9184966026189083,
+      "delta": -0.04804388362614109
+    },
+    {
+      "metric": "recall",
+      "window": "0",
+      "value": 0.8764596212344226,
+      "backtest_value": 0.9184966026189083,
+      "delta": -0.04203698138448575
+    },
+    {
+      "metric": "recall",
+      "window": "4",
+      "value": 0.8865559066354093,
+      "backtest_value": 0.9184966026189083,
+      "delta": -0.03194069598349902
+    },
+    {
+      "metric": "recall",
+      "window": "3",
+      "value": 0.9150040442167701,
+      "backtest_value": 0.9184966026189083,
+      "delta": -0.003492558402138246
+    },
+    {
+      "metric": "recall",
+      "window": "1",
+      "value": 0.922289058689644,
+      "backtest_value": 0.9184966026189083,
+      "delta": 0.003792456070735639
+    },
+    {
+      "metric": "fpr",
+      "window": "4",
+      "value": 0.07225584697003662,
+      "backtest_value": 0.05845803079008719,
+      "delta": 0.013797816179949428
+    },
+    {
+      "metric": "fpr",
+      "window": "1",
+      "value": 0.06069260978222064,
+      "backtest_value": 0.05845803079008719,
+      "delta": 0.002234578992133446
+    },
+    {
+      "metric": "fpr",
+      "window": "2",
+      "value": 0.05801671770924932,
+      "backtest_value": 0.05845803079008719,
+      "delta": -0.00044131308083786985
+    },
+    {
+      "metric": "fpr",
+      "window": "3",
+      "value": 0.05800759068539424,
+      "backtest_value": 0.05845803079008719,
+      "delta": -0.0004504401046929521
+    },
+    {
+      "metric": "fpr",
+      "window": "0",
+      "value": 0.05741635106493868,
+      "backtest_value": 0.05845803079008719,
+      "delta": -0.0010416797251485144
+    }
+  ],
+  "strongest_drift_features": [
+    {
+      "feature": "packets_ratio",
+      "median_effect_size": 0.780504,
+      "max_effect_size": 11.890948,
+      "alerting_windows": 14
+    },
+    {
+      "feature": "packet_rate",
+      "median_effect_size": 0.7761370000000001,
+      "max_effect_size": 45.441259,
+      "alerting_windows": 14
+    },
+    {
+      "feature": "byte_rate",
+      "median_effect_size": 0.7720389999999999,
+      "max_effect_size": 19.523699,
+      "alerting_windows": 14
+    },
+    {
+      "feature": "packets_log1p",
+      "median_effect_size": 0.40241550000000004,
+      "max_effect_size": 1.096457,
+      "alerting_windows": 12
+    },
+    {
+      "feature": "bytes_ratio",
+      "median_effect_size": 0.398894,
+      "max_effect_size": 0.915094,
+      "alerting_windows": 13
+    },
+    {
+      "feature": "bytes_log1p",
+      "median_effect_size": 0.39153150000000003,
+      "max_effect_size": 0.820458,
+      "alerting_windows": 12
+    },
+    {
+      "feature": "flow_duration",
+      "median_effect_size": 0.390717,
+      "max_effect_size": 1.133058,
+      "alerting_windows": 10
+    },
+    {
+      "feature": "backward_bytes",
+      "median_effect_size": 0.38909,
+      "max_effect_size": 1.180086,
+      "alerting_windows": 10
+    }
+  ],
+  "false_positives": {
+    "count": 24552,
+    "rate": 0.04833051838378589,
+    "mean_score": 0.928977443791662,
+    "worst_windows": {
+      "2015-02-18 06:00:00": 21651,
+      "2015-02-18 12:00:00": 2901
+    }
+  },
+  "false_negatives": {
+    "count": 9702,
+    "rate": 0.019098350006496036,
+    "mean_score": 0.6013395619107471,
+    "high_confidence_misses": 2511,
+    "worst_windows": {
+      "2015-02-18 06:00:00": 8589,
+      "2015-02-18 12:00:00": 1113
+    }
+  },
+  "high_confidence_errors": {
+    "confidence_threshold": 0.9,
+    "confident_predictions": 102868,
+    "wrong": 13777,
+    "error_rate_among_confident": 0.1339289186141463
+  },
+  "drift_vs_degradation": {
+    "available": true,
+    "first_alert": "2015-02-18 08:22:38",
+    "first_degraded_window": "2015-02-18 08:00:00",
+    "drift_precedes_degradation": false,
+    "lag": "-1 days +23:37:22",
+    "tolerance": "6h"
+  },
+  "alerts_without_degradation": {
+    "alerts": 4,
+    "in_degraded_windows": 0,
+    "without_degradation": 0
+  },
+  "calibration": {
+    "brier_backtest": 0.15691825294950526,
+    "brier_forward": 0.1609715253227061,
+    "brier_change": 0.004053272373200828,
+    "ece_backtest": 0.1871018770181318,
+    "ece_forward": 0.19477243338127814,
+    "ece_change": 0.007670556363146341
+  }
+}

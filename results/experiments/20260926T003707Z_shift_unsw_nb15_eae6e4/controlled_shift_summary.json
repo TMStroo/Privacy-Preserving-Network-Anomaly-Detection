@@ -1,0 +1,54 @@
+{
+  "experiment_id": "20260926T003707Z_shift_unsw_nb15_eae6e4",
+  "models": [
+    "logistic_regression",
+    "random_forest"
+  ],
+  "shifts": [
+    "packet_size",
+    "duration",
+    "packet_rate",
+    "byte_rate",
+    "iat",
+    "protocol_mixture",
+    "class_prevalence",
+    "telemetry_reduction"
+  ],
+  "magnitudes": {
+    "packet_size": [
+      1.5,
+      3.0
+    ],
+    "duration": [
+      1.5,
+      3.0
+    ],
+    "packet_rate": [
+      1.5,
+      3.0
+    ],
+    "iat": [
+      1.5,
+      3.0
+    ],
+    "byte_rate": [
+      1.5,
+      3.0
+    ],
+    "protocol_mixture": [
+      3.0
+    ],
+    "class_prevalence": [
+      0.05,
+      0.3
+    ],
+    "telemetry_reduction": [
+      0.0
+    ]
+  },
+  "rows": 28,
+  "skipped": 0,
+  "degraded": 20,
+  "recovered": 0,
+  "results_file": "controlled_shift_results.csv"
+}

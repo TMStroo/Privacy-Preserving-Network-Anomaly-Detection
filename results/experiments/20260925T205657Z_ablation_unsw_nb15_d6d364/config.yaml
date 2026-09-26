@@ -1,0 +1,48 @@
+ablation:
+  models:
+  - logistic_regression
+  - random_forest
+  names:
+  - split_mode
+  - feature_policy
+  - drift_threshold
+  - adaptation_window
+  - telemetry_family
+  - target_fpr
+adaptation:
+  target_fpr: 0.05
+  window: 6h
+dataset:
+  adapter: unsw_nb15
+  name: unsw_nb15
+  raw_dir: data/raw
+drift:
+  alpha: 0.01
+  enabled: true
+  methods:
+  - ks
+  - wasserstein
+  - psi
+  - cusum
+  min_samples: 200
+  psi_bins: 10
+  psi_threshold: 0.2
+  reference_period: train
+  stride: 1h
+  wasserstein_threshold: 0.1
+  window: 1h
+experiment:
+  kind: ablation
+  output_dir: results/experiments
+metrics:
+  target_fpr: 0.05
+models:
+- logistic_regression
+- random_forest
+seed: 42
+temporal:
+  backtest_fraction: 0.15
+  forward_fraction: 0.2
+  train_fraction: 0.5
+  use_forward: true
+  validation_fraction: 0.15

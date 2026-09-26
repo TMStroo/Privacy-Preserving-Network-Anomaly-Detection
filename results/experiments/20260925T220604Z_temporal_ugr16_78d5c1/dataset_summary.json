@@ -1,0 +1,22 @@
+{
+  "dataset": "ugr16",
+  "rows": 8817287,
+  "features": 13,
+  "cross_dataset_features": 10,
+  "has_direction": false,
+  "time_min": "2016-03-18 10:52:40",
+  "time_max": "2016-08-15 00:30:10",
+  "label_counts": {
+    "0.0": 8768563,
+    "1.0": 48724
+  },
+  "attack_rate": 0.0055259628046586216,
+  "source_files": [
+    "march_week3_csv.tar.gz",
+    "may_week1_csv.tar.gz",
+    "july_week5_csv.tar.gz",
+    "august_week1_csv.tar.gz",
+    "august_week2_csv.tar.gz",
+    "august_week3_csv.tar.gz"
+  ]
+}

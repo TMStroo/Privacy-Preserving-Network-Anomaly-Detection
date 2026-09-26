@@ -1,0 +1,172 @@
+{
+  "window_frequency": "1h",
+  "windows_analyzed": 5,
+  "largest_degradation_windows": [
+    {
+      "metric": "recall",
+      "window": "0",
+      "value": 0.9939162005691297,
+      "backtest_value": 0.9965913693020745,
+      "delta": -0.0026751687329448215
+    },
+    {
+      "metric": "recall",
+      "window": "2",
+      "value": 0.9957674792392178,
+      "backtest_value": 0.9965913693020745,
+      "delta": -0.0008238900628566581
+    },
+    {
+      "metric": "recall",
+      "window": "1",
+      "value": 0.996358315721021,
+      "backtest_value": 0.9965913693020745,
+      "delta": -0.0002330535810535217
+    },
+    {
+      "metric": "recall",
+      "window": "3",
+      "value": 0.996562415745484,
+      "backtest_value": 0.9965913693020745,
+      "delta": -2.8953556590494145e-05
+    },
+    {
+      "metric": "recall",
+      "window": "4",
+      "value": 0.9981653246356131,
+      "backtest_value": 0.9965913693020745,
+      "delta": 0.001573955333538657
+    },
+    {
+      "metric": "fpr",
+      "window": "4",
+      "value": 0.06503275299509327,
+      "backtest_value": 0.05080672493298689,
+      "delta": 0.014226028062106384
+    },
+    {
+      "metric": "fpr",
+      "window": "0",
+      "value": 0.052152461693478334,
+      "backtest_value": 0.05080672493298689,
+      "delta": 0.0013457367604914477
+    },
+    {
+      "metric": "fpr",
+      "window": "2",
+      "value": 0.05189160779081638,
+      "backtest_value": 0.05080672493298689,
+      "delta": 0.0010848828578294903
+    },
+    {
+      "metric": "fpr",
+      "window": "1",
+      "value": 0.04654930931260814,
+      "backtest_value": 0.05080672493298689,
+      "delta": -0.004257415620378749
+    },
+    {
+      "metric": "fpr",
+      "window": "3",
+      "value": 0.04604886382388057,
+      "backtest_value": 0.05080672493298689,
+      "delta": -0.004757861109106316
+    }
+  ],
+  "strongest_drift_features": [
+    {
+      "feature": "packets_ratio",
+      "median_effect_size": 0.780504,
+      "max_effect_size": 11.890948,
+      "alerting_windows": 14
+    },
+    {
+      "feature": "packet_rate",
+      "median_effect_size": 0.7761370000000001,
+      "max_effect_size": 45.441259,
+      "alerting_windows": 14
+    },
+    {
+      "feature": "byte_rate",
+      "median_effect_size": 0.7720389999999999,
+      "max_effect_size": 19.523699,
+      "alerting_windows": 14
+    },
+    {
+      "feature": "packets_log1p",
+      "median_effect_size": 0.40241550000000004,
+      "max_effect_size": 1.096457,
+      "alerting_windows": 12
+    },
+    {
+      "feature": "bytes_ratio",
+      "median_effect_size": 0.398894,
+      "max_effect_size": 0.915094,
+      "alerting_windows": 13
+    },
+    {
+      "feature": "bytes_log1p",
+      "median_effect_size": 0.39153150000000003,
+      "max_effect_size": 0.820458,
+      "alerting_windows": 12
+    },
+    {
+      "feature": "flow_duration",
+      "median_effect_size": 0.390717,
+      "max_effect_size": 1.133058,
+      "alerting_windows": 10
+    },
+    {
+      "feature": "backward_bytes",
+      "median_effect_size": 0.38909,
+      "max_effect_size": 1.180086,
+      "alerting_windows": 10
+    }
+  ],
+  "false_positives": {
+    "count": 20576,
+    "rate": 0.0405037775441829,
+    "mean_score": 0.2916005284965828,
+    "worst_windows": {
+      "2015-02-18 06:00:00": 17965,
+      "2015-02-18 12:00:00": 2611
+    }
+  },
+  "false_negatives": {
+    "count": 373,
+    "rate": 0.0007342490777595364,
+    "mean_score": 0.013594774015963908,
+    "high_confidence_misses": 0,
+    "worst_windows": {
+      "2015-02-18 06:00:00": 355,
+      "2015-02-18 12:00:00": 18
+    }
+  },
+  "high_confidence_errors": {
+    "confidence_threshold": 0.9,
+    "confident_predictions": 79792,
+    "wrong": 263,
+    "error_rate_among_confident": 0.0032960697814317223
+  },
+  "drift_vs_degradation": {
+    "available": true,
+    "first_alert": "2015-02-18 08:22:38",
+    "first_degraded_window": "2015-02-18 08:00:00",
+    "drift_precedes_degradation": false,
+    "lag": "-1 days +23:37:22",
+    "tolerance": "6h"
+  },
+  "alerts_without_degradation": {
+    "alerts": 4,
+    "in_degraded_windows": 0,
+    "without_degradation": 0
+  },
+  "calibration": {
+    "brier_backtest": 0.015288002019843023,
+    "brier_forward": 0.016431582538236202,
+    "brier_change": 0.001143580518393179,
+    "ece_backtest": 0.008560679511981731,
+    "ece_forward": 0.008483985535252155,
+    "ece_change": -7.669397672957663e-05
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "backtest": {
+    "brier": 0.7666870516720516,
+    "ece": 0.7666870516720516,
+    "curve": [
+      {
+        "bin": 0,
+        "n": 0,
+        "mean_pred": null,
+        "observed": null
+      },
+      {
+        "bin": 1,
+        "n": 0,
+        "mean_pred": null,
+        "observed": null
+      },
+      {
+        "bin": 2,
+        "n": 0,
+        "mean_pred": null,
+        "observed": null
+      },
+      {
+        "bin": 3,
+        "n": 0,
+        "mean_pred": null,
+        "observed": null
+      },
+      {
+        "bin": 4,
+        "n": 0,
+        "mean_pred": null,
+        "observed": null
+      },
+      {
+        "bin": 5,
+        "n": 0,
+        "mean_pred": null,
+        "observed": null
+      },
+      {
+        "bin": 6,
+        "n": 0,
+        "mean_pred": null,
+        "observed": null
+      },
+      {
+        "bin": 7,
+        "n": 0,
+        "mean_pred": null,
+        "observed": null
+      },
+      {
+        "bin": 8,
+        "n": 0,
+        "mean_pred": null,
+        "observed": null
+      },
+      {
+        "bin": 9,
+        "n": 380999,
+        "mean_pred": 1.0,
+        "observed": 0.23331294832794836
+      }
+    ]
+  },
+  "forward": {
+    "brier": 0.8049338388431542,
+    "ece": 0.8049338388431542,
+    "curve": [
+      {
+        "bin": 0,
+        "n": 0,
+        "mean_pred": null,
+        "observed": null
+      },
+      {
+        "bin": 1,
+        "n": 0,
+        "mean_pred": null,
+        "observed": null
+      },
+      {
+        "bin": 2,
+        "n": 0,
+        "mean_pred": null,
+        "observed": null
+      },
+      {
+        "bin": 3,
+        "n": 0,
+        "mean_pred": null,
+        "observed": null
+      },
+      {
+        "bin": 4,
+        "n": 0,
+        "mean_pred": null,
+        "observed": null
+      },
+      {
+        "bin": 5,
+        "n": 0,
+        "mean_pred": null,
+        "observed": null
+      },
+      {
+        "bin": 6,
+        "n": 0,
+        "mean_pred": null,
+        "observed": null
+      },
+      {
+        "bin": 7,
+        "n": 0,
+        "mean_pred": null,
+        "observed": null
+      },
+      {
+        "bin": 8,
+        "n": 0,
+        "mean_pred": null,
+        "observed": null
+      },
+      {
+        "bin": 9,
+        "n": 508002,
+        "mean_pred": 1.0,
+        "observed": 0.19506616115684583
+      }
+    ]
+  },
+  "change": {
+    "brier_backtest": 0.7666870516720516,
+    "brier_forward": 0.8049338388431542,
+    "brier_change": 0.038246787171102525,
+    "ece_backtest": 0.7666870516720516,
+    "ece_forward": 0.8049338388431542,
+    "ece_change": 0.038246787171102525
+  }
+}

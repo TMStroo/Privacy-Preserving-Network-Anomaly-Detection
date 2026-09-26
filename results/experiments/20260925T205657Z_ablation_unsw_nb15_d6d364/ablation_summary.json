@@ -1,0 +1,17 @@
+{
+  "experiment_id": "20260925T205657Z_ablation_unsw_nb15_d6d364",
+  "ablations": [
+    "split_mode",
+    "feature_policy",
+    "drift_threshold",
+    "adaptation_window",
+    "telemetry_family",
+    "target_fpr"
+  ],
+  "models": [
+    "logistic_regression",
+    "random_forest"
+  ],
+  "rows": 60,
+  "failed": 0
+}

@@ -1,0 +1,17 @@
+{
+  "dataset": "unsw_nb15",
+  "rows": 2540047,
+  "features": 16,
+  "cross_dataset_features": 12,
+  "has_direction": true,
+  "time_min": "2015-01-22 11:49:37",
+  "time_max": "2015-02-18 12:21:08",
+  "label_counts": {
+    "0": 2218764,
+    "1": 321283
+  },
+  "attack_rate": 0.12648702957071267,
+  "source_files": [
+    "UNSW_NB15_full_raw.parquet"
+  ]
+}

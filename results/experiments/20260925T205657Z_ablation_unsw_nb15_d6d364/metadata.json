@@ -1,0 +1,89 @@
+{
+  "experiment_id": "20260925T205657Z_ablation_unsw_nb15_d6d364",
+  "created_utc": "2026-09-25T20:56:57.792361+00:00",
+  "git_commit": "e5f69bd0d2cb70eaa4140f81992db0a8df1ad4d3",
+  "dataset": "unsw_nb15",
+  "dataset_checksums": {},
+  "feature_schema_hash": "e3b0c44298fc1c14",
+  "feature_count": 0,
+  "random_seed": 42,
+  "package_versions": {
+    "python": "3.14.7",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "numpy": "2.5.2",
+    "pandas": "3.0.5",
+    "scikit-learn": "1.8.0",
+    "scipy": "1.18.0",
+    "matplotlib": "3.11.1",
+    "PyYAML": "6.0.3"
+  },
+  "temporal_split": {
+    "note": "the ablation suite re-splits inside each function; see ablation_results.csv for the rows it produced"
+  },
+  "config": {
+    "experiment": {
+      "kind": "ablation",
+      "output_dir": "results/experiments"
+    },
+    "dataset": {
+      "name": "unsw_nb15",
+      "adapter": "unsw_nb15",
+      "raw_dir": "data/raw"
+    },
+    "temporal": {
+      "train_fraction": 0.5,
+      "validation_fraction": 0.15,
+      "backtest_fraction": 0.15,
+      "forward_fraction": 0.2,
+      "use_forward": true
+    },
+    "models": [
+      "logistic_regression",
+      "random_forest"
+    ],
+    "ablation": {
+      "models": [
+        "logistic_regression",
+        "random_forest"
+      ],
+      "names": [
+        "split_mode",
+        "feature_policy",
+        "drift_threshold",
+        "adaptation_window",
+        "telemetry_family",
+        "target_fpr"
+      ]
+    },
+    "metrics": {
+      "target_fpr": 0.05
+    },
+    "drift": {
+      "enabled": true,
+      "reference_period": "train",
+      "window": "1h",
+      "stride": "1h",
+      "min_samples": 200,
+      "methods": [
+        "ks",
+        "wasserstein",
+        "psi",
+        "cusum"
+      ],
+      "alpha": 0.01,
+      "wasserstein_threshold": 0.1,
+      "psi_threshold": 0.2,
+      "psi_bins": 10
+    },
+    "adaptation": {
+      "window": "6h",
+      "target_fpr": 0.05
+    },
+    "seed": 42
+  },
+  "models": [
+    "logistic_regression",
+    "random_forest"
+  ],
+  "raw_dir": "F:/projects/driftguard_data/raw"
+}

@@ -1,0 +1,167 @@
+{
+  "experiment_id": "20260926T003707Z_shift_unsw_nb15_eae6e4",
+  "created_utc": "2026-09-26T00:37:07.616586+00:00",
+  "git_commit": "9a22b6071f9bc1ac3893d66c00897a9b46e3975e",
+  "dataset": "unsw_nb15",
+  "dataset_checksums": {
+    "UNSW_NB15_full_raw.parquet": "499b3220bafaf7f6e793dc31cda7861d49f31d96a2a1deda217d307c570260f3"
+  },
+  "feature_schema_hash": "96499b7ad2b7abf2",
+  "feature_count": 19,
+  "random_seed": 42,
+  "package_versions": {
+    "python": "3.14.7",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "numpy": "2.5.2",
+    "pandas": "3.0.5",
+    "scikit-learn": "1.8.0",
+    "scipy": "1.18.0",
+    "matplotlib": "3.11.1",
+    "PyYAML": "6.0.3"
+  },
+  "temporal_split": {
+    "train": [
+      "2015-01-22 11:49:37",
+      "2015-02-18 02:36:17"
+    ],
+    "validation": [
+      "2015-02-18 02:36:18",
+      "2015-02-18 05:37:13"
+    ],
+    "backtest": [
+      "2015-02-18 05:37:14",
+      "2015-02-18 08:22:37"
+    ],
+    "forward": [
+      "2015-02-18 08:22:38",
+      "2015-02-18 12:21:08"
+    ]
+  },
+  "config": {
+    "experiment": {
+      "kind": "controlled_shift",
+      "output_dir": "results/experiments"
+    },
+    "dataset": {
+      "name": "unsw_nb15",
+      "adapter": "unsw_nb15",
+      "raw_dir": "data/raw"
+    },
+    "temporal": {
+      "train_fraction": 0.5,
+      "validation_fraction": 0.15,
+      "backtest_fraction": 0.15,
+      "forward_fraction": 0.2,
+      "use_forward": true
+    },
+    "models": [
+      "logistic_regression",
+      "random_forest"
+    ],
+    "shift": {
+      "models": [
+        "logistic_regression",
+        "random_forest"
+      ],
+      "magnitudes": {
+        "packet_size": [
+          1.5,
+          2.0,
+          4.0
+        ],
+        "flow_duration": [
+          1.5,
+          3.0,
+          8.0
+        ],
+        "packet_rate": [
+          1.5,
+          3.0,
+          6.0
+        ],
+        "iat": [
+          1.5,
+          3.0,
+          6.0
+        ],
+        "byte_rate": [
+          1.5,
+          2.0,
+          4.0
+        ],
+        "protocol_mixture": [
+          0.3,
+          0.6
+        ],
+        "class_prevalence": [
+          0.05,
+          0.1,
+          0.4
+        ],
+        "telemetry_reduction": [
+          1.0
+        ]
+      }
+    },
+    "metrics": {
+      "target_fpr": 0.05
+    },
+    "drift": {
+      "enabled": true,
+      "reference_period": "train",
+      "window": "1h",
+      "stride": "1h",
+      "min_samples": 200,
+      "methods": [
+        "ks",
+        "wasserstein",
+        "psi",
+        "cusum"
+      ],
+      "alpha": 0.01,
+      "wasserstein_threshold": 0.1,
+      "psi_threshold": 0.2,
+      "psi_bins": 10
+    },
+    "adaptation": {
+      "strategies": [
+        "none",
+        "threshold_recalibration",
+        "recent_window_retrain"
+      ],
+      "window": "6h",
+      "target_fpr": 0.05
+    },
+    "seed": 42
+  },
+  "models": {
+    "logistic_regression": {},
+    "random_forest": {}
+  },
+  "adaptation": {
+    "strategies": [
+      "none",
+      "threshold_recalibration",
+      "recent_window_retrain"
+    ],
+    "window": "6h",
+    "target_fpr": 0.05
+  },
+  "drift": {
+    "enabled": true,
+    "reference_period": "train",
+    "window": "1h",
+    "stride": "1h",
+    "min_samples": 200,
+    "methods": [
+      "ks",
+      "wasserstein",
+      "psi",
+      "cusum"
+    ],
+    "alpha": 0.01,
+    "wasserstein_threshold": 0.1,
+    "psi_threshold": 0.2,
+    "psi_bins": 10
+  }
+}

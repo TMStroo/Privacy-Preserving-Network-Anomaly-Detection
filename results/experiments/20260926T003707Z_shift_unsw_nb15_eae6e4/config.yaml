@@ -1,0 +1,75 @@
+adaptation:
+  strategies:
+  - none
+  - threshold_recalibration
+  - recent_window_retrain
+  target_fpr: 0.05
+  window: 6h
+dataset:
+  adapter: unsw_nb15
+  name: unsw_nb15
+  raw_dir: data/raw
+drift:
+  alpha: 0.01
+  enabled: true
+  methods:
+  - ks
+  - wasserstein
+  - psi
+  - cusum
+  min_samples: 200
+  psi_bins: 10
+  psi_threshold: 0.2
+  reference_period: train
+  stride: 1h
+  wasserstein_threshold: 0.1
+  window: 1h
+experiment:
+  kind: controlled_shift
+  output_dir: results/experiments
+metrics:
+  target_fpr: 0.05
+models:
+- logistic_regression
+- random_forest
+seed: 42
+shift:
+  magnitudes:
+    byte_rate:
+    - 1.5
+    - 2.0
+    - 4.0
+    class_prevalence:
+    - 0.05
+    - 0.1
+    - 0.4
+    flow_duration:
+    - 1.5
+    - 3.0
+    - 8.0
+    iat:
+    - 1.5
+    - 3.0
+    - 6.0
+    packet_rate:
+    - 1.5
+    - 3.0
+    - 6.0
+    packet_size:
+    - 1.5
+    - 2.0
+    - 4.0
+    protocol_mixture:
+    - 0.3
+    - 0.6
+    telemetry_reduction:
+    - 1.0
+  models:
+  - logistic_regression
+  - random_forest
+temporal:
+  backtest_fraction: 0.15
+  forward_fraction: 0.2
+  train_fraction: 0.5
+  use_forward: true
+  validation_fraction: 0.15

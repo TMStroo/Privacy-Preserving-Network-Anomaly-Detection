@@ -1,0 +1,5606 @@
+[
+  {
+    "model": "logistic_regression",
+    "kind": "packet_size",
+    "magnitude": 1.5,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 45.144392,
+      "byte_rate": 30.577846,
+      "packets_ratio": 11.838175,
+      "bytes_per_packet": 1.302552,
+      "mean_packet_size": 1.302552
+    },
+    "requested_magnitude": 1.5,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5758408329913007,
+          "cohens_d": 0.0,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.003851999994367361,
+          "median_ratio": 1.0
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 48401.179577646144,
+          "cohens_d": 0.07800892030746667,
+          "median_before": 840.0,
+          "median_after": 1265.6425473105542,
+          "median_ratio": 1.5067173182268503
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 166414.68339914264,
+          "cohens_d": 0.0,
+          "median_before": 4132.2314453125,
+          "median_after": 4132.2314453125,
+          "median_ratio": 1.0
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 24928803.294541445,
+          "cohens_d": 0.17485383424229256,
+          "median_before": 904993.4118845974,
+          "median_after": 1357022.1467749197,
+          "median_ratio": 1.4994829011506263
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 297.920478495432,
+          "cohens_d": 0.41843117993191853,
+          "median_before": 132.0,
+          "median_after": 193.27992547641804,
+          "median_ratio": 1.4642418596698337
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 297.920478495432,
+          "cohens_d": 0.41843117993191853,
+          "median_before": 132.0,
+          "median_after": 193.27992547641804,
+          "median_ratio": 1.4642418596698337
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.1870411032213003,
+          "cohens_d": 0.0,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.00384459993802011,
+          "median_ratio": 1.0
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.844260749644918,
+          "cohens_d": 0.16904700597159492,
+          "median_before": 6.734591659972948,
+          "median_after": 7.144125015268143,
+          "median_ratio": 1.0608104211765736
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 0.41843117993191853,
+      "mean_abs_cohens_d": 0.07404541884618772,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  },
+  {
+    "model": "logistic_regression",
+    "kind": "packet_size",
+    "magnitude": 3.0,
+    "status": "ok",
+    "top_drift_features": {
+      "byte_rate": 64.122395,
+      "packet_rate": 45.144392,
+      "packets_ratio": 11.838175,
+      "bytes_per_packet": 4.969042,
+      "mean_packet_size": 4.969042
+    },
+    "requested_magnitude": 3.0,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5758408329913007,
+          "cohens_d": 0.0,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.003851999994367361,
+          "median_ratio": 1.0
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 96803.35915529233,
+          "cohens_d": 0.1778567518335618,
+          "median_before": 840.0,
+          "median_after": 2532.285094621109,
+          "median_ratio": 3.014625112644177
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 166414.68339914264,
+          "cohens_d": 0.0,
+          "median_before": 4132.2314453125,
+          "median_after": 4132.2314453125,
+          "median_ratio": 1.0
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 49940175.58654434,
+          "cohens_d": 0.3980403735831314,
+          "median_before": 904993.4118845974,
+          "median_after": 2714064.764797332,
+          "median_ratio": 2.998988422628897
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 596.0686846609005,
+          "cohens_d": 0.9539298861655563,
+          "median_before": 132.0,
+          "median_after": 387.01983525466005,
+          "median_ratio": 2.9319684488989397
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 596.0686846609005,
+          "cohens_d": 0.9539298861655563,
+          "median_before": 132.0,
+          "median_after": 387.01983525466005,
+          "median_ratio": 2.9319684488989397
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.1870411032213003,
+          "cohens_d": 0.0,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.00384459993802011,
+          "median_ratio": 1.0
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 8.537407930204862,
+          "cohens_d": 0.45803777481981484,
+          "median_before": 6.734591659972948,
+          "median_after": 7.837272195828088,
+          "median_ratio": 1.1637338374067907
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 0.9539298861655563,
+      "mean_abs_cohens_d": 0.17304674544515417,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  },
+  {
+    "model": "logistic_regression",
+    "kind": "duration",
+    "magnitude": 1.5,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 45.144392,
+      "byte_rate": 19.396825,
+      "packets_ratio": 11.838175,
+      "flow_duration": 9.030478,
+      "duration_log1p": 9.030478
+    },
+    "requested_magnitude": 1.5,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 1.364277350480876,
+          "cohens_d": 0.17322520907108127,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.525890234509085,
+          "median_ratio": 136.52394477623963
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 32262.195173740613,
+          "cohens_d": 0.0,
+          "median_before": 840.0,
+          "median_after": 840.0,
+          "median_ratio": 1.0
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 166414.68339914264,
+          "cohens_d": 0.0,
+          "median_before": 4132.2314453125,
+          "median_after": 4132.2314453125,
+          "median_ratio": 1.0
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 16588469.51761601,
+          "cohens_d": 0.0,
+          "median_before": 904993.4118845974,
+          "median_after": 904993.4118845974,
+          "median_ratio": 1.0
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.5925019974855462,
+          "cohens_d": 0.874241644122428,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.422578000071419,
+          "median_ratio": 109.91468732349769
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.4387998553806725,
+          "cohens_d": 0.0,
+          "median_before": 6.734591659972948,
+          "median_after": 6.734591659972948,
+          "median_ratio": 1.0
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 0.874241644122428,
+      "mean_abs_cohens_d": 0.06161569724667701,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  },
+  {
+    "model": "logistic_regression",
+    "kind": "duration",
+    "magnitude": 3.0,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 45.144392,
+      "byte_rate": 19.396825,
+      "flow_duration": 12.517423,
+      "duration_log1p": 12.43385,
+      "packets_ratio": 11.838175
+    },
+    "requested_magnitude": 3.0,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 3.7285547009617535,
+          "cohens_d": 0.3948395793924644,
+          "median_before": 0.003851999994367361,
+          "median_after": 2.05178046901817,
+          "median_ratio": 532.6532897244065
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 32262.195173740613,
+          "cohens_d": 0.0,
+          "median_before": 840.0,
+          "median_after": 840.0,
+          "median_ratio": 1.0
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 166414.68339914264,
+          "cohens_d": 0.0,
+          "median_before": 4132.2314453125,
+          "median_after": 4132.2314453125,
+          "median_ratio": 1.0
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 16588469.51761601,
+          "cohens_d": 0.0,
+          "median_before": 904993.4118845974,
+          "median_after": 904993.4118845974,
+          "median_ratio": 1.0
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 1.2856491780454915,
+          "cohens_d": 2.3687831383179834,
+          "median_before": 0.00384459993802011,
+          "median_after": 1.1157251806313644,
+          "median_ratio": 290.20579478184663
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.4387998553806725,
+          "cohens_d": 0.0,
+          "median_before": 6.734591659972948,
+          "median_after": 6.734591659972948,
+          "median_ratio": 1.0
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 2.3687831383179834,
+      "mean_abs_cohens_d": 0.16256604221826162,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  },
+  {
+    "model": "logistic_regression",
+    "kind": "packet_rate",
+    "magnitude": 1.5,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 70.590827,
+      "byte_rate": 30.52653,
+      "packets_ratio": 11.838175,
+      "packets_log1p": 1.085082,
+      "total_packets": 1.085082
+    },
+    "requested_magnitude": 1.5,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5758408329913007,
+          "cohens_d": 0.0,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.003851999994367361,
+          "median_ratio": 1.0
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 32262.195173740613,
+          "cohens_d": 0.0,
+          "median_before": 840.0,
+          "median_after": 840.0,
+          "median_ratio": 1.0
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 249667.27168142976,
+          "cohens_d": 0.19998474568449606,
+          "median_before": 4132.2314453125,
+          "median_after": 6218.177176054936,
+          "median_ratio": 1.5047988619099932
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 24887461.02521169,
+          "cohens_d": 0.17416268715344987,
+          "median_before": 904993.4118845974,
+          "median_after": 1356911.424757478,
+          "median_ratio": 1.4993605554893346
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.1870411032213003,
+          "cohens_d": 0.0,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.00384459993802011,
+          "median_ratio": 1.0
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.4387998553806725,
+          "cohens_d": 0.0,
+          "median_before": 6.734591659972948,
+          "median_after": 6.734591659972948,
+          "median_ratio": 1.0
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 0.19998474568449606,
+      "mean_abs_cohens_d": 0.022008672519879174,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  },
+  {
+    "model": "logistic_regression",
+    "kind": "packet_rate",
+    "magnitude": 3.0,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 146.910807,
+      "byte_rate": 63.912451,
+      "packets_ratio": 11.838175,
+      "packets_log1p": 1.085082,
+      "total_packets": 1.085082
+    },
+    "requested_magnitude": 3.0,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5758408329913007,
+          "cohens_d": 0.0,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.003851999994367361,
+          "median_ratio": 1.0
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 32262.195173740613,
+          "cohens_d": 0.0,
+          "median_before": 840.0,
+          "median_after": 840.0,
+          "median_ratio": 1.0
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 499335.5433628595,
+          "cohens_d": 0.45587063563064995,
+          "median_before": 4132.2314453125,
+          "median_after": 12437.354352109875,
+          "median_ratio": 3.0098397238176235
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 49774923.050423466,
+          "cohens_d": 0.39702971676533133,
+          "median_before": 904993.4118845974,
+          "median_after": 2713823.849514956,
+          "median_ratio": 2.9987222159590887
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.1870411032213003,
+          "cohens_d": 0.0,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.00384459993802011,
+          "median_ratio": 1.0
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.4387998553806725,
+          "cohens_d": 0.0,
+          "median_before": 6.734591659972948,
+          "median_after": 6.734591659972948,
+          "median_ratio": 1.0
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 0.45587063563064995,
+      "mean_abs_cohens_d": 0.05017060896446949,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  },
+  {
+    "model": "logistic_regression",
+    "kind": "byte_rate",
+    "magnitude": 1.5,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 45.144392,
+      "byte_rate": 30.524169,
+      "packets_ratio": 11.838175,
+      "packets_log1p": 1.085082,
+      "total_packets": 1.085082
+    },
+    "requested_magnitude": 1.5,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5758408329913007,
+          "cohens_d": 0.0,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.003851999994367361,
+          "median_ratio": 1.0
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 32262.195173740613,
+          "cohens_d": 0.0,
+          "median_before": 840.0,
+          "median_after": 840.0,
+          "median_ratio": 1.0
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 166414.68339914264,
+          "cohens_d": 0.0,
+          "median_before": 4132.2314453125,
+          "median_after": 4132.2314453125,
+          "median_ratio": 1.0
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 24887497.098364297,
+          "cohens_d": 0.17413746525471302,
+          "median_before": 904993.4118845974,
+          "median_after": 1357012.68970844,
+          "median_ratio": 1.4994724512773394
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.1870411032213003,
+          "cohens_d": 0.0,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.00384459993802011,
+          "median_ratio": 1.0
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.4387998553806725,
+          "cohens_d": 0.0,
+          "median_before": 6.734591659972948,
+          "median_after": 6.734591659972948,
+          "median_ratio": 1.0
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 0.17413746525471302,
+      "mean_abs_cohens_d": 0.010243380309100766,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  },
+  {
+    "model": "logistic_regression",
+    "kind": "byte_rate",
+    "magnitude": 3.0,
+    "status": "ok",
+    "top_drift_features": {
+      "byte_rate": 63.90773,
+      "packet_rate": 45.144392,
+      "packets_ratio": 11.838175,
+      "packets_log1p": 1.085082,
+      "total_packets": 1.085082
+    },
+    "requested_magnitude": 3.0,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5758408329913007,
+          "cohens_d": 0.0,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.003851999994367361,
+          "median_ratio": 1.0
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 32262.195173740613,
+          "cohens_d": 0.0,
+          "median_before": 840.0,
+          "median_after": 840.0,
+          "median_ratio": 1.0
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 166414.68339914264,
+          "cohens_d": 0.0,
+          "median_before": 4132.2314453125,
+          "median_after": 4132.2314453125,
+          "median_ratio": 1.0
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 49774995.19672869,
+          "cohens_d": 0.39695359884907055,
+          "median_before": 904993.4118845974,
+          "median_after": 2714026.3794168807,
+          "median_ratio": 2.998946007535099
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.1870411032213003,
+          "cohens_d": 0.0,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.00384459993802011,
+          "median_ratio": 1.0
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.4387998553806725,
+          "cohens_d": 0.0,
+          "median_before": 6.734591659972948,
+          "median_after": 6.734591659972948,
+          "median_ratio": 1.0
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 0.39695359884907055,
+      "mean_abs_cohens_d": 0.02335021169700415,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  },
+  {
+    "model": "logistic_regression",
+    "kind": "iat",
+    "magnitude": 1.5,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 96.037045,
+      "byte_rate": 41.653955,
+      "packets_ratio": 11.838175,
+      "packets_log1p": 1.085082,
+      "total_packets": 1.085082
+    },
+    "requested_magnitude": 1.5,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5758408329913007,
+          "cohens_d": 0.0,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.003851999994367361,
+          "median_ratio": 1.0
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 32262.195173740613,
+          "cohens_d": 0.0,
+          "median_before": 840.0,
+          "median_after": 840.0,
+          "median_ratio": 1.0
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 332918.89519155957,
+          "cohens_d": 0.32234271265688064,
+          "median_before": 4132.2314453125,
+          "median_after": 8316.247350689455,
+          "median_ratio": 2.0125318392132168
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 33186523.67852449,
+          "cohens_d": 0.280702060315604,
+          "median_before": 904993.4118845974,
+          "median_after": 1808896.5283811872,
+          "median_ratio": 1.9987952449446709
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.1870411032213003,
+          "cohens_d": 0.0,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.00384459993802011,
+          "median_ratio": 1.0
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.4387998553806725,
+          "cohens_d": 0.0,
+          "median_before": 6.734591659972948,
+          "median_after": 6.734591659972948,
+          "median_ratio": 1.0
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 0.32234271265688064,
+      "mean_abs_cohens_d": 0.03547322193955792,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  },
+  {
+    "model": "logistic_regression",
+    "kind": "iat",
+    "magnitude": 3.0,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 248.676293,
+      "byte_rate": 108.421074,
+      "packets_ratio": 11.838175,
+      "packets_log1p": 1.085082,
+      "total_packets": 1.085082
+    },
+    "requested_magnitude": 3.0,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5758408329913007,
+          "cohens_d": 0.0,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.003851999994367361,
+          "median_ratio": 1.0
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 32262.195173740613,
+          "cohens_d": 0.0,
+          "median_before": 840.0,
+          "median_after": 840.0,
+          "median_ratio": 1.0
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 832252.4737822618,
+          "cohens_d": 0.5653381593109383,
+          "median_before": 4132.2314453125,
+          "median_after": 20746.85292404041,
+          "median_ratio": 5.020738358587131
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 82961516.874665,
+          "cohens_d": 0.4922930195757061,
+          "median_before": 904993.4118845974,
+          "median_after": 4522327.953026797,
+          "median_ratio": 4.997083839106967
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.1870411032213003,
+          "cohens_d": 0.0,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.00384459993802011,
+          "median_ratio": 1.0
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.4387998553806725,
+          "cohens_d": 0.0,
+          "median_before": 6.734591659972948,
+          "median_after": 6.734591659972948,
+          "median_ratio": 1.0
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 0.5653381593109383,
+      "mean_abs_cohens_d": 0.062213598758037905,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  },
+  {
+    "model": "logistic_regression",
+    "kind": "protocol_mixture",
+    "magnitude": 3.0,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 45.144392,
+      "byte_rate": 19.396825,
+      "packets_ratio": 11.838175,
+      "packets_log1p": 1.085082,
+      "total_packets": 1.085082
+    },
+    "requested_magnitude": 3.0,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5758408329913007,
+          "cohens_d": 0.0,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.003851999994367361,
+          "median_ratio": 1.0
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 32262.195173740613,
+          "cohens_d": 0.0,
+          "median_before": 840.0,
+          "median_after": 840.0,
+          "median_ratio": 1.0
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 166414.68339914264,
+          "cohens_d": 0.0,
+          "median_before": 4132.2314453125,
+          "median_after": 4132.2314453125,
+          "median_ratio": 1.0
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 16588469.51761601,
+          "cohens_d": 0.0,
+          "median_before": 904993.4118845974,
+          "median_after": 904993.4118845974,
+          "median_ratio": 1.0
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.1870411032213003,
+          "cohens_d": 0.0,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.00384459993802011,
+          "median_ratio": 1.0
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.4387998553806725,
+          "cohens_d": 0.0,
+          "median_before": 6.734591659972948,
+          "median_after": 6.734591659972948,
+          "median_ratio": 1.0
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.9644933451268902,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "3pc": 0.021984,
+            "sps": 0.007701,
+            "larp": 0.007696,
+            "pnni": 0.007685,
+            "ipv6-opts": 0.007646
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 0.0,
+      "mean_abs_cohens_d": 0.0,
+      "max_categorical_tvd": 0.9644933451268902,
+      "verified": true
+    }
+  },
+  {
+    "model": "logistic_regression",
+    "kind": "class_prevalence",
+    "magnitude": 0.05,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 35.665148,
+      "byte_rate": 19.030077,
+      "packets_ratio": 8.573981,
+      "flow_duration": 0.880537,
+      "backward_bytes": 0.717095
+    },
+    "requested_magnitude": 0.05,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5743264913428565,
+          "cohens_d": -0.00043867945304180565,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.011049999855458736,
+          "median_ratio": 2.8686396343761027
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3689.5735834084057,
+          "cohens_d": -0.003613643733714313,
+          "median_before": 424.0,
+          "median_after": 832.0,
+          "median_ratio": 1.9622641509433962
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 34411.51938818984,
+          "cohens_d": 0.0405382243842698,
+          "median_before": 304.0,
+          "median_after": 834.0,
+          "median_ratio": 2.7434210526315788
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 31.37935677326404,
+          "cohens_d": 0.06301857392366039,
+          "median_before": 4.0,
+          "median_after": 10.0,
+          "median_ratio": 2.5
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 40.37124245075305,
+          "cohens_d": 0.061770135549545364,
+          "median_before": 4.0,
+          "median_after": 8.0,
+          "median_ratio": 2.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.04999983738832643,
+          "cohens_d": -0.544867547891334,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 71.7505992240171,
+          "cohens_d": 0.06510692169691842,
+          "median_before": 8.0,
+          "median_after": 20.0,
+          "median_ratio": 2.5
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 38101.09297159824,
+          "cohens_d": 0.03620493106916263,
+          "median_before": 840.0,
+          "median_after": 2688.0,
+          "median_ratio": 3.2
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 119698.74237530539,
+          "cohens_d": -0.15161191791736012,
+          "median_before": 4132.2314453125,
+          "median_after": 3805.899169921875,
+          "median_ratio": 0.9210275901266837
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 14838607.526469165,
+          "cohens_d": -0.04689222304693704,
+          "median_before": 904993.4118845974,
+          "median_after": 505922.77465145517,
+          "median_ratio": 0.559034759819853
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 223.35838747894843,
+          "cohens_d": 0.13344272117911876,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 223.35838747894843,
+          "cohens_d": 0.13344272117911876,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.19917289922390125,
+          "cohens_d": 0.026164993093210482,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.010989394970238209,
+          "median_ratio": 2.8583975309268514
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.9706325455246096,
+          "cohens_d": 0.18371676217896035,
+          "median_before": 2.1972246170043945,
+          "median_after": 3.044522523880005,
+          "median_ratio": 1.38562188877657
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.941675903994547,
+          "cohens_d": 0.21358362837458628,
+          "median_before": 6.734591659972948,
+          "median_after": 7.896924656268864,
+          "median_ratio": 1.1725914583959476
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5151229643265517,
+          "cohens_d": -0.22391671667911833,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.4506172839492265,
+          "median_ratio": 0.7376287075435604
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6158347551277645,
+          "cohens_d": -0.2615830745388049,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999875,
+          "median_ratio": 0.9999999998
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.08024647606433162,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "tcp": 0.547699,
+            "udp": 0.444571,
+            "arp": 0.002628,
+            "ospf": 0.00148,
+            "unas": 0.001437
+          }
+        },
+        "timestamp": {
+          "tvd": 0.10513769399833678,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:30:54": 0.000358,
+            "2015-02-18 07:30:53": 0.000348,
+            "2015-02-18 07:30:50": 0.000341,
+            "2015-02-18 07:51:12": 0.000338,
+            "2015-02-18 07:46:43": 0.000338
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.04999983738832643,
+      "attack_rate_ratio": 0.2143037398766479,
+      "rows_before": 380999,
+      "rows_after": 307481,
+      "max_abs_cohens_d": 0.544867547891334,
+      "mean_abs_cohens_d": 0.12881843622875658,
+      "max_categorical_tvd": 0.10513769399833678,
+      "verified": true
+    }
+  },
+  {
+    "model": "logistic_regression",
+    "kind": "class_prevalence",
+    "magnitude": 0.3,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 48.735932,
+      "byte_rate": 19.588874,
+      "packets_ratio": 13.017892,
+      "packets_log1p": 1.257753,
+      "total_packets": 1.257753
+    },
+    "requested_magnitude": 0.3,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5754673163454743,
+          "cohens_d": -0.00010355361509290104,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.0011350000277161598,
+          "median_ratio": 0.2946521363904021
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3973.9621372427923,
+          "cohens_d": 0.0011502830782861252,
+          "median_before": 424.0,
+          "median_after": 264.0,
+          "median_ratio": 0.6226415094339622
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 26240.168723654857,
+          "cohens_d": -0.014954406611662722,
+          "median_before": 304.0,
+          "median_after": 178.0,
+          "median_ratio": 0.5855263157894737
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 25.158538272804893,
+          "cohens_d": -0.020395851339299685,
+          "median_before": 4.0,
+          "median_after": 2.0,
+          "median_ratio": 0.5
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 30.91344112693929,
+          "cohens_d": -0.02264370359165113,
+          "median_before": 4.0,
+          "median_after": 2.0,
+          "median_ratio": 0.5
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.29999966251219173,
+          "cohens_d": 0.15123316392566738,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 56.07197939974419,
+          "cohens_d": -0.023306390137659637,
+          "median_before": 8.0,
+          "median_after": 4.0,
+          "median_ratio": 0.5
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 30214.13086089765,
+          "cohens_d": -0.012576055930009869,
+          "median_before": 840.0,
+          "median_after": 324.0,
+          "median_ratio": 0.38571428571428573
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 183658.04677858908,
+          "cohens_d": 0.051885025425291616,
+          "median_before": 4132.2314453125,
+          "median_after": 4590.494140625,
+          "median_ratio": 1.1108995711826213
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 17240880.780220266,
+          "cohens_d": 0.017443379063921852,
+          "median_before": 904993.4118845974,
+          "median_after": 1242768.732873797,
+          "median_ratio": 1.3732351159173652
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 189.49968563955426,
+          "cohens_d": -0.04837705741546825,
+          "median_before": 132.0,
+          "median_after": 110.0,
+          "median_ratio": 0.8333333333333334
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 189.49968563955426,
+          "cohens_d": -0.04837705741546825,
+          "median_before": 132.0,
+          "median_after": 110.0,
+          "median_ratio": 0.8333333333333334
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.18262104589095252,
+          "cohens_d": -0.00954009109490447,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.0011343563674017787,
+          "median_ratio": 0.2950518612310931
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.568280790062369,
+          "cohens_d": -0.06597200143961036,
+          "median_before": 2.1972246170043945,
+          "median_after": 1.6094379425048828,
+          "median_ratio": 0.7324867608206229
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.258170295732932,
+          "cohens_d": -0.07520860368717124,
+          "median_before": 6.734591659972948,
+          "median_after": 5.783825182329737,
+          "median_ratio": 0.8588234408785179
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.6271397525237594,
+          "cohens_d": 0.08018546664385794,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6396396396389193,
+          "median_ratio": 1.0470449702804716
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.7007534453901245,
+          "cohens_d": 0.08997305182093267,
+          "median_before": 0.499999999975,
+          "median_after": 0.516666666662361,
+          "median_ratio": 1.0333333333763888
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.028671016790824264,
+          "levels_before": 133,
+          "levels_after": 132,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.534827,
+            "tcp": 0.439612,
+            "unas": 0.00891,
+            "ospf": 0.003291,
+            "arp": 0.001897
+          }
+        },
+        "timestamp": {
+          "tvd": 0.04922529528167657,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000553,
+            "2015-02-18 07:26:47": 0.000547,
+            "2015-02-18 07:31:10": 0.000523,
+            "2015-02-18 07:30:50": 0.000466,
+            "2015-02-18 07:26:45": 0.000462
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.29999966251219173,
+      "attack_rate_ratio": 1.2858251745655689,
+      "rows_before": 380999,
+      "rows_after": 296307,
+      "max_abs_cohens_d": 0.15123316392566738,
+      "mean_abs_cohens_d": 0.0431367730727033,
+      "max_categorical_tvd": 0.04922529528167657,
+      "verified": true
+    }
+  },
+  {
+    "model": "logistic_regression",
+    "kind": "telemetry_reduction",
+    "magnitude": 0.0,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 45.144392,
+      "byte_rate": 19.396825,
+      "packets_ratio": 11.838175,
+      "packets_log1p": 1.085082,
+      "total_packets": 1.085082
+    },
+    "requested_magnitude": 0.0,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5758408329913007,
+          "cohens_d": 0.0,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.003851999994367361,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 32262.195173740613,
+          "cohens_d": 0.0,
+          "median_before": 840.0,
+          "median_after": 840.0,
+          "median_ratio": 1.0
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 166414.68339914264,
+          "cohens_d": 0.0,
+          "median_before": 4132.2314453125,
+          "median_after": 4132.2314453125,
+          "median_ratio": 1.0
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 16588469.51761601,
+          "cohens_d": 0.0,
+          "median_before": 904993.4118845974,
+          "median_after": 904993.4118845974,
+          "median_ratio": 1.0
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.1870411032213003,
+          "cohens_d": 0.0,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.00384459993802011,
+          "median_ratio": 1.0
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.4387998553806725,
+          "cohens_d": 0.0,
+          "median_before": 6.734591659972948,
+          "median_after": 6.734591659972948,
+          "median_ratio": 1.0
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "columns_removed": [
+        "backward_bytes",
+        "backward_packets",
+        "forward_bytes",
+        "forward_packets"
+      ],
+      "max_abs_cohens_d": 0.0,
+      "mean_abs_cohens_d": 0.0,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  },
+  {
+    "model": "random_forest",
+    "kind": "packet_size",
+    "magnitude": 1.5,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 45.144392,
+      "byte_rate": 30.577846,
+      "packets_ratio": 11.838175,
+      "bytes_per_packet": 1.302552,
+      "mean_packet_size": 1.302552
+    },
+    "requested_magnitude": 1.5,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5758408329913007,
+          "cohens_d": 0.0,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.003851999994367361,
+          "median_ratio": 1.0
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 48401.179577646144,
+          "cohens_d": 0.07800892030746667,
+          "median_before": 840.0,
+          "median_after": 1265.6425473105542,
+          "median_ratio": 1.5067173182268503
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 166414.68339914264,
+          "cohens_d": 0.0,
+          "median_before": 4132.2314453125,
+          "median_after": 4132.2314453125,
+          "median_ratio": 1.0
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 24928803.294541445,
+          "cohens_d": 0.17485383424229256,
+          "median_before": 904993.4118845974,
+          "median_after": 1357022.1467749197,
+          "median_ratio": 1.4994829011506263
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 297.920478495432,
+          "cohens_d": 0.41843117993191853,
+          "median_before": 132.0,
+          "median_after": 193.27992547641804,
+          "median_ratio": 1.4642418596698337
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 297.920478495432,
+          "cohens_d": 0.41843117993191853,
+          "median_before": 132.0,
+          "median_after": 193.27992547641804,
+          "median_ratio": 1.4642418596698337
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.1870411032213003,
+          "cohens_d": 0.0,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.00384459993802011,
+          "median_ratio": 1.0
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.844260749644918,
+          "cohens_d": 0.16904700597159492,
+          "median_before": 6.734591659972948,
+          "median_after": 7.144125015268143,
+          "median_ratio": 1.0608104211765736
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 0.41843117993191853,
+      "mean_abs_cohens_d": 0.07404541884618772,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  },
+  {
+    "model": "random_forest",
+    "kind": "packet_size",
+    "magnitude": 3.0,
+    "status": "ok",
+    "top_drift_features": {
+      "byte_rate": 64.122395,
+      "packet_rate": 45.144392,
+      "packets_ratio": 11.838175,
+      "bytes_per_packet": 4.969042,
+      "mean_packet_size": 4.969042
+    },
+    "requested_magnitude": 3.0,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5758408329913007,
+          "cohens_d": 0.0,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.003851999994367361,
+          "median_ratio": 1.0
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 96803.35915529233,
+          "cohens_d": 0.1778567518335618,
+          "median_before": 840.0,
+          "median_after": 2532.285094621109,
+          "median_ratio": 3.014625112644177
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 166414.68339914264,
+          "cohens_d": 0.0,
+          "median_before": 4132.2314453125,
+          "median_after": 4132.2314453125,
+          "median_ratio": 1.0
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 49940175.58654434,
+          "cohens_d": 0.3980403735831314,
+          "median_before": 904993.4118845974,
+          "median_after": 2714064.764797332,
+          "median_ratio": 2.998988422628897
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 596.0686846609005,
+          "cohens_d": 0.9539298861655563,
+          "median_before": 132.0,
+          "median_after": 387.01983525466005,
+          "median_ratio": 2.9319684488989397
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 596.0686846609005,
+          "cohens_d": 0.9539298861655563,
+          "median_before": 132.0,
+          "median_after": 387.01983525466005,
+          "median_ratio": 2.9319684488989397
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.1870411032213003,
+          "cohens_d": 0.0,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.00384459993802011,
+          "median_ratio": 1.0
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 8.537407930204862,
+          "cohens_d": 0.45803777481981484,
+          "median_before": 6.734591659972948,
+          "median_after": 7.837272195828088,
+          "median_ratio": 1.1637338374067907
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 0.9539298861655563,
+      "mean_abs_cohens_d": 0.17304674544515417,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  },
+  {
+    "model": "random_forest",
+    "kind": "duration",
+    "magnitude": 1.5,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 45.144392,
+      "byte_rate": 19.396825,
+      "packets_ratio": 11.838175,
+      "flow_duration": 9.030478,
+      "duration_log1p": 9.030478
+    },
+    "requested_magnitude": 1.5,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 1.364277350480876,
+          "cohens_d": 0.17322520907108127,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.525890234509085,
+          "median_ratio": 136.52394477623963
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 32262.195173740613,
+          "cohens_d": 0.0,
+          "median_before": 840.0,
+          "median_after": 840.0,
+          "median_ratio": 1.0
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 166414.68339914264,
+          "cohens_d": 0.0,
+          "median_before": 4132.2314453125,
+          "median_after": 4132.2314453125,
+          "median_ratio": 1.0
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 16588469.51761601,
+          "cohens_d": 0.0,
+          "median_before": 904993.4118845974,
+          "median_after": 904993.4118845974,
+          "median_ratio": 1.0
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.5925019974855462,
+          "cohens_d": 0.874241644122428,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.422578000071419,
+          "median_ratio": 109.91468732349769
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.4387998553806725,
+          "cohens_d": 0.0,
+          "median_before": 6.734591659972948,
+          "median_after": 6.734591659972948,
+          "median_ratio": 1.0
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 0.874241644122428,
+      "mean_abs_cohens_d": 0.06161569724667701,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  },
+  {
+    "model": "random_forest",
+    "kind": "duration",
+    "magnitude": 3.0,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 45.144392,
+      "byte_rate": 19.396825,
+      "flow_duration": 12.517423,
+      "duration_log1p": 12.43385,
+      "packets_ratio": 11.838175
+    },
+    "requested_magnitude": 3.0,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 3.7285547009617535,
+          "cohens_d": 0.3948395793924644,
+          "median_before": 0.003851999994367361,
+          "median_after": 2.05178046901817,
+          "median_ratio": 532.6532897244065
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 32262.195173740613,
+          "cohens_d": 0.0,
+          "median_before": 840.0,
+          "median_after": 840.0,
+          "median_ratio": 1.0
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 166414.68339914264,
+          "cohens_d": 0.0,
+          "median_before": 4132.2314453125,
+          "median_after": 4132.2314453125,
+          "median_ratio": 1.0
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 16588469.51761601,
+          "cohens_d": 0.0,
+          "median_before": 904993.4118845974,
+          "median_after": 904993.4118845974,
+          "median_ratio": 1.0
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 1.2856491780454915,
+          "cohens_d": 2.3687831383179834,
+          "median_before": 0.00384459993802011,
+          "median_after": 1.1157251806313644,
+          "median_ratio": 290.20579478184663
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.4387998553806725,
+          "cohens_d": 0.0,
+          "median_before": 6.734591659972948,
+          "median_after": 6.734591659972948,
+          "median_ratio": 1.0
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 2.3687831383179834,
+      "mean_abs_cohens_d": 0.16256604221826162,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  },
+  {
+    "model": "random_forest",
+    "kind": "packet_rate",
+    "magnitude": 1.5,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 70.590827,
+      "byte_rate": 30.52653,
+      "packets_ratio": 11.838175,
+      "packets_log1p": 1.085082,
+      "total_packets": 1.085082
+    },
+    "requested_magnitude": 1.5,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5758408329913007,
+          "cohens_d": 0.0,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.003851999994367361,
+          "median_ratio": 1.0
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 32262.195173740613,
+          "cohens_d": 0.0,
+          "median_before": 840.0,
+          "median_after": 840.0,
+          "median_ratio": 1.0
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 249667.27168142976,
+          "cohens_d": 0.19998474568449606,
+          "median_before": 4132.2314453125,
+          "median_after": 6218.177176054936,
+          "median_ratio": 1.5047988619099932
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 24887461.02521169,
+          "cohens_d": 0.17416268715344987,
+          "median_before": 904993.4118845974,
+          "median_after": 1356911.424757478,
+          "median_ratio": 1.4993605554893346
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.1870411032213003,
+          "cohens_d": 0.0,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.00384459993802011,
+          "median_ratio": 1.0
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.4387998553806725,
+          "cohens_d": 0.0,
+          "median_before": 6.734591659972948,
+          "median_after": 6.734591659972948,
+          "median_ratio": 1.0
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 0.19998474568449606,
+      "mean_abs_cohens_d": 0.022008672519879174,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  },
+  {
+    "model": "random_forest",
+    "kind": "packet_rate",
+    "magnitude": 3.0,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 146.910807,
+      "byte_rate": 63.912451,
+      "packets_ratio": 11.838175,
+      "packets_log1p": 1.085082,
+      "total_packets": 1.085082
+    },
+    "requested_magnitude": 3.0,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5758408329913007,
+          "cohens_d": 0.0,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.003851999994367361,
+          "median_ratio": 1.0
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 32262.195173740613,
+          "cohens_d": 0.0,
+          "median_before": 840.0,
+          "median_after": 840.0,
+          "median_ratio": 1.0
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 499335.5433628595,
+          "cohens_d": 0.45587063563064995,
+          "median_before": 4132.2314453125,
+          "median_after": 12437.354352109875,
+          "median_ratio": 3.0098397238176235
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 49774923.050423466,
+          "cohens_d": 0.39702971676533133,
+          "median_before": 904993.4118845974,
+          "median_after": 2713823.849514956,
+          "median_ratio": 2.9987222159590887
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.1870411032213003,
+          "cohens_d": 0.0,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.00384459993802011,
+          "median_ratio": 1.0
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.4387998553806725,
+          "cohens_d": 0.0,
+          "median_before": 6.734591659972948,
+          "median_after": 6.734591659972948,
+          "median_ratio": 1.0
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 0.45587063563064995,
+      "mean_abs_cohens_d": 0.05017060896446949,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  },
+  {
+    "model": "random_forest",
+    "kind": "byte_rate",
+    "magnitude": 1.5,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 45.144392,
+      "byte_rate": 30.524169,
+      "packets_ratio": 11.838175,
+      "packets_log1p": 1.085082,
+      "total_packets": 1.085082
+    },
+    "requested_magnitude": 1.5,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5758408329913007,
+          "cohens_d": 0.0,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.003851999994367361,
+          "median_ratio": 1.0
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 32262.195173740613,
+          "cohens_d": 0.0,
+          "median_before": 840.0,
+          "median_after": 840.0,
+          "median_ratio": 1.0
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 166414.68339914264,
+          "cohens_d": 0.0,
+          "median_before": 4132.2314453125,
+          "median_after": 4132.2314453125,
+          "median_ratio": 1.0
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 24887497.098364297,
+          "cohens_d": 0.17413746525471302,
+          "median_before": 904993.4118845974,
+          "median_after": 1357012.68970844,
+          "median_ratio": 1.4994724512773394
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.1870411032213003,
+          "cohens_d": 0.0,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.00384459993802011,
+          "median_ratio": 1.0
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.4387998553806725,
+          "cohens_d": 0.0,
+          "median_before": 6.734591659972948,
+          "median_after": 6.734591659972948,
+          "median_ratio": 1.0
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 0.17413746525471302,
+      "mean_abs_cohens_d": 0.010243380309100766,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  },
+  {
+    "model": "random_forest",
+    "kind": "byte_rate",
+    "magnitude": 3.0,
+    "status": "ok",
+    "top_drift_features": {
+      "byte_rate": 63.90773,
+      "packet_rate": 45.144392,
+      "packets_ratio": 11.838175,
+      "packets_log1p": 1.085082,
+      "total_packets": 1.085082
+    },
+    "requested_magnitude": 3.0,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5758408329913007,
+          "cohens_d": 0.0,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.003851999994367361,
+          "median_ratio": 1.0
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 32262.195173740613,
+          "cohens_d": 0.0,
+          "median_before": 840.0,
+          "median_after": 840.0,
+          "median_ratio": 1.0
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 166414.68339914264,
+          "cohens_d": 0.0,
+          "median_before": 4132.2314453125,
+          "median_after": 4132.2314453125,
+          "median_ratio": 1.0
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 49774995.19672869,
+          "cohens_d": 0.39695359884907055,
+          "median_before": 904993.4118845974,
+          "median_after": 2714026.3794168807,
+          "median_ratio": 2.998946007535099
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.1870411032213003,
+          "cohens_d": 0.0,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.00384459993802011,
+          "median_ratio": 1.0
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.4387998553806725,
+          "cohens_d": 0.0,
+          "median_before": 6.734591659972948,
+          "median_after": 6.734591659972948,
+          "median_ratio": 1.0
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 0.39695359884907055,
+      "mean_abs_cohens_d": 0.02335021169700415,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  },
+  {
+    "model": "random_forest",
+    "kind": "iat",
+    "magnitude": 1.5,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 96.037045,
+      "byte_rate": 41.653955,
+      "packets_ratio": 11.838175,
+      "packets_log1p": 1.085082,
+      "total_packets": 1.085082
+    },
+    "requested_magnitude": 1.5,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5758408329913007,
+          "cohens_d": 0.0,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.003851999994367361,
+          "median_ratio": 1.0
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 32262.195173740613,
+          "cohens_d": 0.0,
+          "median_before": 840.0,
+          "median_after": 840.0,
+          "median_ratio": 1.0
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 332918.89519155957,
+          "cohens_d": 0.32234271265688064,
+          "median_before": 4132.2314453125,
+          "median_after": 8316.247350689455,
+          "median_ratio": 2.0125318392132168
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 33186523.67852449,
+          "cohens_d": 0.280702060315604,
+          "median_before": 904993.4118845974,
+          "median_after": 1808896.5283811872,
+          "median_ratio": 1.9987952449446709
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.1870411032213003,
+          "cohens_d": 0.0,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.00384459993802011,
+          "median_ratio": 1.0
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.4387998553806725,
+          "cohens_d": 0.0,
+          "median_before": 6.734591659972948,
+          "median_after": 6.734591659972948,
+          "median_ratio": 1.0
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 0.32234271265688064,
+      "mean_abs_cohens_d": 0.03547322193955792,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  },
+  {
+    "model": "random_forest",
+    "kind": "iat",
+    "magnitude": 3.0,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 248.676293,
+      "byte_rate": 108.421074,
+      "packets_ratio": 11.838175,
+      "packets_log1p": 1.085082,
+      "total_packets": 1.085082
+    },
+    "requested_magnitude": 3.0,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5758408329913007,
+          "cohens_d": 0.0,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.003851999994367361,
+          "median_ratio": 1.0
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 32262.195173740613,
+          "cohens_d": 0.0,
+          "median_before": 840.0,
+          "median_after": 840.0,
+          "median_ratio": 1.0
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 832252.4737822618,
+          "cohens_d": 0.5653381593109383,
+          "median_before": 4132.2314453125,
+          "median_after": 20746.85292404041,
+          "median_ratio": 5.020738358587131
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 82961516.874665,
+          "cohens_d": 0.4922930195757061,
+          "median_before": 904993.4118845974,
+          "median_after": 4522327.953026797,
+          "median_ratio": 4.997083839106967
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.1870411032213003,
+          "cohens_d": 0.0,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.00384459993802011,
+          "median_ratio": 1.0
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.4387998553806725,
+          "cohens_d": 0.0,
+          "median_before": 6.734591659972948,
+          "median_after": 6.734591659972948,
+          "median_ratio": 1.0
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 0.5653381593109383,
+      "mean_abs_cohens_d": 0.062213598758037905,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  },
+  {
+    "model": "random_forest",
+    "kind": "protocol_mixture",
+    "magnitude": 3.0,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 45.144392,
+      "byte_rate": 19.396825,
+      "packets_ratio": 11.838175,
+      "packets_log1p": 1.085082,
+      "total_packets": 1.085082
+    },
+    "requested_magnitude": 3.0,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5758408329913007,
+          "cohens_d": 0.0,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.003851999994367361,
+          "median_ratio": 1.0
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3888.868500967194,
+          "cohens_d": 0.0,
+          "median_before": 424.0,
+          "median_after": 424.0,
+          "median_ratio": 1.0
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 28373.32667277342,
+          "cohens_d": 0.0,
+          "median_before": 304.0,
+          "median_after": 304.0,
+          "median_ratio": 1.0
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 26.776647707736764,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 33.37932120556747,
+          "cohens_d": 0.0,
+          "median_before": 4.0,
+          "median_after": 4.0,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 32262.195173740613,
+          "cohens_d": 0.0,
+          "median_before": 840.0,
+          "median_after": 840.0,
+          "median_ratio": 1.0
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 166414.68339914264,
+          "cohens_d": 0.0,
+          "median_before": 4132.2314453125,
+          "median_after": 4132.2314453125,
+          "median_ratio": 1.0
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 16588469.51761601,
+          "cohens_d": 0.0,
+          "median_before": 904993.4118845974,
+          "median_after": 904993.4118845974,
+          "median_ratio": 1.0
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.1870411032213003,
+          "cohens_d": 0.0,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.00384459993802011,
+          "median_ratio": 1.0
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.4387998553806725,
+          "cohens_d": 0.0,
+          "median_before": 6.734591659972948,
+          "median_after": 6.734591659972948,
+          "median_ratio": 1.0
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.9644933451268902,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "3pc": 0.021984,
+            "sps": 0.007701,
+            "larp": 0.007696,
+            "pnni": 0.007685,
+            "ipv6-opts": 0.007646
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "max_abs_cohens_d": 0.0,
+      "mean_abs_cohens_d": 0.0,
+      "max_categorical_tvd": 0.9644933451268902,
+      "verified": true
+    }
+  },
+  {
+    "model": "random_forest",
+    "kind": "class_prevalence",
+    "magnitude": 0.05,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 35.665148,
+      "byte_rate": 19.030077,
+      "packets_ratio": 8.573981,
+      "flow_duration": 0.880537,
+      "backward_bytes": 0.717095
+    },
+    "requested_magnitude": 0.05,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5743264913428565,
+          "cohens_d": -0.00043867945304180565,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.011049999855458736,
+          "median_ratio": 2.8686396343761027
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3689.5735834084057,
+          "cohens_d": -0.003613643733714313,
+          "median_before": 424.0,
+          "median_after": 832.0,
+          "median_ratio": 1.9622641509433962
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 34411.51938818984,
+          "cohens_d": 0.0405382243842698,
+          "median_before": 304.0,
+          "median_after": 834.0,
+          "median_ratio": 2.7434210526315788
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 31.37935677326404,
+          "cohens_d": 0.06301857392366039,
+          "median_before": 4.0,
+          "median_after": 10.0,
+          "median_ratio": 2.5
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 40.37124245075305,
+          "cohens_d": 0.061770135549545364,
+          "median_before": 4.0,
+          "median_after": 8.0,
+          "median_ratio": 2.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.04999983738832643,
+          "cohens_d": -0.544867547891334,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 71.7505992240171,
+          "cohens_d": 0.06510692169691842,
+          "median_before": 8.0,
+          "median_after": 20.0,
+          "median_ratio": 2.5
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 38101.09297159824,
+          "cohens_d": 0.03620493106916263,
+          "median_before": 840.0,
+          "median_after": 2688.0,
+          "median_ratio": 3.2
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 119698.74237530539,
+          "cohens_d": -0.15161191791736012,
+          "median_before": 4132.2314453125,
+          "median_after": 3805.899169921875,
+          "median_ratio": 0.9210275901266837
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 14838607.526469165,
+          "cohens_d": -0.04689222304693704,
+          "median_before": 904993.4118845974,
+          "median_after": 505922.77465145517,
+          "median_ratio": 0.559034759819853
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 223.35838747894843,
+          "cohens_d": 0.13344272117911876,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 223.35838747894843,
+          "cohens_d": 0.13344272117911876,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.19917289922390125,
+          "cohens_d": 0.026164993093210482,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.010989394970238209,
+          "median_ratio": 2.8583975309268514
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.9706325455246096,
+          "cohens_d": 0.18371676217896035,
+          "median_before": 2.1972246170043945,
+          "median_after": 3.044522523880005,
+          "median_ratio": 1.38562188877657
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.941675903994547,
+          "cohens_d": 0.21358362837458628,
+          "median_before": 6.734591659972948,
+          "median_after": 7.896924656268864,
+          "median_ratio": 1.1725914583959476
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5151229643265517,
+          "cohens_d": -0.22391671667911833,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.4506172839492265,
+          "median_ratio": 0.7376287075435604
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6158347551277645,
+          "cohens_d": -0.2615830745388049,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999875,
+          "median_ratio": 0.9999999998
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.08024647606433162,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "tcp": 0.547699,
+            "udp": 0.444571,
+            "arp": 0.002628,
+            "ospf": 0.00148,
+            "unas": 0.001437
+          }
+        },
+        "timestamp": {
+          "tvd": 0.10513769399833678,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:30:54": 0.000358,
+            "2015-02-18 07:30:53": 0.000348,
+            "2015-02-18 07:30:50": 0.000341,
+            "2015-02-18 07:51:12": 0.000338,
+            "2015-02-18 07:46:43": 0.000338
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.04999983738832643,
+      "attack_rate_ratio": 0.2143037398766479,
+      "rows_before": 380999,
+      "rows_after": 307481,
+      "max_abs_cohens_d": 0.544867547891334,
+      "mean_abs_cohens_d": 0.12881843622875658,
+      "max_categorical_tvd": 0.10513769399833678,
+      "verified": true
+    }
+  },
+  {
+    "model": "random_forest",
+    "kind": "class_prevalence",
+    "magnitude": 0.3,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 48.735932,
+      "byte_rate": 19.588874,
+      "packets_ratio": 13.017892,
+      "packets_log1p": 1.257753,
+      "total_packets": 1.257753
+    },
+    "requested_magnitude": 0.3,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5754673163454743,
+          "cohens_d": -0.00010355361509290104,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.0011350000277161598,
+          "median_ratio": 0.2946521363904021
+        },
+        "forward_bytes": {
+          "mean_before": 3888.868500967194,
+          "mean_after": 3973.9621372427923,
+          "cohens_d": 0.0011502830782861252,
+          "median_before": 424.0,
+          "median_after": 264.0,
+          "median_ratio": 0.6226415094339622
+        },
+        "backward_bytes": {
+          "mean_before": 28373.32667277342,
+          "mean_after": 26240.168723654857,
+          "cohens_d": -0.014954406611662722,
+          "median_before": 304.0,
+          "median_after": 178.0,
+          "median_ratio": 0.5855263157894737
+        },
+        "forward_packets": {
+          "mean_before": 26.776647707736764,
+          "mean_after": 25.158538272804893,
+          "cohens_d": -0.020395851339299685,
+          "median_before": 4.0,
+          "median_after": 2.0,
+          "median_ratio": 0.5
+        },
+        "backward_packets": {
+          "mean_before": 33.37932120556747,
+          "mean_after": 30.91344112693929,
+          "cohens_d": -0.02264370359165113,
+          "median_before": 4.0,
+          "median_after": 2.0,
+          "median_ratio": 0.5
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.29999966251219173,
+          "cohens_d": 0.15123316392566738,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 56.07197939974419,
+          "cohens_d": -0.023306390137659637,
+          "median_before": 8.0,
+          "median_after": 4.0,
+          "median_ratio": 0.5
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 30214.13086089765,
+          "cohens_d": -0.012576055930009869,
+          "median_before": 840.0,
+          "median_after": 324.0,
+          "median_ratio": 0.38571428571428573
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 183658.04677858908,
+          "cohens_d": 0.051885025425291616,
+          "median_before": 4132.2314453125,
+          "median_after": 4590.494140625,
+          "median_ratio": 1.1108995711826213
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 17240880.780220266,
+          "cohens_d": 0.017443379063921852,
+          "median_before": 904993.4118845974,
+          "median_after": 1242768.732873797,
+          "median_ratio": 1.3732351159173652
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 189.49968563955426,
+          "cohens_d": -0.04837705741546825,
+          "median_before": 132.0,
+          "median_after": 110.0,
+          "median_ratio": 0.8333333333333334
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 189.49968563955426,
+          "cohens_d": -0.04837705741546825,
+          "median_before": 132.0,
+          "median_after": 110.0,
+          "median_ratio": 0.8333333333333334
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.18262104589095252,
+          "cohens_d": -0.00954009109490447,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.0011343563674017787,
+          "median_ratio": 0.2950518612310931
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.568280790062369,
+          "cohens_d": -0.06597200143961036,
+          "median_before": 2.1972246170043945,
+          "median_after": 1.6094379425048828,
+          "median_ratio": 0.7324867608206229
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.258170295732932,
+          "cohens_d": -0.07520860368717124,
+          "median_before": 6.734591659972948,
+          "median_after": 5.783825182329737,
+          "median_ratio": 0.8588234408785179
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.6271397525237594,
+          "cohens_d": 0.08018546664385794,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6396396396389193,
+          "median_ratio": 1.0470449702804716
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.7007534453901245,
+          "cohens_d": 0.08997305182093267,
+          "median_before": 0.499999999975,
+          "median_after": 0.516666666662361,
+          "median_ratio": 1.0333333333763888
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.028671016790824264,
+          "levels_before": 133,
+          "levels_after": 132,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.534827,
+            "tcp": 0.439612,
+            "unas": 0.00891,
+            "ospf": 0.003291,
+            "arp": 0.001897
+          }
+        },
+        "timestamp": {
+          "tvd": 0.04922529528167657,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000553,
+            "2015-02-18 07:26:47": 0.000547,
+            "2015-02-18 07:31:10": 0.000523,
+            "2015-02-18 07:30:50": 0.000466,
+            "2015-02-18 07:26:45": 0.000462
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.29999966251219173,
+      "attack_rate_ratio": 1.2858251745655689,
+      "rows_before": 380999,
+      "rows_after": 296307,
+      "max_abs_cohens_d": 0.15123316392566738,
+      "mean_abs_cohens_d": 0.0431367730727033,
+      "max_categorical_tvd": 0.04922529528167657,
+      "verified": true
+    }
+  },
+  {
+    "model": "random_forest",
+    "kind": "telemetry_reduction",
+    "magnitude": 0.0,
+    "status": "ok",
+    "top_drift_features": {
+      "packet_rate": 45.144392,
+      "byte_rate": 19.396825,
+      "packets_ratio": 11.838175,
+      "packets_log1p": 1.085082,
+      "total_packets": 1.085082
+    },
+    "requested_magnitude": 0.0,
+    "realized": {
+      "features": {
+        "flow_duration": {
+          "mean_before": 0.5758408329913007,
+          "mean_after": 0.5758408329913007,
+          "cohens_d": 0.0,
+          "median_before": 0.003851999994367361,
+          "median_after": 0.003851999994367361,
+          "median_ratio": 1.0
+        },
+        "label": {
+          "mean_before": 0.23331294832794836,
+          "mean_after": 0.23331294832794836,
+          "cohens_d": 0.0,
+          "median_before": 0.0,
+          "median_after": 0.0
+        },
+        "total_packets": {
+          "mean_before": 60.155968913304235,
+          "mean_after": 60.155968913304235,
+          "cohens_d": 0.0,
+          "median_before": 8.0,
+          "median_after": 8.0,
+          "median_ratio": 1.0
+        },
+        "total_bytes": {
+          "mean_before": 32262.195173740613,
+          "mean_after": 32262.195173740613,
+          "cohens_d": 0.0,
+          "median_before": 840.0,
+          "median_after": 840.0,
+          "median_ratio": 1.0
+        },
+        "packet_rate": {
+          "mean_before": 166414.68339914264,
+          "mean_after": 166414.68339914264,
+          "cohens_d": 0.0,
+          "median_before": 4132.2314453125,
+          "median_after": 4132.2314453125,
+          "median_ratio": 1.0
+        },
+        "byte_rate": {
+          "mean_before": 16588469.51761601,
+          "mean_after": 16588469.51761601,
+          "cohens_d": 0.0,
+          "median_before": 904993.4118845974,
+          "median_after": 904993.4118845974,
+          "median_ratio": 1.0
+        },
+        "mean_packet_size": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "bytes_per_packet": {
+          "mean_before": 198.49215926255482,
+          "mean_after": 198.49215926255482,
+          "cohens_d": 0.0,
+          "median_before": 132.0,
+          "median_after": 132.0,
+          "median_ratio": 1.0
+        },
+        "duration_log1p": {
+          "mean_before": 0.1870411032213003,
+          "mean_after": 0.1870411032213003,
+          "cohens_d": 0.0,
+          "median_before": 0.00384459993802011,
+          "median_after": 0.00384459993802011,
+          "median_ratio": 1.0
+        },
+        "packets_log1p": {
+          "mean_before": 2.674408114868608,
+          "mean_after": 2.674408114868608,
+          "cohens_d": 0.0,
+          "median_before": 2.1972246170043945,
+          "median_after": 2.1972246170043945,
+          "median_ratio": 1.0
+        },
+        "bytes_log1p": {
+          "mean_before": 7.4387998553806725,
+          "mean_after": 7.4387998553806725,
+          "cohens_d": 0.0,
+          "median_before": 6.734591659972948,
+          "median_after": 6.734591659972948,
+          "median_ratio": 1.0
+        },
+        "bytes_ratio": {
+          "mean_before": 0.5972132216553999,
+          "mean_after": 0.5972132216553999,
+          "cohens_d": 0.0,
+          "median_before": 0.6108998732571909,
+          "median_after": 0.6108998732571909,
+          "median_ratio": 1.0
+        },
+        "packets_ratio": {
+          "mean_before": 0.6780958373004824,
+          "mean_after": 0.6780958373004824,
+          "cohens_d": 0.0,
+          "median_before": 0.499999999975,
+          "median_after": 0.499999999975,
+          "median_ratio": 1.0
+        }
+      },
+      "categorical": {
+        "protocol": {
+          "tvd": 0.0,
+          "levels_before": 133,
+          "levels_after": 133,
+          "top_before": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          },
+          "top_after": {
+            "udp": 0.511098,
+            "tcp": 0.468022,
+            "unas": 0.006929,
+            "ospf": 0.002827,
+            "arp": 0.002121
+          }
+        },
+        "timestamp": {
+          "tvd": 0.0,
+          "levels_before": 9924,
+          "levels_after": 9924,
+          "top_before": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          },
+          "top_after": {
+            "2015-02-18 07:25:39": 0.000454,
+            "2015-02-18 07:26:47": 0.000451,
+            "2015-02-18 07:31:10": 0.000436,
+            "2015-02-18 07:26:45": 0.000404,
+            "2015-02-18 07:30:50": 0.000402
+          }
+        }
+      },
+      "attack_rate_before": 0.23331294832794836,
+      "attack_rate_after": 0.23331294832794836,
+      "attack_rate_ratio": 1.0,
+      "rows_before": 380999,
+      "rows_after": 380999,
+      "columns_removed": [
+        "backward_bytes",
+        "backward_packets",
+        "forward_bytes",
+        "forward_packets"
+      ],
+      "max_abs_cohens_d": 0.0,
+      "mean_abs_cohens_d": 0.0,
+      "max_categorical_tvd": 0.0,
+      "verified": true
+    }
+  }
+]
