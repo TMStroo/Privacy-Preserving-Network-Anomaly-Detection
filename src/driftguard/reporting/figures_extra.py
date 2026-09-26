@@ -93,8 +93,11 @@ def drift_detector_comparison(drift_events_csv: str, out_path: str) -> Optional[
     axes[0].set_xticklabels(order, fontsize=7.5, rotation=20)
     axes[1].set_xticks(x)
     axes[1].set_xticklabels(order, fontsize=7.5, rotation=20)
-    fig.suptitle("Drift detectors compared on the same windows", fontsize=10, y=1.03)
-    fig.tight_layout()
+    # y=1.03 put the title outside the canvas and tight_layout() then claimed
+    # the space, so the suptitle was clipped away. Reserving the top band in
+    # the layout rect is what keeps it inside the saved image.
+    fig.suptitle("Drift detectors compared on the same windows", fontsize=10, y=0.98)
+    fig.tight_layout(rect=(0, 0, 1, 0.9))
     fig.savefig(out_path)
     plt.close(fig)
     return out_path
@@ -128,8 +131,12 @@ def recall_vs_fpr(metrics: dict, out_path: str) -> Optional[str]:
         ax.set_title(title)
         ax.grid(alpha=0.25, linewidth=0.5)
     axes[0].set_ylabel("Recall")
-    fig.suptitle("Operating point per model, at the threshold chosen on validation", fontsize=10, y=1.03)
-    fig.tight_layout()
+    # Same clipping fix as drift_detector_comparison: y above 1.0 puts the
+    # title outside the canvas, so the top band is reserved in the rect.
+    fig.suptitle(
+        "Operating point per model, at the threshold chosen on validation", fontsize=10, y=0.98
+    )
+    fig.tight_layout(rect=(0, 0, 1, 0.9))
     fig.savefig(out_path)
     plt.close(fig)
     return out_path
@@ -146,20 +153,23 @@ def shift_degradation(shift_csv: str, out_path: str) -> Optional[str]:
     table = _read_csv(shift_csv)
     if table is None or table.empty or "f1_degradation" not in table.columns:
         return None
-    if "kind" not in table.columns:
+    # The family column is `shift`. It was read as `kind` here, which made this
+    # renderer return None on every real shift artifact and leave the figure
+    # silently missing from the report.
+    if "shift" not in table.columns:
         return None
 
-    grouped = table.groupby("kind", as_index=False)["f1_degradation"].mean()
+    grouped = table.groupby("shift", as_index=False)["f1_degradation"].mean()
     grouped = grouped.sort_values("f1_degradation", ascending=True)
 
     verified = {}
     if "realized_verified" in table.columns:
-        counts = table.groupby("kind")["realized_verified"].agg(["sum", "count"])
+        counts = table.groupby("shift")["realized_verified"].agg(["sum", "count"])
         verified = {k: (int(r["sum"]), int(r["count"])) for k, r in counts.iterrows()}
 
     labels, values, colours = [], [], []
     for _, row in grouped.iterrows():
-        kind = str(row["kind"])
+        kind = str(row["shift"])
         ok, total = verified.get(kind, (1, 1))
         labels.append(f"{kind.replace('_', ' ')}\n{ok}/{total} realized")
         value = float(row["f1_degradation"])

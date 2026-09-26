@@ -293,3 +293,67 @@ def test_the_cross_dataset_section_ignores_the_synthetic_fixture(tmp_path):
 
     others = _other_datasets(str(root), "unsw_nb15")
     assert set(others) == {"ugr16"}, others
+
+
+def test_the_readme_agrees_with_the_experiments_it_cites():
+    """Every headline number in the README is read back out of the run
+    directories rather than trusted. A README that drifts from its artifacts
+    is the one defect a reviewer cannot discover, because it looks correct."""
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    checker = root / "scripts" / "check_readme.py"
+    if not (root / "results" / "experiments").exists():
+        pytest.skip("no experiment artifacts in this checkout")
+    result = subprocess.run(
+        [sys.executable, str(checker)], capture_output=True, text=True, cwd=root
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_the_shift_figure_is_drawn_from_the_real_column_name(tmp_path):
+    """The shift renderer read the family column as `kind`, which the
+    artifact never has, so it returned None on every real shift run and the
+    figure was silently missing. It groups on `shift`."""
+    import pandas as pd
+
+    from driftguard.reporting.figures_extra import shift_degradation
+
+    frame = pd.DataFrame(
+        {
+            "shift": ["byte_rate", "byte_rate", "packet_size", "packet_size"],
+            "f1_degradation": [0.20, 0.30, 0.10, 0.12],
+            "realized_verified": ["True", "True", "True", "False"],
+        }
+    )
+    csv = tmp_path / "shift.csv"
+    frame.to_csv(csv, index=False)
+    out = shift_degradation(str(csv), str(tmp_path / "fig.png"))
+    assert out is not None, "renderer declined on a well-formed shift artifact"
+    assert (tmp_path / "fig.png").stat().st_size > 0
+
+
+def test_no_figure_places_its_title_outside_the_canvas():
+    """A suptitle at y above 1.0 is drawn off the figure and then clipped by
+    savefig, so the title silently disappears from the rendered image. Every
+    suptitle must sit inside the canvas and reserve its band in the layout."""
+    import re
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1] / "src/driftguard/reporting"
+    offenders = []
+    for path in sorted(root.glob("figures*.py")):
+        text = path.read_text(encoding="utf-8")
+        for match in re.finditer(r"suptitle\((?:[^()]|\([^()]*\))*\)", text, re.S):
+            call = match.group(0)
+            found = re.search(r"y\s*=\s*([0-9]*\.?[0-9]+)", call)
+            if found and float(found.group(1)) > 1.0:
+                offenders.append(f"{path.name}: suptitle y={found.group(1)}")
+            # A title inside the canvas needs its band reserved, or tight_layout
+            # reclaims the space and clips it again.
+            after = text[match.end() : match.end() + 260]
+            if "tight_layout()" in after and "rect=" not in after:
+                offenders.append(f"{path.name}: tight_layout() without rect after suptitle")
+    assert not offenders, offenders
