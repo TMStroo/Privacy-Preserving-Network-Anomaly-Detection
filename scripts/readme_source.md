@@ -642,7 +642,7 @@ from CI on purpose, since it needs the raw datasets and hours of compute.
 ## 21. Tests
 
 ```bash
-python -m pytest tests/ -q     # 293 tests
+python -m pytest tests/ -q     # 295 tests
 ```
 
 The suite covers the parts where a silent error would corrupt a result:

@@ -125,8 +125,11 @@ def test_extra_figures_render_from_a_recorded_run(tmp_path):
         "false_negatives": {"count": 25, "mean_score": 0.38}}), encoding="utf-8")
 
     shift_csv = tmp_path / "shift.csv"
+    # The family column is `shift`, as the controlled-shift artifact writes it.
+    # This fixture used `kind`, which the renderer never had a column for, so
+    # the assertion below passed only because the renderer declined.
     shift_csv.write_text(
-        "kind,magnitude,realized_verified,f1_degradation\n"
+        "shift,magnitude,realized_verified,f1_degradation\n"
         "packet_size,2.0,True,-0.03\npacket_size,3.0,True,0.04\n"
         "byte_rate,1.5,False,0.001\n", encoding="utf-8")
 

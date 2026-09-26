@@ -410,11 +410,58 @@ def _ugr_section(report, experiments_dir: str) -> None:
             "further than F1 for the models that score it, because the forward period carries more attacks than "
             "the period they were fitted on."
         )
-        if any(m.get("adaptation") for m in models):
+        adapted = [m for m in models if m.get("adaptation")]
+        if adapted:
             report.para(
                 "Adaptation behaves here in the opposite direction to the other dataset. That disagreement is the "
-                "most consequential difference between the two experiments, and it is taken up in section 23."
+                "most consequential difference between the two experiments, and the numbers are given here "
+                "rather than deferred, because the reversal is the finding."
             )
+            report.table(
+                ["Model", "Strategy", "Forward F1", "Forward FPR", "F1 recovery %", "Rows used", "Refits"],
+                [
+                    [
+                        entry["result"]["model"],
+                        record["strategy"],
+                        f"{record.get('metrics', {}).get('f1', 0.0):.4f}",
+                        f"{record.get('metrics', {}).get('false_positive_rate', 0.0):.4f}",
+                        f"{(record.get('recovery') or {}).get('f1_recovery_pct', 0.0):+.1f}",
+                        f"{record.get('rows_used', 0):,}",
+                        str(record.get("refits", 0)),
+                    ]
+                    for entry in adapted
+                    for record in entry["adaptation"].get("strategies", [])
+                ],
+                widths=[1.1, 1.4, 0.8, 0.8, 0.8, 0.9, 0.5],
+                font_size=6.6,
+            )
+            rolling = {
+                entry["result"]["model"]: next(
+                    (
+                        r
+                        for r in entry["adaptation"].get("strategies", [])
+                        if r["strategy"] == "rolling_window_retrain"
+                    ),
+                    None,
+                )
+                for entry in adapted
+            }
+            best = [
+                (model, record.get("metrics", {}).get("f1", 0.0))
+                for model, record in rolling.items()
+                if record
+            ]
+            if best:
+                report.para(
+                    "On every model here, rolling-window retraining is the strongest of the five strategies, which "
+                    "is the reverse of the result on UNSW-NB15, where it was the worst choice for one model. The "
+                    "mechanism is visible in the prevalence above: this dataset's forward period carries more "
+                    "attacks than the recent history a retrain would use, so refitting moves the model towards "
+                    "the distribution it is about to face rather than away from it. The best of them is "
+                    f"{max(best, key=lambda pair: pair[1])[0]} at "
+                    f"{max(best, key=lambda pair: pair[1])[1]:.4f}, against "
+                    f"{min(best, key=lambda pair: pair[1])[1]:.4f} for the weakest."
+                )
 
 
 def generate_report(experiments_dir: str = "results/experiments", output: str = "docs/technical_report.pdf") -> str:
@@ -874,6 +921,38 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
             f"{drift_summary['alerts']} raised an alert, a rate of "
             f"{drift_summary['alerts'] / max(drift_summary['comparisons'], 1):.1%}."
         )
+    by_method = (drift_summary or {}).get("by_method", {})
+    if by_method:
+        report.para(
+            "The aggregate rate above hides the disagreement between the detectors, which is the point of "
+            "reporting them separately. A pooled figure would suggest a detector family of intermediate "
+            "sensitivity; what each detector actually did on these windows is very different."
+        )
+        report.table(
+            ["Detector", "Alerts", "Comparisons", "Alert rate"],
+            [
+                [
+                    name,
+                    f"{s.get('alerts', 0)}",
+                    f"{s.get('comparisons', 0)}",
+                    f"{s.get('alerts', 0) / max(s.get('comparisons', 1), 1) * 100:.1f}%",
+                ]
+                for name, s in sorted(by_method.items())
+            ],
+            widths=[1.3, 0.8, 1.0, 0.9],
+        )
+        rank = sorted(
+            by_method.items(),
+            key=lambda pair: pair[1].get("alerts", 0) / max(pair[1].get("comparisons", 1), 1),
+        )
+        report.para(
+            f"The ordering runs from {rank[0][0]} at "
+            f"{rank[0][1].get('alerts', 0) / max(rank[0][1].get('comparisons', 1), 1):.1%} to "
+            f"{rank[-1][0]} at "
+            f"{rank[-1][1].get('alerts', 0) / max(rank[-1][1].get('comparisons', 1), 1):.1%}. "
+            "This ordering is not a property of the detectors: section 8 shows the same four methods ranking "
+            "themselves differently on the second dataset, with two of them silent throughout."
+        )
     report.para(
         "The detectors do not agree, and that disagreement is the result rather than a defect in any one of them: "
         "a significance test, a distributional distance and a sequential detector answer three different "
@@ -990,6 +1069,38 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
             notes = [r["note"] for r in rows if r.get("note") and not str(r["note"]).startswith("trained")]
             for note in dict.fromkeys(notes):
                 report.para(note, size=7.4, italic=True)
+
+            # The target_fpr sweep contains the highest F1 anywhere in this
+            # report, so it is called out with the budget it was measured at.
+            # Quoting the number without the budget would read as a general
+            # claim about the model, which it is not.
+            target_rows = [
+                r for r in rows if str(r.get("ablation", "")) == "target_fpr" and r.get("f1") is not None
+            ]
+            if target_rows:
+                best = max(target_rows, key=lambda r: float(r["f1"]))
+                same_model = [
+                    r
+                    for r in target_rows
+                    if r.get("model") == best.get("model")
+                    and abs(float(r.get("target_fpr", 0)) - 0.05) < 1e-9
+                ]
+                report.para(
+                    f"The highest F1 in this report is {best['model']} at {float(best['f1']):.4f}, measured at a "
+                    f"target false-positive budget of {float(best.get('target_fpr', 0)):.2f} with an achieved rate "
+                    f"of {float(best.get('achieved_fpr', 0)):.6f}."
+                    + (
+                        f" The comparison point in the same artifact is the same model at the 0.05 budget used "
+                        f"throughout this report, where it reaches {float(same_model[0]['f1']):.4f} at an achieved "
+                        f"rate of {float(same_model[0].get('achieved_fpr', 0)):.6f}."
+                        if same_model
+                        else ""
+                    )
+                    + " This is an ablation of the false-positive budget and not a general claim about the model: "
+                    "the headline results in sections 16 and 8 are all measured at 0.05, and the sweep shows the "
+                    "two models behaving in opposite directions as the budget tightens, so it does not identify a "
+                    "universally better model or budget."
+                )
     else:
         report.para("No ablation experiment has been recorded yet.")
 

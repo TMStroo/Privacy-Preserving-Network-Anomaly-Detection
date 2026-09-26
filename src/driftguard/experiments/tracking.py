@@ -201,6 +201,10 @@ class ExperimentRun:
             "dataset": dataset,
             "dataset_checksums": dataset_checksums,
             "feature_schema_hash": schema_hash(features),
+            # Records that the adaptation study stores the applied threshold at
+            # full precision, so an audit can tell a run written by the current
+            # code from one written before that fix, without a list of dates.
+            "adaptation_threshold_precision": "full",
             "feature_count": len(features),
             "random_seed": int(seed),
             "package_versions": package_versions(),
