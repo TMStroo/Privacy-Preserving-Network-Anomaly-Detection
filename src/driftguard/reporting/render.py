@@ -170,9 +170,12 @@ def calibration_table(experiments_dir: str, experiment_path: str) -> str:
             data = json.load(handle)
         model = path.stem.replace("calibration_", "")
         backtest, forward = data.get("backtest", {}), data.get("forward", {})
+        # Five places, not four: Brier and ECE are small differences between
+        # close numbers, and at four places the gradient boosting and random
+        # forest rows differ in the last digit the reader cannot see.
         lines.append(
-            f"| {model} | {_fmt(backtest.get('brier'))} | {_fmt(forward.get('brier'))} | "
-            f"{_fmt(backtest.get('ece'))} | {_fmt(forward.get('ece'))} |"
+            f"| {model} | {_fmt(backtest.get('brier'), 5)} | {_fmt(forward.get('brier'), 5)} | "
+            f"{_fmt(backtest.get('ece'), 5)} | {_fmt(forward.get('ece'), 5)} |"
         )
     return "\n".join(lines)
 

@@ -333,6 +333,28 @@ def _other_datasets(experiments_dir: str, current: str) -> dict:
     return found
 
 
+def _other_dataset_paths(experiments_dir: str, current: str) -> dict:
+    """The run directory behind each entry of _other_datasets.
+
+    Some tables are read from files beside metrics.json rather than from the
+    metrics payload, so the path is needed as well as the payload.
+    """
+    root = Path(experiments_dir)
+    paths: dict = {}
+    for directory in sorted(root.iterdir()):
+        if not (directory / "metrics.json").is_file() or directory.name.endswith(".tmp"):
+            continue
+        try:
+            loaded = load_experiment(str(directory))
+        except Exception:
+            continue
+        name = loaded.get("dataset")
+        if not name or name == current or name == "synthetic":
+            continue
+        paths[name] = str(directory)
+    return paths
+
+
 def _ugr_section(report, experiments_dir: str) -> None:
     """Section 8: the UGR'16 experiment, on its own terms.
 
@@ -1011,6 +1033,20 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
                 "Numeric families are measured with Cohen's d and the categorical protocol-mixture family with "
                 "total-variation distance, because a mixture has no mean for Cohen's d to summarise."
             )
+            # The measured distance, not just the choice of metric. A reader who
+            # is told TVD was used and not what it came out at cannot tell a
+            # mixture that barely moved from one that moved completely.
+            tvd = pd.to_numeric(
+                shifts.get("realized_max_categorical_tvd"), errors="coerce"
+            ).dropna()
+            if not tvd.empty:
+                worst = float(tvd.max())
+                report.para(
+                    f"The protocol-mixture family reached a maximum categorical total-variation distance of "
+                    f"{worst:.4f} at its strongest magnitude. Total-variation distance is bounded by 1, so this is "
+                    "close to the largest mixture change the family can express: the real and synthetic "
+                    "protocol distributions barely overlap at that setting."
+                )
             report.para(
                 "The responses are not uniformly harmful. Several perturbations improved F1, most clearly the "
                 "class-prevalence shift, which raises the base rate and therefore precision at a fixed threshold. "
@@ -1165,6 +1201,13 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
     header, rows = _parse_markdown_table(calibration_table(experiments_dir, str(base)))
     if rows:
         report.table(header, rows, widths=[1.2, 0.9, 0.9, 0.9, 0.9], font_size=7.0)
+    # The other dataset, because calibration moved the same way on both and a
+    # single table would let a reader assume it did not.
+    for name, other_path in _other_dataset_paths(experiments_dir, metrics["dataset"]).items():
+        report.para(f"The same measurement on {name}:")
+        header, rows = _parse_markdown_table(calibration_table(experiments_dir, other_path))
+        if rows:
+            report.table(header, rows, widths=[1.2, 0.9, 0.9, 0.9, 0.9], font_size=7.0)
     if "calibration" in figures:
         report.figure(figures["calibration"], "Reliability diagram, backtest versus forward period.", width=300)
     if "class_timeline" in figures:
