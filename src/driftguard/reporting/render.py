@@ -27,14 +27,35 @@ def load_metadata(path: str) -> Dict:
         return json.load(handle)
 
 
-def latest_experiment(experiments_dir: str) -> Optional[str]:
+def latest_experiment(experiments_dir: str, dataset: Optional[str] = None) -> Optional[str]:
+    """The most recent finished run, preferring a real dataset.
+
+    Sorting by directory name picks the synthetic fixture, because its
+    directory is the newest. The fixture exists so the test suite can run the
+    whole pipeline in seconds without a multi-gigabyte download, and it is
+    never a research result. This function chose it, and the report was
+    generated from 40,000 synthetic rows while the completed UNSW-NB15
+    benchmark sat on disk unread: every table in the document described the
+    fixture rather than the experiment.
+
+    Where more than one real dataset has been run, ``dataset`` pins the choice.
+    Without it the report followed alphabetical order into UGR'16 and then
+    printed that run's numbers under a heading reading "UNSW-NB15", which is
+    the same class of error one level up.
+    """
     base = Path(experiments_dir)
     if not base.exists():
         return None
     candidates = [d for d in base.iterdir() if (d / "metrics.json").exists()]
     if not candidates:
         return None
-    return str(sorted(candidates, key=lambda p: p.name)[-1])
+    real = [d for d in candidates if "synthetic" not in d.name]
+    pool = real or candidates
+    if dataset:
+        named = [d for d in pool if f"_{dataset}_" in d.name]
+        if named:
+            pool = named
+    return str(sorted(pool, key=lambda p: p.name)[-1])
 
 
 def all_experiments(experiments_dir: str) -> List[str]:

@@ -322,9 +322,99 @@ def _other_datasets(experiments_dir: str, current: str) -> dict:
         name = loaded.get("dataset")
         if not name or name == current:
             continue
+        # The synthetic fixture exists so the test suite can run the pipeline
+        # without a download. It is not a dataset the project evaluated, and
+        # reporting it beside a real one invites a comparison that means
+        # nothing.
+        if name == "synthetic":
+            continue
         # Later directories win, so iteration order gives the most recent run.
         found[name] = loaded
     return found
+
+
+def _ugr_section(report, experiments_dir: str) -> None:
+    """Section 8: the UGR'16 experiment, on its own terms.
+
+    The two datasets are not pooled and not ranked against each other. UGR'16
+    is reported separately because its attack prevalence is one to two orders
+    of magnitude lower, which makes its F1 incomparable to UNSW's before any
+    distribution shift is even considered.
+    """
+    report.h1("8. UGR'16")
+    ugr = _other_datasets(experiments_dir, "unsw_nb15").get("ugr16")
+    if not ugr:
+        report.para("No UGR'16 run has been completed, so this section reports nothing rather than estimating.")
+        return
+
+    split = ugr.get("split", {})
+    models = ugr.get("models", [])
+    report.para(
+        "UGR'16 was captured from a real ISP over several months, which makes it the stronger of the two "
+        "temporal experiments here. UNSW-NB15's recorded time axis spans under a month and its forward period "
+        "covers roughly four hours, whereas the UGR'16 forward period is a full week of later traffic. It is "
+        "also the harder detection problem, because attacks are one to two orders of magnitude rarer in it."
+    )
+    report.table(
+        ["Property", "Value"],
+        [
+            ["Total rows", f"{split.get('rows_total', 0):,}"],
+            ["Train rows", f"{split.get('train_count', {}).get('rows', 0):,}"],
+            ["Train attack rate", f"{split.get('train_count', {}).get('attack_rate', 0) * 100:.3f}%"],
+            ["Validation rows", f"{split.get('validation_count', {}).get('rows', 0):,}"],
+            ["Backtest rows", f"{split.get('backtest_count', {}).get('rows', 0):,}"],
+            ["Forward rows", f"{split.get('forward_count', {}).get('rows', 0):,}"],
+            ["Forward attack rate", f"{split.get('forward_count', {}).get('attack_rate', 0) * 100:.3f}%"],
+            ["Forward period", " to ".join([
+                str(split.get("forward_period", ["", ""])[0]), str(split.get("forward_period", ["", ""])[1])
+            ])],
+        ],
+        widths=[1.3, 2.0],
+    )
+
+    by_method = (ugr.get("drift_summary") or {}).get("by_method", {})
+    if by_method:
+        report.para(
+            "The drift detectors disagree more sharply here than on the other dataset, and the direction of the "
+            "disagreement is reversed."
+        )
+        report.table(
+            ["Detector", "Alerts", "Alert rate"],
+            [
+                [name, f"{s.get('alerts', 0)}/{s.get('comparisons', 0)}",
+                 f"{s.get('alerts', 0) / max(s.get('comparisons', 1), 1) * 100:.1f}%"]
+                for name, s in sorted(by_method.items())
+            ],
+            widths=[1.2, 1.0, 1.0],
+        )
+        silent = sorted(n for n, s in by_method.items() if s.get("alerts", 0) == 0)
+        if silent:
+            report.para(
+                f"{' and '.join(silent)} raised no alert at all in this experiment, while the same detectors were "
+                "far from silent on the other dataset. That is reported as a finding rather than smoothed over: a "
+                "detector that stays quiet under a measurably shifted distribution has not found the traffic "
+                "stable, it has failed to notice."
+            )
+
+    if models:
+        header, body = _parse_markdown_table(main_comparison_table(ugr))
+        if body:
+            report.para("The identical protocol, applied to UGR'16:")
+            report.table(header, body, widths=[1.2, 0.8, 0.8, 0.9, 0.9, 0.9, 0.7, 0.7, 0.8], font_size=6.6)
+        worst = min(models, key=lambda m: m["result"].get("f1_degradation", 0))
+        report.para(
+            "Absolute F1 here is far below the figures on the other dataset, and the reason is prevalence rather "
+            "than model quality: with attacks present in well under one flow in a hundred, precision is bounded "
+            f"by the base rate however good the ranking is. The largest F1 loss falls on "
+            f"{worst['result']['model']} ({worst['result'].get('f1_degradation', 0):+.4f}), and recall falls "
+            "further than F1 for the models that score it, because the forward period carries more attacks than "
+            "the period they were fitted on."
+        )
+        if any(m.get("adaptation") for m in models):
+            report.para(
+                "Adaptation behaves here in the opposite direction to the other dataset. That disagreement is the "
+                "most consequential difference between the two experiments, and it is taken up in section 23."
+            )
 
 
 def generate_report(experiments_dir: str = "results/experiments", output: str = "docs/technical_report.pdf") -> str:
@@ -332,7 +422,9 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
     from driftguard.reporting.figures import build_all_figures
     from driftguard.reporting.figures_extra import build_extra_figures
 
-    experiment = latest_experiment(experiments_dir)
+    # UNSW-NB15 is the headline benchmark, so it is pinned rather than inferred.
+    # Alphabetical order would pick UGR'16 and then label its numbers "UNSW-NB15".
+    experiment = latest_experiment(experiments_dir, dataset="unsw_nb15")
     if not experiment:
         raise SystemExit(
             f"no completed experiment in {experiments_dir}. "
@@ -367,7 +459,7 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
     ])
 
     # ---------------- Abstract ----------------
-    report.h1("Abstract")
+    report.h1("1. Abstract")
     models = metrics.get("models", [])
     degraded = [m for m in models if m["result"].get("f1_degradation", 0) > 0]
     best = max(models, key=lambda m: m["result"]["backtest"]["f1"]) if models else None
@@ -397,7 +489,7 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
     report.para(" ".join(lines))
 
     # ---------------- Research question ----------------
-    report.h1("Research question")
+    report.h1("2. Research question")
     report.para(
         "Primary: does a machine-learning network anomaly detector trained on historical traffic continue to "
         "detect attacks reliably when evaluated on later, previously unseen traffic?"
@@ -412,7 +504,7 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
         "established the metadata-only detector this project then takes forward in time."
     )
 
-    report.h2("Why I chose this question")
+    report.h1("3. Why I chose this question")
     report.para(
         "I started with the simpler question of whether network traffic metadata contains enough information to "
         "distinguish normal traffic from attacks. Existing research then led me to a harder problem: network "
@@ -428,7 +520,7 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
     )
 
     # ---------------- Research basis ----------------
-    report.h1("Research basis")
+    report.h1("4. Literature motivation")
     report.para(
         "Shyaa et al. (2024) survey concept-drift and feature-dynamics-aware machine and deep learning for "
         "intrusion detection, and give the premise of this project: a detector trained on one traffic "
@@ -447,7 +539,7 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
         "evaluates several strategies rather than assuming one."
     )
 
-    report.h2("Threat model")
+    report.h1("5. Threat model")
     report.bullets([
         "The defender observes flow metadata only: start time, duration, packet and byte counts, protocol and "
         "TCP flags. Payload contents are never inspected.",
@@ -458,35 +550,8 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
         "on prior knowledge of the specific attack.",
     ])
 
-    # ---------------- Dataset ----------------
-    # ---------------- Leakage prevention ----------------
-    report.h1("Leakage prevention")
-    report.para(
-        "A temporal experiment is only meaningful if nothing from the future can reach the model. Five guards "
-        "enforce that here, and each is covered by a test that fails if the guard is removed."
-    )
-    report.bullets([
-        "Periods are contiguous in time and ordered. An identical timestamp is never split across a boundary, "
-        "because UNSW-NB15 stamps some rows with the same second.",
-        "The scaler and encoder are fitted on the training period only. Fitting on all data and then splitting "
-        "would leak the forward period's mean and variance into training, which is the most common way a "
-        "'temporal' split quietly becomes a random one.",
-        "The operating threshold is chosen on the validation split, never on the backtest or forward periods.",
-        "The backtest is used for exactly one thing: measuring how much the model decays before the forward "
-        "test is touched at all. The forward period is scored once.",
-        "Adaptation is given the window immediately before the forward period and nothing after its first "
-        "timestamp. Rolling adaptation re-fits on a cadence, and at each step the fit may only use rows earlier "
-        "than the step it is about to score.",
-    ])
-    guard_tests = [
-        t for t in sorted(p.name for p in (Path(__file__).resolve().parents[2] / "tests").glob("test_*.py"))
-        if "leak" in t or "silent" in t
-    ]
-    if guard_tests:
-        report.para("Guards covered by: " + ", ".join(guard_tests) + ".")
-
     # ---------------- Dataset provenance ----------------
-    report.h1("Dataset provenance")
+    report.h1("6. Dataset provenance")
     report.para(
         "Both datasets are public and are used unmodified. What each is allowed to support is not the same, and "
         "the difference matters for how far the results travel."
@@ -522,7 +587,7 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
     ] + list(notes["limitations"]))
 
     # ---------------- Threat model ----------------
-    report.h1("Threat model")
+    report.h2("Threat model in terms of trust boundaries")
     report.para(
         "The adversary here is not the attacker in the dataset. It is the passage of time, and the question is "
         "whether the measurement apparatus keeps working when the traffic it was calibrated on is replaced."
@@ -540,7 +605,7 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
         "same as a formal privacy guarantee against a traffic analyst.",
     ])
 
-    report.h1("Dataset")
+    report.h1("7. UNSW-NB15")
     report.para(
         f"This report was generated from a run on {metrics['dataset']}. The dataset was loaded through an "
         f"explicit adapter that maps the source's own fields onto a shared flow schema; fields the source does "
@@ -573,28 +638,19 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
         "a claim about modern networks generally.",
     ])
 
-    # ---------------- Feature policy ----------------
-    report.h1("Feature policy")
-    report.para(
-        "The feature set follows a written policy: only what a netflow or IPFIX collector actually emits, and "
-        "never payload content, identity fields, or the label. The target column and the time index are excluded "
-        "at selection time, and the preprocessor refuses to fit on them."
-    )
-    report.bullets([
-        "Allowed: flow duration, packet and byte counts, derived rates, protocol, TCP flags.",
-        "Excluded: IP addresses and ports, absolute timestamps as model inputs, the attack category, and the "
-        "binary label.",
-        "Excluded: any application-payload-derived field. A field that only exists because a tool parsed HTTP or "
-        "FTP content is not available on encrypted traffic, so including it would make the payload-free claim false.",
-    ])
-
     # ---------------- Design ----------------
     if "split_timeline" in figures:
         report.figure(figures["split_timeline"],
                        "The four periods on the real capture axis, drawn to scale. "
                        "Every conclusion here is bounded by how short that axis is.", width=380)
 
-    report.h1("Experimental design")
+    # ---------------- UGR'16 ----------------
+    # Placed here by hand rather than by the reorder pass: the helper emits a
+    # numbered heading from outside the body, so a sort on heading numbers
+    # cannot place it, and it landed inside the abstract when it tried.
+    _ugr_section(report, experiments_dir)
+
+    report.h1("9. Temporal evaluation design")
     report.h2("Periods")
     rows = []
     for period in ["train", "validation", "backtest"] + (["forward"] if "forward_period" in split else []):
@@ -643,8 +699,34 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
         report.table(header, rows, widths=[1.2, 0.7, 0.8, 1.0, 1.0, 0.8],
                      aligns=["L", "R", "R", "R", "R", "R"])
 
+    # ---------------- Leakage prevention ----------------
+    report.h1("10. Leakage prevention")
+    report.para(
+        "A temporal experiment is only meaningful if nothing from the future can reach the model. Five guards "
+        "enforce that here, and each is covered by a test that fails if the guard is removed."
+    )
+    report.bullets([
+        "Periods are contiguous in time and ordered. An identical timestamp is never split across a boundary, "
+        "because UNSW-NB15 stamps some rows with the same second.",
+        "The scaler and encoder are fitted on the training period only. Fitting on all data and then splitting "
+        "would leak the forward period's mean and variance into training, which is the most common way a "
+        "'temporal' split quietly becomes a random one.",
+        "The operating threshold is chosen on the validation split, never on the backtest or forward periods.",
+        "The backtest is used for exactly one thing: measuring how much the model decays before the forward "
+        "test is touched at all. The forward period is scored once.",
+        "Adaptation is given the window immediately before the forward period and nothing after its first "
+        "timestamp. Rolling adaptation re-fits on a cadence, and at each step the fit may only use rows earlier "
+        "than the step it is about to score.",
+    ])
+    guard_tests = [
+        t for t in sorted(p.name for p in (Path(__file__).resolve().parents[2] / "tests").glob("test_*.py"))
+        if "leak" in t or "silent" in t
+    ]
+    if guard_tests:
+        report.para("Guards covered by: " + ", ".join(guard_tests) + ".")
+
     # ---------------- Models ----------------
-    report.h1("Models")
+    report.h1("11. Models")
     report.para(
         "Four estimators spanning the usual complexity range, all with a fixed seed. They are ordinary baselines: "
         "the question is how they fail, not whether one can be tuned to win."
@@ -663,28 +745,8 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
             f"threshold {result['threshold']:.4f}.", size=8.6
         )
 
-    # ---------------- Results ----------------
-    report.h1("Results")
-    report.h2("Backtest versus forward test")
-    report.para(
-        "The two evaluations are reported separately and never merged. A positive degradation means the forward "
-        "score was lower than the backtest score."
-    )
-    header, rows = _parse_markdown_table(main_comparison_table(metrics))
-    if rows:
-        report.table(header, rows, widths=[1.2, 0.8, 0.8, 0.9, 0.9, 0.9, 0.7, 0.7, 0.8], font_size=6.6)
-    if "backtest_vs_forward" in figures:
-        report.figure(figures["backtest_vs_forward"], "Backtest and forward-test F1 per model.")
-    if "degradation" in figures:
-        report.figure(figures["degradation"], "Change in F1 and recall on later traffic.")
-
-    if "recall_vs_fpr" in figures:
-        report.figure(figures["recall_vs_fpr"],
-                       "Each model's operating point: recall against the false-positive rate it "
-                       "actually achieved, backtest versus forward.", width=380)
-
     # ---------------- Drift ----------------
-    report.h1("Distribution shift and drift detection")
+    report.h1("12. Drift detection")
     if "drift_detectors" in figures:
         report.figure(figures["drift_detectors"],
                        "The four detectors on the same windows. The disagreement between them is the "
@@ -714,7 +776,7 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
         report.figure(figures["drift_timeline"], "Drift alerts across the forward period.")
 
     # ---------------- Adaptation ----------------
-    report.h1("Adaptation")
+    report.h1("13. Adaptation strategies")
     report.para(
         "Five strategies were evaluated against the same false-positive budget: no adaptation, threshold "
         "recalibration, recent-window retraining, rolling-window retraining, and retraining on historical plus "
@@ -733,8 +795,206 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
         "declared the overall winner; the table reports what happened in this experiment."
     )
 
+    # ---------------- Metrics ----------------
+    report.h1("14. Metrics")
+    report.para(
+        "Every metric is computed at the threshold chosen on validation data, never at a threshold tuned on the "
+        "period being scored. A detector that simply alerts more would otherwise look better, so recall is "
+        "always reported beside the false-positive rate it cost."
+    )
+    report.bullets([
+        "F1 is the harmonic mean of precision and recall. At the attack prevalence seen in UGR'16 it is "
+        "dominated by the false-positive term, which is why the false-positive rate is reported next to it "
+        "rather than left implicit.",
+        "Recall is the share of attacks caught. The false-positive rate is the share of normal flows wrongly "
+        "called an attack, and is the quantity held to the budget.",
+        "PR AUC summarises ranking quality across every threshold, so it is the one measure here that does not "
+        "depend on where the operating point happened to land.",
+        "Brier score and expected calibration error measure whether a probability means what it says. A model "
+        "that becomes less accurate without becoming less honest is a different problem from one that degrades "
+        "in both directions at once.",
+        "Cohen's d measures a numeric shift and total-variation distance measures a categorical one. A protocol "
+        "mixture shift is exactly zero under Cohen's d however far the mixture moves, which is why measuring it "
+        "that way alone would have reported a real shift as absent.",
+    ])
+
+    # ---------------- Experimental protocol ----------------
+    report.h1("15. Experimental protocol")
+    report.para(
+        "Every number in the results sections comes from one command run against a recorded configuration, with "
+        "the seed fixed and the dataset checksum stored in the run's own metadata. The protocol is stated here so "
+        "that a reader can trace each figure to a procedure rather than take it on trust."
+    )
+    report.bullets([
+        f"Dataset {metrics['dataset']}, loaded through the adapter named in the run metadata, "
+        f"{split['rows_total']:,} flows in total.",
+        f"Four contiguous, disjoint periods in the order train, validation, backtest, forward: "
+        f"{split['train_count']['rows']:,} / {split['validation_count']['rows']:,} / "
+        f"{split['backtest_count']['rows']:,} / {split.get('forward_count', {}).get('rows', 0):,}.",
+        "The operating threshold is chosen on validation data alone, at the configured target false-positive "
+        "rate, and is then frozen for the backtest, the forward period and every adaptation strategy.",
+        "Preprocessing, including the one-hot encoder for protocol, is fitted on training rows only. An encoder "
+        "fitted across all periods would let a protocol label that only appears later define a feature dimension.",
+        f"Seed {meta.get('random_seed', '42')}, Python "
+        f"{(meta.get('package_versions') or {}).get('python', 'unknown')}, commit "
+        f"{meta.get('git_commit', 'unknown')}.",
+        "An experiment directory is never overwritten. A run that cannot complete every requested stage fails "
+        "loudly rather than writing a partial result that looks finished.",
+    ])
+
+    # ---------------- Results ----------------
+    report.h1("16. Main results")
+    report.para(
+        f"This section reports the headline benchmark on {metrics['dataset']}. UGR'16 is reported separately in "
+        "section 8 and the two are compared in section 23."
+    )
+    report.h2("Backtest versus forward test")
+    report.para(
+        "The two evaluations are reported separately and never merged. A positive degradation means the forward "
+        "score was lower than the backtest score."
+    )
+    header, rows = _parse_markdown_table(main_comparison_table(metrics))
+    if rows:
+        report.table(header, rows, widths=[1.2, 0.8, 0.8, 0.9, 0.9, 0.9, 0.7, 0.7, 0.8], font_size=6.6)
+    if "backtest_vs_forward" in figures:
+        report.figure(figures["backtest_vs_forward"], "Backtest and forward-test F1 per model.")
+    if "degradation" in figures:
+        report.figure(figures["degradation"], "Change in F1 and recall on later traffic.")
+
+    if "recall_vs_fpr" in figures:
+        report.figure(figures["recall_vs_fpr"],
+                       "Each model's operating point: recall against the false-positive rate it "
+                       "actually achieved, backtest versus forward.", width=380)
+
+    # ---------------- Drift analysis ----------------
+    report.h1("17. Drift analysis")
+    if drift_summary.get("comparisons"):
+        report.para(
+            f"Across {drift_summary['comparisons']} window-feature comparisons on {metrics['dataset']}, "
+            f"{drift_summary['alerts']} raised an alert, a rate of "
+            f"{drift_summary['alerts'] / max(drift_summary['comparisons'], 1):.1%}."
+        )
+    report.para(
+        "The detectors do not agree, and that disagreement is the result rather than a defect in any one of them: "
+        "a significance test, a distributional distance and a sequential detector answer three different "
+        "questions about the same windows."
+    )
+    report.para(
+        "Three failure modes are visible and are kept distinct. A detector can alert on nearly everything, which "
+        "measures how many comparisons were made rather than whether anything changed. A detector can stay "
+        "silent while the distribution measurably moves, which is what happened to PSI and CUSUM on UGR'16. And "
+        "a detector can alert on a shift that cost the model no F1 at all, which is the ordinary case for benign "
+        "drift."
+    )
+    report.para(
+        "Drift is nowhere in this report treated as a stand-in for failure. The two are measured independently, "
+        "and only their coincidence is discussed."
+    )
+
+    # ---------------- Adaptation analysis ----------------
+    report.h1("18. Adaptation analysis")
+    report.para(
+        "Each strategy is judged on what it recovers and what it costs, under the same false-positive budget as "
+        "the unadapted baseline. A strategy that raises F1 by widening its threshold is not an adaptation, which "
+        "is why the false-positive rate is reported beside every F1."
+    )
+    report.para(
+        "The finding is that the ranking is not stable. On UNSW-NB15, rolling-window retraining is the worst "
+        "strategy for one model and among the best for another, and the two datasets evaluated here disagree "
+        "about it completely. No claim of the form 'method X adapts best' is supported by this evidence and none "
+        "is made."
+    )
+    report.para(
+        "Threshold recalibration changed nothing on UNSW-NB15, because the validation-derived threshold was "
+        "already meeting the target false-positive rate. That is a fact about this data rather than a verdict on "
+        "the method: recalibration can only help once the operating point has actually moved."
+    )
+
+    # ---------------- Controlled shifts ----------------
+    report.h1("19. Controlled shifts")
+    shift_csv = _latest_shift_csv(experiments_dir)
+    if not shift_csv:
+        report.para("No controlled-shift experiment has been completed.")
+    else:
+        shifts = pd.read_csv(shift_csv)
+        if shifts.empty:
+            report.para("The controlled-shift experiment recorded no rows.")
+        else:
+            verified = int(shifts["realized_verified"].sum())
+            report.para(
+                f"Eight shift families are applied to already-trained models at several magnitudes, giving "
+                f"{len(shifts)} measurements over {shifts['shift'].nunique()} families. Every row records both "
+                "the shift that was requested and the shift that was actually measured, because a perturbation "
+                "that fails to move the distribution is a finding and not a success."
+            )
+            report.para(
+                f"All {verified} of {len(shifts)} rows produced a measured shift in the intended direction. "
+                "Numeric families are measured with Cohen's d and the categorical protocol-mixture family with "
+                "total-variation distance, because a mixture has no mean for Cohen's d to summarise."
+            )
+            report.para(
+                "The responses are not uniformly harmful. Several perturbations improved F1, most clearly the "
+                "class-prevalence shift, which raises the base rate and therefore precision at a fixed threshold. "
+                "Reporting only the degradations would misrepresent the experiment, so both directions are kept."
+            )
+            by_family = []
+            for family, group in shifts.groupby("shift"):
+                by_family.append([
+                    str(family),
+                    str(len(group)),
+                    f"{float(group['f1_degradation'].min()):+.4f}",
+                    f"{float(group['f1_degradation'].max()):+.4f}",
+                    f"{int(group['realized_verified'].sum())}/{len(group)}",
+                ])
+            report.table(
+                ["Shift family", "Rows", "Best F1 change", "Worst F1 change", "Measured as intended"],
+                by_family,
+                widths=[1.3, 0.5, 0.9, 0.9, 0.9],
+                font_size=7.0,
+            )
+
+    # ---------------- Ablations ----------------
+    report.h1("20. Ablations")
+    if "shift_degradation" in figures:
+        report.figure(figures["shift_degradation"],
+                       "Controlled shifts, labelled with how many of each family moved the "
+                       "distribution as intended.", width=380)
+
+    report.para(
+        "Each ablation below answers one methodological question. They are run with cheaper models than the "
+        "headline benchmark because the question is about the effect, not about which model is best."
+    )
+    ablation_rows = _collect_ablations(experiments_dir)
+    if ablation_rows:
+        for group, rows in ablation_rows.items():
+            report.h2(group.replace("_", " "))
+            header = list(rows[0].keys())
+            keep = [c for c in header if c not in {"note", "experiment_id", "dropped", "seconds", "model"}]
+            # str() on a float prints all 17 significant digits and prints a
+            # missing value as the literal "nan", so the ablation tables were
+            # both unreadable and wrong. Numbers are rounded and blanks are
+            # left blank.
+            def _cell(value):
+                if value is None:
+                    return ""
+                if isinstance(value, float):
+                    if value != value:          # NaN
+                        return ""
+                    if value in (float("inf"), float("-inf")):
+                        return "inf"
+                    return f"{value:.4f}"
+                return str(value)
+
+            table_rows = [[_cell(r.get(c, "")) for c in keep] for r in rows]
+            report.table(keep, table_rows, font_size=6.6)
+            notes = [r["note"] for r in rows if r.get("note") and not str(r["note"]).startswith("trained")]
+            for note in dict.fromkeys(notes):
+                report.para(note, size=7.4, italic=True)
+    else:
+        report.para("No ablation experiment has been recorded yet.")
+
     # ---------------- Failure analysis ----------------
-    report.h1("Failure analysis")
+    report.h1("21. Failure analysis")
     if "failure_analysis" in figures:
         report.figure(figures["failure_analysis"],
                        "Error volume and mean error score per model on the forward period.", width=380)
@@ -786,7 +1046,7 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
         report.figure(figures["forward_windows"], "Recall and false-positive rate across the forward period.")
 
     # ---------------- Uncertainty ----------------
-    report.h1("Uncertainty and calibration")
+    report.h1("22. Uncertainty and calibration")
     report.para(
         "Confidence is measured with the Brier score and expected calibration error on both periods, which shows "
         "whether a model that has become less accurate also becomes less honest about it."
@@ -799,33 +1059,8 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
     if "class_timeline" in figures:
         report.figure(figures["class_timeline"], "Attack prevalence across the forward period.")
 
-    # ---------------- Ablations ----------------
-    report.h1("Ablations")
-    if "shift_degradation" in figures:
-        report.figure(figures["shift_degradation"],
-                       "Controlled shifts, labelled with how many of each family moved the "
-                       "distribution as intended.", width=380)
-
-    report.para(
-        "Each ablation below answers one methodological question. They are run with cheaper models than the "
-        "headline benchmark because the question is about the effect, not about which model is best."
-    )
-    ablation_rows = _collect_ablations(experiments_dir)
-    if ablation_rows:
-        for group, rows in ablation_rows.items():
-            report.h2(group.replace("_", " "))
-            header = list(rows[0].keys())
-            keep = [c for c in header if c not in {"note", "experiment_id", "dropped", "seconds", "model"}]
-            table_rows = [[str(r.get(c, "")) for c in keep] for r in rows]
-            report.table(keep, table_rows, font_size=6.6)
-            notes = [r["note"] for r in rows if r.get("note") and not str(r["note"]).startswith("trained")]
-            for note in dict.fromkeys(notes):
-                report.para(note, size=7.4, italic=True)
-    else:
-        report.para("No ablation experiment has been recorded yet.")
-
     # ---------------- Cross-dataset ----------------
-    report.h1("Cross-dataset discussion")
+    report.h1("23. Cross-dataset discussion")
     other = _other_datasets(experiments_dir, metrics["dataset"])
     if not other:
         report.para(
@@ -850,34 +1085,8 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
                 "adaptation as a separate question from detection."
             )
 
-    # ---------------- Conclusion ----------------
-    report.h1("Conclusion")
-    if models:
-        worst = min(models, key=lambda m: m["result"].get("f1_degradation", 0))
-        best_fwd = max(models, key=lambda m: m["result"]["forward"]["f1"])
-        report.para(
-            f"A detector trained on the earliest {split['train_count']['rows']:,} flows of {metrics['dataset']} "
-            f"was evaluated on {split.get('forward_count', {}).get('rows', 0):,} flows it never saw. "
-            f"{len(degraded)} of {len(models)} models lost F1 on that later traffic. The largest loss was "
-            f"{worst['result']['model']} at {worst['result'].get('f1_degradation', float('nan')):+.4f} F1; the best "
-            f"forward performer was {best_fwd['result']['model']} at F1 {best_fwd['result']['forward']['f1']:.4f}."
-        )
-        report.para(
-            "The answer to the primary question is therefore conditional rather than binary. Models trained on "
-            "historical traffic do continue to detect attacks on later traffic, but not at the level they reached "
-            "on held-out data from the same period, and the drop is not uniform across models. "
-            + (
-                "The adaptation comparison further shows that refitting on recent data is not automatically an "
-                "improvement, so the choice of strategy has to be made against a stated objective rather than "
-                "assumed from its name."
-                if len(models) else ""
-            )
-        )
-    else:
-        report.para("No model results were recorded, so no conclusion can be drawn.")
-
     # ---------------- Limitations ----------------
-    report.h1("Limitations")
+    report.h1("24. Limitations")
     dataset_name = metrics.get("dataset", "the dataset")
     limit_items = [
         "The numbers describe one dataset under one configuration. They are not a claim about modern networks, "
@@ -910,7 +1119,7 @@ def generate_report(experiments_dir: str = "results/experiments", output: str = 
     report.bullets(limit_items)
 
     # ---------------- Reproducibility ----------------
-    report.h1("Reproducibility")
+    report.h1("25. Reproducibility")
     report.para(
         f"Every run writes an immutable directory under {experiments_dir}/. The one behind this report is "
         f"{base.name}."
@@ -933,7 +1142,7 @@ reproduce:
     report.mono("\n".join(files))
 
     # ---------------- Future ----------------
-    report.h1("Future research")
+    report.h1("26. Future work")
     report.bullets([
         "A second dataset with a genuinely different capture environment, to separate temporal shift within a "
         "network from a change of network.",
@@ -945,8 +1154,36 @@ reproduce:
         "alert even when the F1 has not yet moved.",
     ])
 
+    # ---------------- Conclusion ----------------
+    report.h1("27. Conclusion")
+    if models:
+        worst = min(models, key=lambda m: m["result"].get("f1_degradation", 0))
+        best_fwd = max(models, key=lambda m: m["result"]["forward"]["f1"])
+        report.para(
+            f"A detector trained on the earliest {split['train_count']['rows']:,} flows of {metrics['dataset']} "
+            f"was evaluated on {split.get('forward_count', {}).get('rows', 0):,} flows it never saw. "
+            f"{len(degraded)} of {len(models)} models lost F1 on that later traffic. The largest loss was "
+            f"{worst['result']['model']} at {worst['result'].get('f1_degradation', float('nan')):+.4f} F1; the best "
+            f"forward performer was {best_fwd['result']['model']} at F1 {best_fwd['result']['forward']['f1']:.4f}."
+        )
+        report.para(
+            "The answer to the primary question is therefore conditional rather than binary. Models trained on "
+            "historical traffic do continue to detect attacks on later traffic, but not at the level they reached "
+            "on held-out data from the same period, and the drop is not uniform across models. "
+            + (
+                "The adaptation comparison further shows that refitting on recent data is not automatically an "
+                "improvement, so the choice of strategy has to be made against a stated objective rather than "
+                "assumed from its name."
+                if len(models) else ""
+            )
+        )
+    else:
+        report.para("No model results were recorded, so no conclusion can be drawn.")
+
+    # ---------------- References ----------------
     report.h1("References")
     for entry in REFERENCES:
         report.para(entry, size=8.4)
 
     return report.output(output)
+

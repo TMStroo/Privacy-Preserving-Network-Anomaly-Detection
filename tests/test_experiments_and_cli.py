@@ -134,3 +134,162 @@ def test_demo_runs_without_any_dataset_download(tmp_path):
     assert out.returncode == 0, out.stderr[-2000:]
     assert "NOT a research benchmark" in out.stdout
     assert "backtest" in out.stdout and "forward" in out.stdout
+
+
+def test_the_report_returns_after_its_last_section():
+    """A return before the final section silently drops it from the PDF.
+
+    Reordering the report's sections to numerical order moved the conclusion
+    below the call that writes the file. Nothing raised: the PDF was still
+    produced, just 26 sections instead of 27, and the missing section was only
+    discoverable by reading the document.
+    """
+    import ast
+    from pathlib import Path
+
+    source = Path(__file__).resolve().parents[1] / "src/driftguard/reporting/generate.py"
+    tree = ast.parse(source.read_text(encoding="utf-8"))
+    function = next(
+        n for n in tree.body
+        if isinstance(n, ast.FunctionDef) and n.name == "generate_report"
+    )
+
+    # Every statement after the first Return is unreachable.
+    statements = function.body
+    for index, node in enumerate(statements):
+        if isinstance(node, ast.Return):
+            trailing = [type(s).__name__ for s in statements[index + 1:]]
+            assert not trailing, (
+                f"{len(trailing)} statement(s) after the return in generate_report: {trailing}"
+            )
+            return
+    raise AssertionError("generate_report has no return statement")
+
+
+def test_the_report_declares_all_twenty_seven_sections_in_order():
+    """The specification is 27 numbered sections, and they must appear in order."""
+    import ast
+    import re
+    from pathlib import Path
+
+    source = Path(__file__).resolve().parents[1] / "src/driftguard/reporting/generate.py"
+    text = source.read_text(encoding="utf-8")
+    ast.parse(text)  # must at least be valid Python
+    numbers = sorted({int(n) for n in re.findall(r'report\.h1\("(\d+)\. ', text)})
+    assert numbers == list(range(1, 28)), f"expected sections 1..27, found {numbers}"
+
+
+def test_the_report_is_built_from_a_real_run_not_the_fixture(tmp_path):
+    """The synthetic fixture must never become the report's base run.
+
+    latest_experiment() sorted directories by name and took the last, which is
+    the fixture. The report then rendered 40,000 synthetic rows as the
+    project's results while the completed UNSW-NB15 benchmark sat unread on
+    disk. Nothing warned: the document was well formed and entirely wrong.
+    """
+    from pathlib import Path
+
+    from driftguard.reporting.render import latest_experiment
+
+    root = tmp_path / "experiments"
+    for name in ("20260101T000000Z_temporal_unsw_nb15_full_aaaaaa",
+                 "20260102T000000Z_temporal_synthetic_bbbbbb"):
+        run = root / name
+        run.mkdir(parents=True)
+        (run / "metrics.json").write_text("{}", encoding="utf-8")
+
+    chosen = Path(latest_experiment(str(root)))
+    assert "unsw_nb15" in chosen.name, f"picked {chosen.name}"
+
+    # With no real run on disk the fixture is still better than nothing.
+    only = tmp_path / "only"
+    (only / "20260102T000000Z_temporal_synthetic_bbbbbb").mkdir(parents=True)
+    (only / "20260102T000000Z_temporal_synthetic_bbbbbb" / "metrics.json").write_text("{}", encoding="utf-8")
+    assert latest_experiment(str(only)) is not None
+
+
+def test_the_report_base_run_can_be_pinned_to_a_dataset(tmp_path):
+    """Two real datasets on disk must not be chosen by alphabetical order.
+
+    With both UNSW-NB15 and UGR'16 complete, an unpinned choice followed the
+    directory names into UGR'16 and printed its metrics under a heading
+    reading "UNSW-NB15". The number was right and the label was wrong, which
+    is harder to catch than either alone.
+    """
+    from pathlib import Path
+
+    from driftguard.reporting.render import latest_experiment
+
+    root = tmp_path / "experiments"
+    for name in ("20260101T000000Z_temporal_unsw_nb15_full_aaaaaa",
+                 "20260102T000000Z_temporal_ugr16_bbbbbb"):
+        run = root / name
+        run.mkdir(parents=True)
+        (run / "metrics.json").write_text("{}", encoding="utf-8")
+
+    unsw = Path(latest_experiment(str(root), dataset="unsw_nb15"))
+    assert "unsw_nb15" in unsw.name
+    ugr = Path(latest_experiment(str(root), dataset="ugr16"))
+    assert "ugr16" in ugr.name
+    # Asking for a dataset that was never run falls back rather than failing,
+    # so the report is still produced from whatever exists.
+    fallback = latest_experiment(str(root), dataset="nonexistent")
+    assert fallback is not None
+
+
+def test_the_report_emits_its_sections_in_numerical_order():
+    """A numbered section out of sequence is a defect in the document itself.
+
+    The abstract once carried the UGR'16 section, because the reorder pass
+    sorted on the lowest numbered heading in each block and the helper's block
+    had none of its own. A static check of the heading numbers would not catch
+    it; only the order of the calls does.
+    """
+    import re
+    from pathlib import Path
+
+    source = Path(__file__).resolve().parents[1] / "src/driftguard/reporting/generate.py"
+    text = source.read_text(encoding="utf-8")
+
+    # Only the body's own headings are ordered. _ugr_section is defined above
+    # generate_report and emits section 8 from there, so its definition is
+    # always textually first and says nothing about document order.
+    body = text[text.index("def generate_report("):]
+    calls = [m.group(1) for m in re.finditer(r'report\.h1\("(\d+)\. ', body)]
+    assert calls == sorted(calls, key=int), f"sections out of order: {calls}"
+
+    order = [
+        m.group(1) if m.group(1) else "_ugr_section"
+        for m in re.finditer(r'report\.h1\("(\d+)\. |_ugr_section\(report', body)
+    ]
+    assert "_ugr_section" in order, order
+    assert order.index("_ugr_section") > order.index("7"), order
+    assert order.index("_ugr_section") < order.index("9"), order
+
+
+def test_the_cross_dataset_section_ignores_the_synthetic_fixture(tmp_path):
+    """The fixture is not a dataset this project evaluated.
+
+    _other_datasets() collected it, so the cross-dataset section compared
+    UNSW-NB15 against 8,000 generated rows and drew a conclusion from the
+    pair. The synthetic run exists to let the tests run without a download.
+    """
+    import json
+    from pathlib import Path
+
+    from driftguard.reporting.generate import _other_datasets
+
+    root = tmp_path / "experiments"
+    for name, dataset in (
+        ("20260101T000000Z_temporal_unsw_nb15_full_aaaaaa", "unsw_nb15"),
+        ("20260102T000000Z_temporal_synthetic_bbbbbb", "synthetic"),
+        ("20260103T000000Z_temporal_ugr16_cccccc", "ugr16"),
+    ):
+        run = root / name
+        run.mkdir(parents=True)
+        (run / "metrics.json").write_text(
+            json.dumps({"dataset": dataset, "models": [], "split": {}}), encoding="utf-8"
+        )
+
+    others = _other_datasets(str(root), "unsw_nb15")
+    assert set(others) == {"ugr16"}, others
