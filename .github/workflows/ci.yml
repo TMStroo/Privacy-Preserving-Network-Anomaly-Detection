@@ -109,9 +109,14 @@ jobs:
 
       - name: Regenerate derived artifacts
         run: |
-          python -m driftguard report --output docs/technical_report.pdf
-          python scripts/render_results.py
-          test -f docs/technical_report.pdf
+          python -m driftguard report --output docs/project_report.pdf
+          test -f docs/project_report.pdf
+          # The README's numbers are checked against the run directories
+          # rather than regenerated into a marked block. A hand-written table
+          # that silently stops matching the evidence is the defect this
+          # catches; render_results.py is kept for the V1-era block format and
+          # exits 1 now that the README no longer carries those markers.
+          python scripts/check_readme.py
 
   # V1 is preserved rather than replaced, so its pipeline stays under test.
   v1-pipeline:
@@ -144,8 +149,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build the image
-        run: docker build -t driftguard .
+        # The image deliberately carries no .git, so the commit is passed in
+        # as a build argument and recorded in each run's metadata.
+        run: docker build -t driftguard --build-arg GIT_COMMIT=${{ github.sha }} .
       - name: Tests inside the image
         run: docker run --rm driftguard python -m pytest tests/ -q
       - name: Smoke benchmark inside the image
         run: docker run --rm driftguard python -m driftguard benchmark --config configs/smoke.yaml
+      - name: The commit reached the image
+        run: |
+          docker run --rm driftguard python -c "import os; print(os.environ.get('DRIFTGUARD_GIT_COMMIT'))"
+      - name: No repository metadata in the image
+        run: |
+          test ! -e /app/.git && echo "no .git in image"
+          ! docker run --rm driftguard git rev-parse --git-dir 2>/dev/null

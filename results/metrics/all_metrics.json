@@ -61,32 +61,32 @@
       "feature_set": "FULL_METADATA"
     },
     "random_forest": {
-      "precision": 0.8771012178079457,
-      "recall": 0.9691608576722844,
-      "f1_score": 0.9208358659428644,
-      "false_positive_rate": 0.16637837837837838,
-      "false_negative_rate": 0.03083914232771552,
-      "true_positive_rate": 0.9691608576722844,
-      "true_negative_rate": 0.8336216216216216,
+      "precision": 0.8822996922210375,
+      "recall": 0.9675284567193153,
+      "f1_score": 0.9229506644360973,
+      "false_positive_rate": 0.15813513513513514,
+      "false_negative_rate": 0.032471543280684724,
+      "true_positive_rate": 0.9675284567193153,
+      "true_negative_rate": 0.8418648648648649,
       "confusion_matrix": [
         [
-          30844,
-          6156
+          31149,
+          5851
         ],
         [
-          1398,
-          43934
+          1472,
+          43860
         ]
       ],
-      "true_positives": 43934,
-      "true_negatives": 30844,
-      "false_positives": 6156,
-      "false_negatives": 1398,
+      "true_positives": 43860,
+      "true_negatives": 31149,
+      "false_positives": 5851,
+      "false_negatives": 1472,
       "n_samples": 82332,
       "n_normal": 37000,
       "n_anomaly": 45332,
-      "roc_auc": 0.9844465373782855,
-      "pr_auc": 0.9884479198553763,
+      "roc_auc": 0.9846479880568824,
+      "pr_auc": 0.9886021854104252,
       "model_name": "random_forest",
       "feature_set": "FULL_METADATA"
     }
@@ -153,32 +153,32 @@
       "feature_set": "RESTRICTED_METADATA"
     },
     "random_forest": {
-      "precision": 0.8662551852668283,
-      "recall": 0.9535648107297273,
-      "f1_score": 0.9078155681328951,
-      "false_positive_rate": 0.1803783783783784,
-      "false_negative_rate": 0.04643518927027265,
-      "true_positive_rate": 0.9535648107297273,
-      "true_negative_rate": 0.8196216216216217,
+      "precision": 0.8714181788788748,
+      "recall": 0.9512706256066354,
+      "f1_score": 0.9095952245354257,
+      "false_positive_rate": 0.17197297297297298,
+      "false_negative_rate": 0.048729374393364513,
+      "true_positive_rate": 0.9512706256066354,
+      "true_negative_rate": 0.828027027027027,
       "confusion_matrix": [
         [
-          30326,
-          6674
+          30637,
+          6363
         ],
         [
-          2105,
-          43227
+          2209,
+          43123
         ]
       ],
-      "true_positives": 43227,
-      "true_negatives": 30326,
-      "false_positives": 6674,
-      "false_negatives": 2105,
+      "true_positives": 43123,
+      "true_negatives": 30637,
+      "false_positives": 6363,
+      "false_negatives": 2209,
       "n_samples": 82332,
       "n_normal": 37000,
       "n_anomaly": 45332,
-      "roc_auc": 0.9774245515368895,
-      "pr_auc": 0.9833150873113494,
+      "roc_auc": 0.9773590137388779,
+      "pr_auc": 0.9833114492099496,
       "model_name": "random_forest",
       "feature_set": "RESTRICTED_METADATA"
     }
