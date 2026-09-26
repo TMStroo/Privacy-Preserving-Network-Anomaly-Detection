@@ -10,6 +10,58 @@ A student project. Every number below is read from a recorded experiment
 directory in `results/experiments/` and rendered from those files, not typed
 in. The technical report is `docs/project_report.pdf`.
 
+## Executive summary
+
+DriftGuard asks whether network anomaly detectors stay reliable when the
+traffic changes over time, using only flow metadata and never packet payloads.
+It evaluates four baseline models on temporally ordered UNSW-NB15 and UGR'16
+data, compares backtest performance against later unseen traffic, measures
+distribution shift with KS, Wasserstein, PSI and CUSUM, and tests five
+adaptation strategies at a fixed false-positive budget of 0.05. All three real
+models lose F1 on later traffic on both datasets, and gradient boosting
+degrades least on UNSW-NB15. Adaptation behaves in opposite directions across
+datasets: rolling retraining takes logistic regression from 0.8392 to 0.6455
+on UNSW-NB15 while raising every tested model on UGR'16, where the random
+forest goes from 0.0226 to 0.2331. The drift detectors disagree sharply — KS
+and Wasserstein alert on 100% and 86% of UNSW-NB15's comparisons and 100% and
+96% of UGR'16's, while PSI and CUSUM alert on 50% and 33% of the first and
+never fire on the second. A controlled-shift study perturbs packet size,
+duration, byte rate, inter-arrival time, packet rate, protocol mixture, class
+prevalence and telemetry, and ablations test split mode, feature policy,
+drift threshold, adaptation window, telemetry family and false-positive
+budget — including a Random Forest F1 of **0.957369** at a requested 1%
+false-positive budget and an achieved 0.010002. The main result is not a
+best model or a best adaptation method: it is that temporal degradation, drift
+detection and adaptation all depend on the traffic distribution and the
+operating conditions tested, and no ranking transfers between the two
+datasets.
+
+![Grouped bar chart comparing backtest and forward-test F1 for four models on UNSW-NB15: majority 0.378 to 0.326, logistic regression 0.870 to 0.839, random forest 0.894 to 0.874, gradient boosting 0.921 to 0.904, with gradient boosting degrading least](docs/figures/unsw_backtest_vs_forward.png)
+
+*Every model loses F1 when moved onto later traffic, and gradient boosting
+loses least (0.921 → 0.904).*
+
+![Two bar charts side by side comparing forward-test F1 for five adaptation strategies on UNSW-NB15 and UGR'16, both at gradient boosting, showing that on UNSW-NB15 all five strategies cluster near 0.904 while on UGR'16 rolling window retrain reaches 0.167 against 0.026 for no adaptation](docs/figures/adaptation_unsw_vs_ugr16.png)
+
+*Rolling window retraining is a small gain on UNSW-NB15 and the only strategy
+that clearly helps on UGR'16, where it lifts gradient boosting from 0.026 to
+0.167 — the same strategy, opposite consequence, tracking which way attack
+prevalence moved.*
+
+![Two pairs of bar charts comparing the alert rate and median effect size of KS, Wasserstein, PSI and CUSUM drift detectors, with UNSW-NB15 alert rates of 100%, 86%, 50% and 33% against UGR'16 alert rates of 100%, 96%, 0% and 0%](docs/figures/drift_alert_rates_comparison.png)
+
+*PSI and CUSUM alert on half and a third of UNSW-NB15's comparisons but never
+fire on UGR'16, so no detector ranking transfers between the two datasets.*
+
+![Two line charts plotting F1 against the target false-positive budget on a log scale from 0.01 to 0.2, showing random forest F1 falling from 0.9574 at a budget of 0.01 to 0.6919 at 0.2, while logistic regression collapses to 0.0685 at the 0.01 budget before recovering to 0.8392 at 0.05](docs/figures/target_fpr_ablation.png)
+
+*The best F1 anywhere in this project is the random forest's **0.957369** at a
+requested budget of **0.01** and an **achieved** false-positive rate of
+**0.010002**; the same model at the 0.05 budget used everywhere else reaches
+0.878504. This is an ablation of the false-positive budget and not a claim that
+any model is best — at the same 0.01 budget logistic regression collapses to
+0.0685, so the two models move in opposite directions as the budget tightens.*
+
 ---
 
 ## 1. Project overview
@@ -606,43 +658,10 @@ full corpus.
 
 ## Figures
 
-Every figure below is rendered from a final experiment directory and copied
-into `docs/figures/`, so it is reproduced by the same run that produced the
-numbers in the tables above. Nothing here is drawn by hand.
-
-### Backtest to forward degradation (UNSW-NB15)
-
-![Grouped bar chart comparing backtest and forward-test F1 for four models on UNSW-NB15: majority 0.378 to 0.326, logistic regression 0.870 to 0.839, random forest 0.894 to 0.874, gradient boosting 0.921 to 0.904, with gradient boosting degrading least](docs/figures/unsw_backtest_vs_forward.png)
-
-*Every model loses F1 when moved onto later traffic, and gradient boosting
-loses least (0.921 → 0.904).*
-
-### The same adaptation strategy, opposite effect on the two datasets
-
-![Two bar charts side by side comparing forward-test F1 for five adaptation strategies on UNSW-NB15 and UGR'16, both at gradient boosting, showing that on UNSW-NB15 all five strategies cluster near 0.904 while on UGR'16 rolling window retrain reaches 0.167 against 0.026 for no adaptation](docs/figures/adaptation_unsw_vs_ugr16.png)
-
-*Rolling window retraining is a small gain on UNSW-NB15 and the only strategy
-that clearly helps on UGR'16, where it lifts gradient boosting from 0.026 to
-0.167 — the same strategy, opposite consequence, tracking which way attack
-prevalence moved.*
-
-### Drift detectors disagree, in opposite directions on the two datasets
-
-![Two pairs of bar charts comparing the alert rate and median effect size of KS, Wasserstein, PSI and CUSUM drift detectors, with UNSW-NB15 alert rates of 100%, 86%, 50% and 33% against UGR'16 alert rates of 100%, 96%, 0% and 0%](docs/figures/drift_alert_rates_comparison.png)
-
-*PSI and CUSUM alert on half and a third of UNSW-NB15's comparisons but never
-fire on UGR'16, so no detector ranking transfers between the two datasets.*
-
-### Target-FPR ablation: the highest F1 in the project
-
-![Two line charts plotting F1 against the target false-positive budget on a log scale from 0.01 to 0.2, showing random forest F1 falling from 0.9574 at a budget of 0.01 to 0.6919 at 0.2, while logistic regression collapses to 0.0685 at the 0.01 budget before recovering to 0.8392 at 0.05](docs/figures/target_fpr_ablation.png)
-
-*The best F1 anywhere in this project is the random forest's **0.957369** at a
-requested budget of **0.01** and an **achieved** false-positive rate of
-**0.010002**; the same model at the 0.05 budget used everywhere else reaches
-0.878504. This is an ablation of the false-positive budget and not a claim that
-any model is best — at the same 0.01 budget logistic regression collapses to
-0.0685, so the two models move in opposite directions as the budget tightens.*
+The four figures are shown at the top of this document, immediately after the
+executive summary, so the results can be read visually before the detail. Each
+is rendered from a final experiment directory and copied into `docs/figures/`,
+so it comes from the same run that produced the tables in sections 13 to 16.
 
 ## 20. Reproduction
 
